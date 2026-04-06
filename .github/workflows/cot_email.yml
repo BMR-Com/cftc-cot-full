@@ -1,0 +1,44 @@
+name: COT Report Weekly Email
+
+on:
+  schedule:
+    # Every Friday at 20:30 UTC = 3:30 PM ET (EST) / 4:30 PM ET (EDT)
+    # CFTC releases at 3:30 PM ET on Fridays — we wait 30 min for data to propagate
+    - cron: '0 21 * * 5'   # 9:00 PM UTC Friday = ~4-5 PM ET, safe buffer
+  workflow_dispatch:        # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  send-cot-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests playwright
+          playwright install chromium --with-deps
+
+      - name: Fetch COT data and generate PDF
+        env:
+          CFTC_API_BASE: 'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'
+        run: |
+          python scripts/generate_pdf.py
+
+      - name: Send email with PDF
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          python scripts/send_email.py
