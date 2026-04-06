@@ -135,8 +135,126 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 .debug-panel { background: #1a1a1a; color: #ecf0f1; padding: 15px; border-radius: 8px; margin: 15px 0; display: none; font-family: monospace; font-size: 0.8em; max-height: 400px; overflow-y: auto; }
 .info-box { background: rgba(255,255,255,0.1); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid rgba(255,255,255,0.5); font-size: 0.85em; line-height: 1.5; }
 #commoditySelect { min-width: 280px; cursor: pointer; }
-@media (max-width: 1200px) { .scatter-grid { grid-template-columns: 1fr 1fr; } .pctile-row { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px) { h1 { font-size: 1.6em; } .controls { flex-direction: column; } .chart-container { height: 280px; } .scatter-grid { grid-template-columns: 1fr; } .pctile-row { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 1200px) { .scatter-grid { grid-template-columns: 1fr 1fr 1fr; } .pctile-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { h1 { font-size: 1.6em; } .controls { flex-direction: column; } .chart-container { height: 280px; } .scatter-grid { grid-template-columns: 1fr 1fr!important; } .pctile-row { grid-template-columns: 1fr 1fr; } }
+.chart-subtitle { font-size:0.82em; color:#666; margin-top:3px; font-weight:400; }
+/* Charts 1+2 and 3+4 paired with subtle separator */
+#chart2, #chart4 { border-top: 2px dashed #e8ecf0; margin-top: 0; }
+
+@media print {
+  @page { size:A4 landscape; margin:7mm 9mm; }
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:white!important;}
+  .controls,.loading,.error,.warning,.debug-panel,.zoom-bar,.comm-sel,.yr-sel,.crop-tab-bar{display:none!important;}
+  header,h1,.subtitle,.info-box{display:none!important;}
+  .container{padding:0!important;max-width:100%!important;}
+
+  /* ── Exec Summary (All BCOM): 1 page ── */
+  #execSec{page-break-before:always!important;page-break-inside:avoid!important;padding:6px 8px!important;box-shadow:none!important;margin:0!important;border-radius:0!important;}
+  .exec-title{font-size:8.5pt!important;margin-bottom:3px!important;padding-bottom:3px!important;}
+  .exec-analysis{font-size:6pt!important;padding:3px 5px!important;margin-bottom:5px!important;line-height:1.35!important;}
+  .pctile-row{gap:3px!important;grid-template-columns:repeat(6,1fr)!important;}
+  .pctile-title{font-size:6pt!important;padding:2px 3px!important;}
+  .pctile-tbl{font-size:6pt!important;}
+  .pctile-tbl td,.pctile-tbl th{padding:1.5px 3px!important;}
+
+  /* ── BCOM Market Summary: exactly 2 pages ── */
+  #sumSec{page-break-before:always!important;padding:4px 6px!important;box-shadow:none!important;border-radius:0!important;}
+  .summary-title{font-size:8pt!important;margin-bottom:3px!important;}
+  .summary-table{font-size:0!important;}
+  .summary-table th{font-size:4.8pt!important;padding:1.5px 1px!important;background:#2a5298!important;color:white!important;position:static!important;white-space:nowrap!important;}
+  .summary-table td{font-size:4.8pt!important;padding:1px!important;border-bottom:0.3px solid #eee!important;}
+  .summary-table tr{page-break-inside:avoid!important;}
+  .mmbar-cont{height:7px!important;border-radius:4px!important;}
+  .mmbar-dot{width:6px!important;height:6px!important;}
+  .mmbar-lbl{font-size:4pt!important;}
+  .mmbar-wrap{min-width:50px!important;}
+  .section-header{font-size:5.5pt!important;padding:1.5px 3px!important;}
+  .commodity-name{font-size:5pt!important;}
+  .data-cell{font-size:4.8pt!important;}
+  .positive-value,.negative-value{font-size:4.8pt!important;}
+  .stats-legend{display:none!important;}
+
+  /* ── 4-Week Detail: 1 page ── */
+  #weeklyDetail{page-break-before:always!important;page-break-inside:avoid!important;padding:4px 6px!important;box-shadow:none!important;border-radius:0!important;}
+  #wdTitle{font-size:8pt!important;}
+  #wdSummary{font-size:6pt!important;padding:3px 5px!important;margin-bottom:4px!important;line-height:1.3!important;}
+  .weekly-crop-section{margin-bottom:5px!important;}
+  .weekly-crop-hdr{padding:2px 6px!important;font-size:6pt!important;}
+  .weekly-detail-tbl{font-size:5pt!important;}
+  .weekly-detail-tbl th{padding:1.5px 2px!important;font-size:5pt!important;}
+  .weekly-detail-tbl td{padding:1.5px 2px!important;font-size:5.5pt!important;}
+  .chg-row td{font-size:4.5pt!important;}
+
+  /* ── Charts: generic ── */
+  /* Hide the metric/agg dropdowns inside each chart — they're not needed in print */
+  .chart-controls{display:none!important;}
+  .chart-section{box-shadow:none!important;padding:5px 8px!important;margin:0!important;border-radius:0!important;page-break-inside:avoid!important;}
+  .chart-title{font-size:9pt!important;}
+  .chart-subtitle{font-size:7.5pt!important;display:block!important;margin-top:1px!important;}
+  .chart-header{margin-bottom:4px!important;padding-bottom:4px!important;}
+  /* Prevent canvas overflow */
+  .chart-container{overflow:hidden!important;max-height:none!important;}
+
+  /* ── Position Analysis + All Trader Categories = 1 page ── */
+  #chart1{page-break-before:always!important;}
+  #chart1 .chart-container{height:210px!important;}
+  #chart2{page-break-before:avoid!important;margin-top:8px!important;padding-top:6px!important;border-top:1.5px dashed #ccc!important;}
+  #chart2 .chart-container{height:200px!important;}
+
+  /* ── Trader Count + Position Size = 1 page ── */
+  #chart3{page-break-before:always!important;}
+  #chart3 .chart-container{height:210px!important;}
+  #chart4{page-break-before:avoid!important;margin-top:8px!important;padding-top:6px!important;border-top:1.5px dashed #ccc!important;}
+  #chart4 .chart-container{height:200px!important;}
+
+  /* ── Seasonality: 1 page ── */
+  #chart5{page-break-before:always!important;}
+  #chart5 .chart-container{height:330px!important;}
+  #seaNote{font-size:6pt!important;padding:2px 6px!important;margin-top:3px!important;}
+
+  /* ── Scatter: 1 page each — bottom legend only ── */
+  #chart6{page-break-before:always!important;}
+  #chart7{page-break-before:always!important;}
+  .scatter-cont{height:195px!important;overflow:hidden!important;}
+  .scatter-wrap{padding:4px!important;}
+  .scatter-title{font-size:6pt!important;margin-bottom:2px!important;}
+  .comm-legend{display:flex!important;flex-wrap:wrap!important;gap:2px 6px!important;padding:4px!important;margin-top:4px!important;border-top:1px solid #eee!important;}
+  .comm-legend-item{font-size:5pt!important;gap:3px!important;}
+  .comm-legend-item div{width:7px!important;height:7px!important;}
+
+  /* ── Agri Exec Summary: 1 page ── */
+  #agriExecSec{page-break-before:always!important;padding:4px 6px!important;box-shadow:none!important;border-radius:0!important;}
+  #agriExecSec .exec-title{font-size:8pt!important;margin-bottom:3px!important;}
+  #agriExecSec .crop-panel-hdr{font-size:6.5pt!important;padding:2px 6px!important;margin:3px 0 2px!important;border-radius:3px!important;}
+  #agriExecSec .exec-analysis{font-size:5.5pt!important;padding:2px 4px!important;margin-bottom:3px!important;line-height:1.25!important;}
+  #agriExecSec .pctile-row{margin-bottom:3px!important;gap:2px!important;}
+  #agriExecSec .pctile-title{font-size:5.5pt!important;padding:1.5px 2px!important;}
+  #agriExecSec .pctile-tbl{font-size:5.5pt!important;}
+  #agriExecSec .pctile-tbl td,#agriExecSec .pctile-tbl th{padding:1px 2px!important;}
+
+  /* ── Agri Market Summary: 1 page per crop section ── */
+  #agriSumSec{page-break-before:always!important;padding:0!important;box-shadow:none!important;border-radius:0!important;}
+  #agriSumSec .summary-title{display:none!important;}
+  #agriSumSec .summary-table th{font-size:4.5pt!important;padding:1px!important;}
+  #agriSumSec .summary-table td{font-size:4.5pt!important;padding:1px!important;}
+  #agriSumSec .mmbar-cont{height:6px!important;} #agriSumSec .mmbar-lbl{font-size:3.5pt!important;}
+  .agri-crop-block{page-break-before:always!important;page-break-inside:avoid!important;padding:4px 8px!important;}
+  .agri-crop-block:first-child{page-break-before:avoid!important;}
+  .agri-crop-block .agri-block-title{font-size:8pt!important;font-weight:700!important;margin-bottom:3px!important;}
+  .agri-crop-block .crop-panel-hdr{font-size:7pt!important;padding:3px 8px!important;margin-bottom:4px!important;}
+
+  /* ── Agri Seasonality: 1 page (3 stacked charts) ── */
+  #agriSeaSec{page-break-before:always!important;padding:4px 6px!important;box-shadow:none!important;border-radius:0!important;}
+  #agriSeaSec .chart-header{margin-bottom:2px!important;}
+  #agriSeaSec .chart-title{font-size:8pt!important;}
+  .agri-sea-block{margin-top:0!important;}
+  /* Each block has fixed height budget: hdr(16pt) + chart(153px→115pt) = ~131pt × 3 = 393pt, fits in 555pt */
+  #agriSeaSec .agri-sea-block .crop-panel-hdr{font-size:6.5pt!important;padding:1px 6px!important;margin:5px 0 2px!important;}
+  #agriSeaSec .chart-container{height:200px!important;overflow:hidden!important;}
+  #agriSeaSec .agri-sea-block .crop-panel-hdr+.chart-container{margin-top:0!important;}
+  #agriSeaSec [id^=aSeaNote]{display:none!important;}
+}
 </style>
 <base target="_blank">
 </head>
@@ -156,36 +274,8 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
   <div class="control-group"><label>Start</label><input type="date" id="startDate" value="2006-01-01"></div>
   <div class="control-group"><label>End</label><input type="date" id="endDate"></div>
   <button id="fetchBtn" onclick="fetchData()">&#x1F4C8; Generate Charts</button>
-  <button onclick="generateSummary()" style="background:#1a8c4e;">&#x1F4CB; Market Summary</button>
-  <button onclick="doScatter()" style="background:#8e44ad;">&#x1F3AF; Prod vs MM</button>
-  <button onclick="doScatterPct()" style="background:#16a085;">&#x1F3AF; %OI %ile</button>
-  <button onclick="doAgriCrop()" style="background:#8B6914;" id="cropBtn">&#x1F33E; Agri Crop</button>
   <button onclick="dlCSV()" style="background:#6c3483;">&#x2B07;&#xFE0F; CSV</button>
   <button onclick="doPrint()" style="background:#c0392b;">&#x1F5A8;&#xFE0F; Print</button>
-  <button onclick="toggleDbg()" style="background:#d4880f;">&#x1F50D; Debug</button>
-</div>
-
-<!-- Crop Notes -->
-<div class="crop-notes-box" id="cropNotes" style="display:none;">
-  <div class="crop-notes-header" onclick="toggleCropNotes()">
-    <span>&#x1F4C5; Crop Year Breakdown — Old Crop vs Other Crop &nbsp;<span id="cropBadge" style="font-weight:normal;font-size:0.85em;opacity:0.85;"></span></span>
-    <span id="cropToggle">&#x25BC;</span>
-  </div>
-  <div class="crop-notes-body" id="cropBody" style="display:none;">
-    <p><strong>Old Crop:</strong> Futures for the current/expiring crop year. <strong>Other Crop:</strong> All subsequent futures months. <strong>All:</strong> Aggregate — note cross-crop-year spreading only appears in All view.</p>
-    <table class="crop-year-tbl"><thead><tr><th>Market</th><th>Crop Start</th><th>Old Crop End</th><th>BCOM</th></tr></thead><tbody>
-      <tr><td>CBOT Wheat (SRW)</td><td>July</td><td>May</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>CBOT Corn</td><td>December</td><td>September</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>CBOT Soybeans</td><td>September</td><td>August</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>CBOT Soybean Oil</td><td>October</td><td>September</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>CBOT Soybean Meal</td><td>October</td><td>September</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>KCBT Wheat (HRW)</td><td>July</td><td>May</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>CME Lean Hogs</td><td>December</td><td>October</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>ICE Cocoa</td><td>December</td><td>September</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>ICE Coffee C</td><td>December</td><td>September</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-      <tr><td>ICE Cotton No.2</td><td>October</td><td>July</td><td><span class="bcom-tag">&#x2713;</span></td></tr>
-    </tbody></table>
-  </div>
 </div>
 
 <div class="loading" id="loading"><div class="spinner"></div><div id="loadingText">Loading...</div></div>
@@ -213,11 +303,10 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
      BCOM MARKET SUMMARY
      ============================================================ -->
 <div class="summary-section" id="sumSec" style="display:none;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;">
-    <div class="summary-title">&#x1F4CB; BCOM Market Summary</div>
-    <button onclick="generateSummary()" style="margin-top:0;padding:6px 12px;font-size:0.85em;">&#x1F504; Refresh</button>
+  <div style="margin-bottom:15px;">
+    <div class="summary-title">&#x1F4CB; BCOM Market Summary — All Trader Categories (Since 2006)</div>
   </div>
-  <div class="table-container"><table class="summary-table" id="sumTable"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="sumBody"></tbody></table></div>
+  <div style="overflow-x:auto;"><table class="summary-table" id="sumTable"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="sumBody"></tbody></table></div>
   <div class="stats-legend"><strong>Range bar:</strong> dot = current position. Green = positive, Red = negative. Full history since 2006.</div>
 </div>
 
@@ -270,22 +359,22 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
   </div>
   <div class="comm-sel" id="seaCommSel"><div class="comm-sel-label">&#x1F4E6; Commodities <span class="sel-count" id="seaCount"></span></div></div>
   <div class="yr-sel" id="seaYrSel"><strong style="font-size:0.85em;">Years:</strong></div>
-  <div class="chart-container" style="height:420px;margin-bottom:8px;"><canvas id="seaChart"></canvas></div>
-  <div id="seaNote" style="padding:8px 12px;background:#f0f7ff;border-radius:6px;font-size:0.8em;color:#1565c0;"></div>
+  <div class="chart-container" style="height:380px;"><canvas id="seaChart"></canvas></div>
+  <div id="seaNote" style="margin-top:8px;padding:6px 12px;background:#f0f7ff;border-radius:6px;font-size:0.8em;color:#1565c0;position:relative;z-index:1;"></div>
 </div>
 
 <!-- ============================================================
      CHART 6: Scatter Prod vs MM
      ============================================================ -->
 <div class="chart-section" id="chart6" style="display:none;">
-  <div class="chart-header"><div class="chart-title">&#x1F3AF; Prod/Merch vs Managed Money (%ile)</div></div>
-  <div class="scatter-grid">
-    <div class="scatter-wrap"><div class="scatter-title">Prod Short vs MM Short</div><div class="scatter-cont"><canvas id="sc1"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod Short vs MM Long</div><div class="scatter-cont"><canvas id="sc2"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod Long vs MM Short</div><div class="scatter-cont"><canvas id="sc3"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod Long vs MM Long</div><div class="scatter-cont"><canvas id="sc4"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod Net vs MM Net</div><div class="scatter-cont"><canvas id="sc5"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod Net vs MM Net (Alt)</div><div class="scatter-cont"><canvas id="sc6"></canvas></div></div>
+  <div class="chart-header"><div class="chart-title">&#x1F3AF; Prod/Merch vs Managed Money (%ile) — All BCOM</div></div>
+  <div class="scatter-grid" style="grid-template-columns:repeat(3,1fr);gap:10px;">
+    <div class="scatter-wrap"><div class="scatter-title">Prod Short vs MM Short</div><div class="scatter-cont" style="height:280px;"><canvas id="sc1"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod Short vs MM Long</div><div class="scatter-cont" style="height:280px;"><canvas id="sc2"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod Long vs MM Short</div><div class="scatter-cont" style="height:280px;"><canvas id="sc3"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod Long vs MM Long</div><div class="scatter-cont" style="height:280px;"><canvas id="sc4"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod Net vs MM Net</div><div class="scatter-cont" style="height:280px;"><canvas id="sc5"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod Net vs MM Net (Alt)</div><div class="scatter-cont" style="height:280px;"><canvas id="sc6"></canvas></div></div>
   </div>
   <div class="comm-legend" id="scLeg"></div>
 </div>
@@ -294,113 +383,165 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
      CHART 7: %OI Scatter
      ============================================================ -->
 <div class="chart-section" id="chart7" style="display:none;">
-  <div class="chart-header"><div class="chart-title">&#x1F3AF; %OI Positioning (%ile)</div></div>
-  <div class="scatter-grid">
-    <div class="scatter-wrap"><div class="scatter-title">Prod S% vs MM S%</div><div class="scatter-cont"><canvas id="sp1"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod S% vs MM L%</div><div class="scatter-cont"><canvas id="sp2"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod L% vs MM S%</div><div class="scatter-cont"><canvas id="sp3"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod L% vs MM L%</div><div class="scatter-cont"><canvas id="sp4"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod N% vs MM N%</div><div class="scatter-cont"><canvas id="sp5"></canvas></div></div>
-    <div class="scatter-wrap"><div class="scatter-title">Prod N% vs MM N% (Alt)</div><div class="scatter-cont"><canvas id="sp6"></canvas></div></div>
+  <div class="chart-header"><div class="chart-title">&#x1F3AF; %OI Positioning (%ile) — All BCOM</div></div>
+  <div class="scatter-grid" style="grid-template-columns:repeat(3,1fr);gap:10px;">
+    <div class="scatter-wrap"><div class="scatter-title">Prod S% vs MM S%</div><div class="scatter-cont" style="height:280px;"><canvas id="sp1"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod S% vs MM L%</div><div class="scatter-cont" style="height:280px;"><canvas id="sp2"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod L% vs MM S%</div><div class="scatter-cont" style="height:280px;"><canvas id="sp3"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod L% vs MM L%</div><div class="scatter-cont" style="height:280px;"><canvas id="sp4"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod N% vs MM N%</div><div class="scatter-cont" style="height:280px;"><canvas id="sp5"></canvas></div></div>
+    <div class="scatter-wrap"><div class="scatter-title">Prod N% vs MM N% (Alt)</div><div class="scatter-cont" style="height:280px;"><canvas id="sp6"></canvas></div></div>
   </div>
   <div class="comm-legend" id="spLeg"></div>
 </div>
 
 <!-- ============================================================
-     AGRI: EXEC SUMMARY (crop-year commodities, 3 tabs)
+     AGRI: EXEC SUMMARY — 3 sections always visible, no tabs
      ============================================================ -->
 <div class="exec-summary" id="agriExecSec" style="display:none;">
   <div class="exec-title">&#x1F33E; Agri Crop COT Executive Summary — Managed Money (Crop-Year BCOM Commodities Only)</div>
-  <div class="crop-tab-bar">
-    <button class="crop-tab active-old" id="aet_old" onclick="switchAgriExec('old')">&#x1F33E; Old Crop</button>
-    <button class="crop-tab" id="aet_other" onclick="switchAgriExec('other')">&#x1F331; Other Crop</button>
-    <button class="crop-tab" id="aet_all" onclick="switchAgriExec('all')">&#x1F4CA; All Crop Years</button>
-  </div>
   <!-- OLD -->
-  <div class="crop-panel active" id="aep_old">
-    <div class="crop-panel-hdr hdr-old">&#x1F33E; Old Crop — Managed Money Positioning Extremes</div>
-    <div class="exec-analysis" id="agriTxt_old">Loading...</div>
-    <div class="pctile-row">
-      <div class="pctile-wrap"><div class="pctile-title pt-gs">&#x1F534; Gross Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gs_old"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-ns">&#x1F7E0; Net Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_ns_old"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-gl">&#x1F7E2; Gross Long</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gl_old"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-gso">&#x1F534; Short%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gso_old"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-nso">&#x1F7E0; Net%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_nso_old"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-glo">&#x1F7E2; Long%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_glo_old"></tbody></table></div>
-    </div>
+  <div class="crop-panel-hdr hdr-old" style="margin-bottom:10px;">&#x1F33E; Old Crop — Managed Money Positioning Extremes</div>
+  <div class="exec-analysis" id="agriTxt_old">Loading...</div>
+  <div class="pctile-row" style="margin-bottom:20px;">
+    <div class="pctile-wrap"><div class="pctile-title pt-gs">&#x1F534; Gross Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gs_old"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-ns">&#x1F7E0; Net Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_ns_old"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-gl">&#x1F7E2; Gross Long</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gl_old"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-gso">&#x1F534; Short%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gso_old"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-nso">&#x1F7E0; Net%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_nso_old"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-glo">&#x1F7E2; Long%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_glo_old"></tbody></table></div>
   </div>
   <!-- OTHER -->
-  <div class="crop-panel" id="aep_other">
-    <div class="crop-panel-hdr hdr-other">&#x1F331; Other Crop — Managed Money Positioning Extremes</div>
-    <div class="exec-analysis" id="agriTxt_other">Loading...</div>
-    <div class="pctile-row">
-      <div class="pctile-wrap"><div class="pctile-title pt-gs">&#x1F534; Gross Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gs_other"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-ns">&#x1F7E0; Net Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_ns_other"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-gl">&#x1F7E2; Gross Long</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gl_other"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-gso">&#x1F534; Short%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gso_other"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-nso">&#x1F7E0; Net%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_nso_other"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-glo">&#x1F7E2; Long%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_glo_other"></tbody></table></div>
-    </div>
+  <div class="crop-panel-hdr hdr-other" style="margin-bottom:10px;">&#x1F331; Other Crop — Managed Money Positioning Extremes</div>
+  <div class="exec-analysis" id="agriTxt_other">Loading...</div>
+  <div class="pctile-row" style="margin-bottom:20px;">
+    <div class="pctile-wrap"><div class="pctile-title pt-gs">&#x1F534; Gross Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gs_other"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-ns">&#x1F7E0; Net Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_ns_other"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-gl">&#x1F7E2; Gross Long</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gl_other"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-gso">&#x1F534; Short%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gso_other"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-nso">&#x1F7E0; Net%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_nso_other"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-glo">&#x1F7E2; Long%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_glo_other"></tbody></table></div>
   </div>
   <!-- ALL -->
-  <div class="crop-panel" id="aep_all">
-    <div class="crop-panel-hdr hdr-all">&#x1F4CA; All Crop Years — Managed Money Positioning Extremes</div>
-    <div class="exec-analysis" id="agriTxt_all">Loading...</div>
-    <div class="pctile-row">
-      <div class="pctile-wrap"><div class="pctile-title pt-gs">&#x1F534; Gross Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gs_all"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-ns">&#x1F7E0; Net Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_ns_all"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-gl">&#x1F7E2; Gross Long</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gl_all"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-gso">&#x1F534; Short%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gso_all"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-nso">&#x1F7E0; Net%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_nso_all"></tbody></table></div>
-      <div class="pctile-wrap"><div class="pctile-title pt-glo">&#x1F7E2; Long%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_glo_all"></tbody></table></div>
-    </div>
+  <div class="crop-panel-hdr hdr-all" style="margin-bottom:10px;">&#x1F4CA; All Crop Years — Managed Money Positioning Extremes</div>
+  <div class="exec-analysis" id="agriTxt_all">Loading...</div>
+  <div class="pctile-row">
+    <div class="pctile-wrap"><div class="pctile-title pt-gs">&#x1F534; Gross Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gs_all"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-ns">&#x1F7E0; Net Short</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_ns_all"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-gl">&#x1F7E2; Gross Long</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gl_all"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-gso">&#x1F534; Short%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_gso_all"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-nso">&#x1F7E0; Net%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_nso_all"></tbody></table></div>
+    <div class="pctile-wrap"><div class="pctile-title pt-glo">&#x1F7E2; Long%OI</div><table class="pctile-tbl"><thead><tr><th>Commodity</th><th>%ile</th></tr></thead><tbody id="ag_glo_all"></tbody></table></div>
   </div>
 </div>
 
 <!-- ============================================================
-     AGRI: MARKET SUMMARY (3 tabs)
+     AGRI: MARKET SUMMARY — 3 always-visible sections, no scrolling
      ============================================================ -->
 <div class="summary-section" id="agriSumSec" style="display:none;">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;flex-wrap:wrap;gap:10px;">
-    <div class="summary-title">&#x1F33E; Agri Crop Market Summary (BCOM Crop-Year Commodities)</div>
-    <div class="crop-tab-bar" style="margin-bottom:0;">
-      <button class="crop-tab active-old" id="amt_old" onclick="switchAgriSum('old')">&#x1F33E; Old Crop</button>
-      <button class="crop-tab" id="amt_other" onclick="switchAgriSum('other')">&#x1F331; Other Crop</button>
-      <button class="crop-tab" id="amt_all" onclick="switchAgriSum('all')">&#x1F4CA; All Crop Years</button>
-    </div>
+  <!-- Old Crop — page 1 -->
+  <div class="agri-crop-block">
+    <div class="agri-block-title" style="font-size:1em;font-weight:700;color:#1a1a1a;margin-bottom:6px;">&#x1F33E; Agri Crop Market Summary — Old Crop</div>
+    <div class="crop-panel-hdr hdr-old" style="margin-bottom:6px;display:none;">&#x1F33E; Old Crop</div>
+    <div style="overflow-x:auto;"><table class="summary-table"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="asb_old"></tbody></table></div>
   </div>
-  <div class="crop-panel active" id="amp_old">
-    <div class="table-container"><table class="summary-table"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="asb_old"></tbody></table></div>
+  <!-- Other Crop — page 2 -->
+  <div class="agri-crop-block" style="margin-top:20px;">
+    <div class="agri-block-title" style="font-size:1em;font-weight:700;color:#1a1a1a;margin-bottom:6px;">&#x1F331; Agri Crop Market Summary — Other Crop</div>
+    <div class="crop-panel-hdr hdr-other" style="margin-bottom:6px;display:none;">&#x1F331; Other Crop</div>
+    <div style="overflow-x:auto;"><table class="summary-table"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="asb_other"></tbody></table></div>
   </div>
-  <div class="crop-panel" id="amp_other">
-    <div class="table-container"><table class="summary-table"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="asb_other"></tbody></table></div>
+  <!-- All Crop Years — page 3 -->
+  <div class="agri-crop-block" style="margin-top:20px;">
+    <div class="agri-block-title" style="font-size:1em;font-weight:700;color:#1a1a1a;margin-bottom:6px;">&#x1F4CA; Agri Crop Market Summary — All Crop Years</div>
+    <div class="crop-panel-hdr hdr-all" style="margin-bottom:6px;display:none;">&#x1F4CA; All Crop Years</div>
+    <div style="overflow-x:auto;"><table class="summary-table"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="asb_all"></tbody></table></div>
   </div>
-  <div class="crop-panel" id="amp_all">
-    <div class="table-container"><table class="summary-table"><thead><tr><th rowspan="2">Commodity</th><th rowspan="2">Category</th><th colspan="2">Net</th><th colspan="2">Net%OI</th><th colspan="2">Long</th><th colspan="2">Long%OI</th><th colspan="2">Short</th><th colspan="2">Short%OI</th></tr><tr><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th><th>Range</th><th>Cur</th></tr></thead><tbody id="asb_all"></tbody></table></div>
-  </div>
-  <div class="stats-legend">Dot=current. Cross-crop-year spreading visible only in All view. Old/Other spread totals will differ from All.</div>
+  <div class="stats-legend">Dot=current. Cross-crop-year spreading visible only in All view.</div>
 </div>
 
 <!-- ============================================================
-     AGRI: SEASONALITY (3 tabs)
+     AGRI: SEASONALITY — 3 separate charts, always visible
      ============================================================ -->
 <div class="chart-section" id="agriSeaSec" style="display:none;">
   <div class="chart-header">
     <div class="chart-title">&#x1F33E; Agri Crop Weekly Seasonality (52-Wk, Crop-Year Commodities)</div>
     <div class="chart-controls">
-      <label>Metric:</label><select id="aSMet" onchange="drawAgriSea()"><option value="net">Net</option><option value="long">Long</option><option value="short">Short</option><option value="net_pct">Net%OI</option><option value="traders_total">Traders</option><option value="per_trader_long">L/Trader</option><option value="per_trader_short">S/Trader</option></select>
-      <label style="margin-left:8px;">Agg:</label><select id="aSAgg" onchange="drawAgriSea()"><option value="sum">Sum</option><option value="avg">Avg</option></select>
+      <label>Metric:</label><select id="aSMet" onchange="drawAllAgriSea()"><option value="net">Net</option><option value="long">Long</option><option value="short">Short</option><option value="net_pct">Net%OI</option><option value="traders_total">Traders</option><option value="per_trader_long">L/Trader</option><option value="per_trader_short">S/Trader</option></select>
+      <label style="margin-left:8px;">Agg:</label><select id="aSAgg" onchange="drawAllAgriSea()"><option value="sum">Sum</option><option value="avg">Avg</option></select>
     </div>
-  </div>
-  <div class="crop-tab-bar">
-    <button class="crop-tab active-old" id="ast_old" onclick="switchAgriSea('old')">&#x1F33E; Old Crop</button>
-    <button class="crop-tab" id="ast_other" onclick="switchAgriSea('other')">&#x1F331; Other Crop</button>
-    <button class="crop-tab" id="ast_all" onclick="switchAgriSea('all')">&#x1F4CA; All Crop Years</button>
   </div>
   <div class="comm-sel" id="aSeaCommSel"><div class="comm-sel-label">&#x1F4E6; Crop Commodities <span class="sel-count" id="aSeaCount"></span></div></div>
   <div class="yr-sel" id="aSeaYrSel"><strong style="font-size:0.85em;">Years:</strong></div>
-  <div class="chart-container" style="height:420px;margin-bottom:8px;"><canvas id="aSeaChart"></canvas></div>
-  <div id="aSeaNote" style="padding:8px 12px;background:#f0f7ff;border-radius:6px;font-size:0.8em;color:#1565c0;"></div>
+  <!-- Old Crop Chart -->
+  <div class="agri-sea-block">
+    <div class="crop-panel-hdr hdr-old" style="margin:10px 0 6px;">&#x1F33E; Old Crop</div>
+    <div class="chart-container" style="height:420px;"><canvas id="aSeaChartOld"></canvas></div>
+    <div id="aSeaNoteOld" style="padding:5px 12px;background:#f0f7ff;border-radius:6px;font-size:0.76em;color:#1565c0;margin-top:4px;"></div>
+  </div>
+  <!-- Other Crop Chart -->
+  <div class="agri-sea-block" style="margin-top:16px;">
+    <div class="crop-panel-hdr hdr-other" style="margin-bottom:6px;">&#x1F331; Other Crop</div>
+    <div class="chart-container" style="height:420px;"><canvas id="aSeaChartOther"></canvas></div>
+    <div id="aSeaNoteOther" style="padding:5px 12px;background:#f0f7ff;border-radius:6px;font-size:0.76em;color:#1565c0;margin-top:4px;"></div>
+  </div>
+  <!-- All Crop Chart -->
+  <div class="agri-sea-block" style="margin-top:16px;">
+    <div class="crop-panel-hdr hdr-all" style="margin-bottom:6px;">&#x1F4CA; All Crop Years</div>
+    <div class="chart-container" style="height:420px;"><canvas id="aSeaChartAll"></canvas></div>
+    <div id="aSeaNoteAll" style="padding:5px 12px;background:#f0f7ff;border-radius:6px;font-size:0.76em;color:#1565c0;margin-top:4px;"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GROQ AI ANALYSIS
+     ============================================================ -->
+<div class="chart-section" id="aiSec">
+  <div class="chart-header">
+    <div class="chart-title">🤖 AI Market Analysis (Groq)</div>
+    <div style="font-size:0.8em;color:#555;">Powered by Llama 3 via Groq · Your API key stays in your browser only</div>
+  </div>
+
+  <!-- API Key input -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+    <label style="font-size:0.82em;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;">Groq API Key</label>
+    <input type="password" id="groqKey" placeholder="gsk_..." style="flex:1;min-width:260px;padding:8px 12px;border:2px solid #ccc;border-radius:6px;font-size:0.88em;font-family:monospace;">
+    <button onclick="saveGroqKey()" style="margin-top:0;padding:8px 14px;font-size:0.82em;background:#6c3483;">💾 Save Key</button>
+    <span id="groqKeyStatus" style="font-size:0.78em;color:#1a8c4e;"></span>
+    <a href="https://console.groq.com/keys" target="_blank" style="font-size:0.78em;color:#2a5298;">Get free API key ↗</a>
+  </div>
+
+  <!-- Action buttons -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+    <button onclick="aiSummary()" style="margin-top:0;background:#1a8c4e;">📊 Summarize This Report</button>
+    <button onclick="aiSignals()" style="margin-top:0;background:#c0392b;">🎯 Trading Signals</button>
+    <button onclick="aiExtremes()" style="margin-top:0;background:#8B6914;">⚠️ Positioning Extremes</button>
+  </div>
+
+  <!-- Custom question -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;">
+    <label style="font-size:0.82em;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Ask a question:</label>
+    <select id="aiPresetQ" onchange="fillPreset()" style="font-size:0.85em;padding:8px 10px;border:2px solid #ccc;border-radius:6px;flex:0 0 auto;">
+      <option value="">— Preset questions —</option>
+      <option value="Which BCOM commodities have managed money at the most extreme long positioning relative to history, and what does that imply?">Extreme long positioning?</option>
+      <option value="Which BCOM commodities have managed money at the most extreme short positioning, and what does that suggest for short covering risk?">Extreme short positioning?</option>
+      <option value="Compare the current managed money net position percentile across all BCOM commodities and identify the top 3 most contrarian setups.">Top contrarian setups?</option>
+      <option value="For the selected commodity, explain the current crop-year positioning differences between old crop and other crop and what that means for price risk.">Old vs other crop positioning?</option>
+      <option value="Which commodities show the greatest divergence between Prod/Merchant and Managed Money positioning, and what does that typically signal?">Prod/MM divergence?</option>
+      <option value="Summarize the seasonal positioning patterns and identify which commodities are currently positioned against their typical seasonal trend.">Against seasonal trend?</option>
+    </select>
+    <input type="text" id="aiQuestion" placeholder="Or type your own question about this COT data..." style="flex:1;min-width:200px;padding:8px 12px;border:2px solid #ccc;border-radius:6px;font-size:0.88em;">
+    <button onclick="aiAsk()" style="margin-top:0;background:#2a5298;white-space:nowrap;">▶ Ask AI</button>
+  </div>
+
+  <!-- Spinner -->
+  <div id="aiSpinner" style="display:none;padding:16px;text-align:center;color:#2a5298;font-size:0.9em;">
+    <div style="border:3px solid #e0e0e0;border-top:3px solid #2a5298;border-radius:50%;width:28px;height:28px;animation:spin 0.8s linear infinite;margin:0 auto 8px;"></div>
+    Thinking...
+  </div>
+
+  <!-- Response -->
+  <div id="aiResponse" style="display:none;background:#f8f9fa;border-left:4px solid #2a5298;border-radius:4px;padding:16px;font-size:0.88em;line-height:1.7;color:#1a1a1a;white-space:pre-wrap;"></div>
 </div>
 
 </div><!-- end .container -->
@@ -413,10 +554,11 @@ var EP={futures:'https://publicreporting.cftc.gov/resource/72hh-3qpy.json',combi
 var BCOM={'Energy (29.44%)':[{name:'Brent Crude Oil',ticker:'CO',cftc:'BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE'},{name:'Natural Gas',ticker:'NG',cftc:'NATURAL GAS - NEW YORK MERCANTILE EXCHANGE'},{name:'WTI Crude Oil',ticker:'CL',cftc:'CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE'},{name:'Low Sulphur Gas Oil',ticker:'QS',cftc:'GAS OIL LOW SULPHUR - ICE FUTURES EUROPE'},{name:'ULS Diesel',ticker:'HO',cftc:'NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE'},{name:'RBOB Gasoline',ticker:'XB',cftc:'GASOLINE, RBOB - NEW YORK MERCANTILE EXCHANGE'}],'Grains (21.15%)':[{name:'Corn',ticker:'C',cftc:'CORN - CHICAGO BOARD OF TRADE'},{name:'Soybeans',ticker:'S',cftc:'SOYBEANS - CHICAGO BOARD OF TRADE'},{name:'Soybean Meal',ticker:'SM',cftc:'SOYBEAN MEAL - CHICAGO BOARD OF TRADE'},{name:'Soybean Oil',ticker:'BO',cftc:'SOYBEAN OIL - CHICAGO BOARD OF TRADE'},{name:'Wheat',ticker:'W',cftc:'WHEAT-SRW - CHICAGO BOARD OF TRADE'},{name:'HRW Wheat',ticker:'KW',cftc:'WHEAT-HRW - CHICAGO BOARD OF TRADE'}],'Industrial Metals (15.76%)':[{name:'Copper',ticker:'HG',cftc:'COPPER- #1 - COMMODITY EXCHANGE INC.'},{name:'Aluminum',ticker:'LA',cftc:'ALUMINUM - COMMODITY EXCHANGE INC.'},{name:'Zinc',ticker:'LX',cftc:'ZINC - COMMODITY EXCHANGE INC.'},{name:'Nickel',ticker:'LN',cftc:'NICKEL - COMMODITY EXCHANGE INC.'},{name:'Lead',ticker:'LL',cftc:'LEAD - COMMODITY EXCHANGE INC.'}],'Precious Metals (18.84%)':[{name:'Gold',ticker:'GC',cftc:'GOLD - COMMODITY EXCHANGE INC.'},{name:'Silver',ticker:'SI',cftc:'SILVER - COMMODITY EXCHANGE INC.'}],'Softs (9.12%)':[{name:'Sugar',ticker:'SB',cftc:'SUGAR NO. 11 - ICE FUTURES U.S.'},{name:'Coffee',ticker:'KC',cftc:'COFFEE C - ICE FUTURES U.S.'},{name:'Cocoa',ticker:'CC',cftc:'COCOA - ICE FUTURES U.S.'},{name:'Cotton',ticker:'CT',cftc:'COTTON NO. 2 - ICE FUTURES U.S.'}],'Livestock (5.64%)':[{name:'Live Cattle',ticker:'LC',cftc:'LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE'},{name:'Lean Hogs',ticker:'LH',cftc:'LEAN HOGS - CHICAGO MERCANTILE EXCHANGE'}]};
 var CROP_COMM={Corn:1,Soybeans:1,'Soybean Meal':1,'Soybean Oil':1,Wheat:1,'HRW Wheat':1,Coffee:1,Cocoa:1,Cotton:1,'Lean Hogs':1};
 var CATS=['managed_money','swap_dealers','prod_merc','other_rept'];
+var CROP_KW_LIST=['CORN','SOYBEAN','WHEAT','COTTON','COFFEE','COCOA','HOG'];
+function isCrop(n){return CROP_KW_LIST.some(function(k){return (n||'').toUpperCase().indexOf(k)!==-1;});}
 var CAT_LBL={managed_money:'Managed Money',swap_dealers:'Swap Dealers',prod_merc:'Prod/Merchant',other_rept:'Other Rept'};
 var CAT_COL={managed_money:'#2a5298',swap_dealers:'#1a8c4e',prod_merc:'#d4880f',other_rept:'#8e44ad'};
 var CAT_CLS={managed_money:'mm',swap_dealers:'sd',prod_merc:'pm',other_rept:'or'};
-var UC=['#e6194b','#3cb44b','#4363d8','#f58231','#911eb4','#42d4f4','#f032e6','#9A6324','#800000','#469990','#2c3e50','#1abc9c','#d35400','#c0392b','#2ecc71','#e74c3c','#8e44ad','#16a085','#bfef45','#fabed4','#a9a9a9','#000075','#dcbeff','#aaffc3'];
 
 /* ── EXACT Socrata API field names (confirmed from API foundry).
    Fields are INCONSISTENT across crop types — hardcoded exactly as returned.
@@ -711,7 +853,15 @@ function fetchData(){
     /* Reset zooms */
     ['pos','cmp','trd','sz'].forEach(function(k){zPct[k]=100;var s=document.getElementById('zs_'+k);if(s)s.value=100;var l=document.getElementById('zl_'+k);if(l)l.textContent='All data';});
     ['chart1','chart2','chart3','chart4','chart5','weeklyDetail'].forEach(function(id){document.getElementById(id).style.display='block';});
-    popYears();buildSeaCommSel();updateAll();buildWeeklyDetail();showL(false);
+    popYears();buildSeaCommSel();updateAll();buildWeeklyDetail();
+    /* Auto-trigger all other sections */
+    generateSummary();
+    doScatter();
+    doScatterPct();
+    if(isCrop(comm))doAgriCrop();
+    /* Show AI section if key is present */
+    if(sessionStorage.getItem('groqKey'))document.getElementById('aiSec').style.display='block';
+    showL(false);
   }).catch(function(e){dbgInfo.err=e.message;showE('Error: '+e.message);showL(false);});
 }
 
@@ -753,11 +903,17 @@ function mkLine(ctx,ds,xTime,yLabel,isP,showLeg){
    =========================================================== */
 function updateAll(){drawPos();drawCmp();drawTrd();drawSz();drawSea();}
 
+function getCommShort(){return CD?(CD.comm||'').split(' - ')[0]:'';}
+function getCatLabel(){return CAT_LBL[document.getElementById('traderCategory').value]||'Managed Money';}
+function setSubtitle(chartId,text){var el=document.getElementById(chartId+'_sub');if(!el){el=document.createElement('div');el.id=chartId+'_sub';el.className='chart-subtitle';var hdr=document.getElementById(chartId).querySelector('.chart-title');if(hdr&&hdr.parentNode)hdr.parentNode.insertBefore(el,hdr.nextSibling);}el.textContent=text;}
+
 function drawPos(){
   if(!CD)return;var m=document.getElementById('posMet').value,ctx=document.getElementById('posChart').getContext('2d');
   if(charts.pos)charts.pos.destroy();
   var v,l,c,ip=m.indexOf('pct')!==-1,sz=m==='net'||m==='net_pct';
+  var mLabels={net:'Net Position',long:'Long',short:'Short',spread:'Spread',net_pct:'Net%OI',long_pct:'Long%OI',short_pct:'Short%OI'};
   switch(m){case'net':v=CD.net;l='Net';c='#2a5298';break;case'long':v=CD.long;l='Long';c='#1a8c4e';break;case'short':v=CD.short;l='Short';c='#c0392b';break;case'spread':v=CD.spread;l='Spread';c='#d4880f';break;case'net_pct':v=CD.nPct;l='Net%OI';c='#2a5298';break;case'long_pct':v=CD.lPct;l='Long%OI';c='#1a8c4e';break;case'short_pct':v=CD.sPct;l='Short%OI';c='#c0392b';break;}
+  setSubtitle('chart1',getCommShort()+' — '+getCatLabel()+' — '+mLabels[m]);
   var ds=[{label:l,data:pts(CD.dates,v),borderColor:c,backgroundColor:c+'18',borderWidth:2,pointRadius:0,fill:true,tension:0.4}];
   if(sz)ds.push({label:'Zero',data:CD.dates.map(function(d){return{x:d,y:0};}),borderColor:'rgba(192,57,43,0.35)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,fill:false});
   charts.pos=mkLine(ctx,ds,true,ip?'% OI':'Contracts',ip,false);
@@ -772,6 +928,8 @@ function drawCmp(){
 function drawTrd(){
   if(!CD)return;var m=document.getElementById('trdMet').value,ctx=document.getElementById('trdChart').getContext('2d');
   if(charts.trd)charts.trd.destroy();var ds=[];
+  var mLabels={total:'Total Traders',long:'Long Traders',short:'Short Traders',both:'Long & Short Traders'};
+  setSubtitle('chart3',getCommShort()+' — '+getCatLabel()+' — '+mLabels[m]);
   if(m==='total')ds=[{label:'Total',data:pts(CD.dates,CD.tT),borderColor:'#2a5298',borderWidth:2,pointRadius:0,fill:true,tension:0.4}];
   else if(m==='long')ds=[{label:'Long',data:pts(CD.dates,CD.tL),borderColor:'#1a8c4e',borderWidth:2,pointRadius:0,fill:true,tension:0.4}];
   else if(m==='short')ds=[{label:'Short',data:pts(CD.dates,CD.tS),borderColor:'#c0392b',borderWidth:2,pointRadius:0,fill:true,tension:0.4}];
@@ -781,6 +939,8 @@ function drawTrd(){
 function drawSz(){
   if(!CD)return;var m=document.getElementById('szMet').value,ctx=document.getElementById('szChart').getContext('2d');
   if(charts.sz)charts.sz.destroy();var ds=[];
+  var mLabels={per_trader_long:'Contracts per Trader (Long)',per_trader_short:'Contracts per Trader (Short)',long_vs_short:'Long & Short per Trader'};
+  setSubtitle('chart4',getCommShort()+' — '+getCatLabel()+' — '+mLabels[m]);
   if(m==='per_trader_long')ds=[{label:'Long/Trader',data:pts(CD.dates,CD.plL),borderColor:'#1a8c4e',borderWidth:2,pointRadius:0,fill:true,tension:0.4}];
   else if(m==='per_trader_short')ds=[{label:'Short/Trader',data:pts(CD.dates,CD.plS),borderColor:'#c0392b',borderWidth:2,pointRadius:0,fill:true,tension:0.4}];
   else ds=[{label:'Long/T',data:pts(CD.dates,CD.plL),borderColor:'#1a8c4e',borderWidth:2,pointRadius:0,fill:false,tension:0.4},{label:'Short/T',data:pts(CD.dates,CD.plS),borderColor:'#c0392b',borderWidth:2,pointRadius:0,fill:false,tension:0.4}];
@@ -919,6 +1079,16 @@ function buildWeeklyDetail(){
       var inner=document.createElement('div');inner.innerHTML=buildWDSection(rawCache,sec.sfx,weeks);
       wrap.appendChild(inner);cont.appendChild(wrap);
     });
+    /* Crop notes at bottom of this section */
+    var notesDiv=document.createElement('div');
+    notesDiv.style.cssText='margin-top:16px;background:rgba(139,105,20,0.08);border-left:4px solid #8B6914;border-radius:6px;padding:12px 16px;font-size:0.82em;color:#1a1a1a;';
+    notesDiv.innerHTML='<strong style="color:#8B6914;">&#x1F4C5; Crop Year Breakdown — '+comm.split(' - ')[0]+'</strong> '+
+      (cropInfo?'(Crop year: '+cropInfo.first+' &rarr; '+cropInfo.last+')':'')+
+      '<br><strong>Old Crop:</strong> Futures for the current/expiring crop year. '+
+      '<strong>Other Crop:</strong> All subsequent futures months. '+
+      '<strong>All:</strong> Aggregate — cross-crop-year spreading only appears in the All Crop view. '+
+      'Old + Other spread positions will NOT sum to All spread due to cross-year spreading.';
+    cont.appendChild(notesDiv);
   } else {
     var wrap=document.createElement('div');wrap.className='weekly-crop-section';
     var hdr=document.createElement('div');hdr.className='weekly-crop-hdr hdr-all';hdr.textContent='📊 All Positions';
@@ -940,7 +1110,8 @@ function buildSeaCommSel(){
   ba.onclick=function(){seaComms=new Set(allApis);refreshSeaChips();drawSea();};ct.appendChild(ba);
   var bn=document.createElement('button');bn.type='button';bn.className='chip-none comm-chip';bn.textContent='NONE';bn.style.cssText='margin-top:0;min-width:auto;';
   bn.onclick=function(){seaComms=new Set([allApis[0]]);refreshSeaChips();drawSea();};ct.appendChild(bn);
-  if(seaComms.size===0){var def=CD?[CD.comm]:[];allBCOM.slice(0,3).forEach(function(b){if(def.indexOf(b.api)===-1)def.push(b.api);});seaComms=new Set(def);}
+  /* Default: always start with just the currently-selected commodity */
+  if(seaComms.size===0||true){seaComms=new Set(CD?[CD.comm]:[allApis[0]]);}
   var cs='';
   allBCOM.forEach(function(bc){
     if(bc.sector!==cs){cs=bc.sector;var lb=document.createElement('span');lb.textContent='—'+bc.sector.split('(')[0].trim()+'—';lb.style.cssText='font-size:0.7em;color:#666;white-space:nowrap;';ct.appendChild(lb);}
@@ -1030,15 +1201,60 @@ function doScatterPct(){
   });
 }
 
+/* Point styles cycling through distinct shapes */
+var PS=['circle','rect','triangle','star','cross','rectRot','rectRounded','crossRot'];
+/* Distinct color palette — 24 colors covering all BCOM commodities */
+var UC=['#e6194b','#3cb44b','#4363d8','#f58231','#911eb4','#42d4f4','#f032e6','#9A6324','#000075','#469990','#2c3e50','#1abc9c','#d35400','#c0392b','#2ecc71','#8e44ad','#16a085','#e8a838','#a9a9a9','#dcbeff','#aaffc3','#800000','#808000','#bfef45'];
+
 function drawScatter(pfx,data,combos){
   combos.forEach(function(c,idx){
     var ctx=document.getElementById(c.c).getContext('2d'),ck=pfx+(idx+1);if(charts[ck])charts[ck].destroy();
-    var ds=data.map(function(it){return{label:it.comm,data:[{x:it[c.x],y:it[c.y],comm:it.comm}],backgroundColor:UC[it.idx%UC.length],borderColor:UC[it.idx%UC.length],pointRadius:7,pointHoverRadius:11,borderWidth:1.5};});
-    ds.push({data:[{x:50,y:0},{x:50,y:100}],borderColor:'rgba(0,0,0,0.2)',borderDash:[4,4],pointRadius:0,fill:false,showLine:true},{data:[{x:0,y:50},{x:100,y:50}],borderColor:'rgba(0,0,0,0.2)',borderDash:[4,4],pointRadius:0,fill:false,showLine:true});
-    charts[ck]=new Chart(ctx,{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:function(i){return i[0].raw.comm;},label:function(i){return[c.xl+': '+i.raw.x.toFixed(1)+'%ile',c.yl+': '+i.raw.y.toFixed(1)+'%ile'];}}}},scales:{x:{min:0,max:100,title:{display:true,text:c.xl+' %ile',font:{size:8},color:'#333'},ticks:{font:{size:7},color:'#333',maxTicksLimit:6}},y:{min:0,max:100,title:{display:true,text:c.yl+' %ile',font:{size:8},color:'#333'},ticks:{font:{size:7},color:'#333',maxTicksLimit:6}}}}});
+    /* Each commodity = its own dataset so legend entries work */
+    var ds=data.map(function(it){
+      var col=UC[it.idx%UC.length];
+      var ps=PS[it.idx%PS.length];
+      return{
+        label:it.comm,
+        data:[{x:it[c.x],y:it[c.y],comm:it.comm}],
+        backgroundColor:col,borderColor:col,
+        pointStyle:ps,pointRadius:7,pointHoverRadius:11,borderWidth:1.5
+      };
+    });
+    /* Quadrant lines */
+    ds.push({data:[{x:50,y:0},{x:50,y:100}],borderColor:'rgba(0,0,0,0.2)',borderDash:[4,4],pointRadius:0,fill:false,showLine:true,label:'_q1'});
+    ds.push({data:[{x:0,y:50},{x:100,y:50}],borderColor:'rgba(0,0,0,0.2)',borderDash:[4,4],pointRadius:0,fill:false,showLine:true,label:'_q2'});
+    charts[ck]=new Chart(ctx,{
+      type:'scatter',
+      data:{datasets:ds},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{
+            display:false
+          },
+          tooltip:{callbacks:{
+            title:function(i){return i[0].raw.comm;},
+            label:function(i){return[c.xl+': '+i.raw.x.toFixed(1)+'%ile',c.yl+': '+i.raw.y.toFixed(1)+'%ile'];}
+          }}
+        },
+        scales:{
+          x:{min:0,max:100,title:{display:true,text:c.xl+' %ile',font:{size:8},color:'#333'},ticks:{font:{size:7},color:'#333',maxTicksLimit:6}},
+          y:{min:0,max:100,title:{display:true,text:c.yl+' %ile',font:{size:8},color:'#333'},ticks:{font:{size:7},color:'#333',maxTicksLimit:6}}
+        }
+      }
+    });
   });
 }
-function drawLeg(id,data){var ct=document.getElementById(id);ct.innerHTML='';data.forEach(function(d){var e=document.createElement('div');e.className='comm-legend-item';e.innerHTML='<div style="background:'+UC[d.idx%UC.length]+';width:11px;height:11px;border-radius:2px;"></div><span>'+d.comm+'</span>';ct.appendChild(e);});}
+function drawLeg(id,data){
+  /* Keep the HTML legend below charts as a backup for web view */
+  var ct=document.getElementById(id);ct.innerHTML='';
+  data.forEach(function(d){
+    var e=document.createElement('div');e.className='comm-legend-item';
+    var col=UC[d.idx%UC.length];
+    e.innerHTML='<div style="background:'+col+';width:11px;height:11px;border-radius:2px;"></div><span>'+d.comm+'</span>';
+    ct.appendChild(e);
+  });
+}
 
 /* ===========================================================
    EXEC SUMMARY (all BCOM)
@@ -1147,9 +1363,7 @@ function onAllAgriDone(){
   document.getElementById('agriExecSec').style.display='block';
   document.getElementById('agriSumSec').style.display='block';
   document.getElementById('agriSeaSec').style.display='block';
-  switchAgriExec('old');
-  switchAgriSum('old');
-  switchAgriSea('old');
+  drawAllAgriSea();
   showL(false);
 }
 
@@ -1246,15 +1460,20 @@ function buildAgriSeaSel(){
   var cropComms=getCropBCOM();
   var ct=document.getElementById('aSeaCommSel');
   while(ct.children.length>1)ct.removeChild(ct.lastChild);
-  if(agriSeaComms.size===0&&cropComms.length>0)agriSeaComms=new Set([cropComms[0].api]);
+  if(agriSeaComms.size===0&&cropComms.length>0){
+    /* Default: the currently selected commodity if it's a crop comm, else first crop comm */
+    var selApi=CD?CD.comm:null;
+    var selIsCrop=selApi&&cropComms.some(function(c){return c.api===selApi;});
+    agriSeaComms=new Set([selIsCrop?selApi:cropComms[0].api]);
+  }
   cropComms.forEach(function(bc){
     if(!agriRaw[bc.api])return;
     var ch=document.createElement('span');ch.className='comm-chip';ch.setAttribute('data-aapi',bc.api);ch.textContent=bc.name;
-    ch.onclick=(function(api){return function(){if(agriSeaComms.has(api)){if(agriSeaComms.size>1)agriSeaComms.delete(api);}else agriSeaComms.add(api);refreshAgriSeaChips();drawAgriSea();};})(bc.api);
+    ch.onclick=(function(api){return function(){if(agriSeaComms.has(api)){if(agriSeaComms.size>1)agriSeaComms.delete(api);}else agriSeaComms.add(api);refreshAgriSeaChips();drawAllAgriSea();};})(bc.api);
     ct.appendChild(ch);
   });
   refreshAgriSeaChips();
-  /* Collect ALL years from agriRaw — full history since 2006, not just last 5 */
+  /* Collect ALL years from agriRaw — full history since 2006 */
   var yrSet={};
   Object.keys(agriRaw).forEach(function(api){
     var arr=agriRaw[api];if(!arr)return;
@@ -1262,12 +1481,11 @@ function buildAgriSeaSel(){
   });
   var yrs=Object.keys(yrSet).map(Number).sort();
   if(!yrs.length){var now=new Date().getFullYear();for(var y2=2006;y2<=now;y2++)yrs.push(y2);}
-  /* Default: last 3 years pre-selected */
   if(agriSeaYrs.size===0)agriSeaYrs=new Set(yrs.slice(-3));
   var ySel=document.getElementById('aSeaYrSel');ySel.innerHTML='<strong style="font-size:0.85em;">Years ('+yrs[0]+'–'+yrs[yrs.length-1]+'):</strong>';
   yrs.forEach(function(y){
     var c=document.createElement('div');c.className='yr-chip'+(agriSeaYrs.has(y)?' active':'');c.textContent=y;
-    c.onclick=function(){if(agriSeaYrs.has(y)&&agriSeaYrs.size>1){agriSeaYrs.delete(y);c.classList.remove('active');}else if(!agriSeaYrs.has(y)){agriSeaYrs.add(y);c.classList.add('active');}drawAgriSea();};
+    c.onclick=function(){if(agriSeaYrs.has(y)&&agriSeaYrs.size>1){agriSeaYrs.delete(y);c.classList.remove('active');}else if(!agriSeaYrs.has(y)){agriSeaYrs.add(y);c.classList.add('active');}drawAllAgriSea();};
     ySel.appendChild(c);
   });
 }
@@ -1275,31 +1493,25 @@ function refreshAgriSeaChips(){
   document.querySelectorAll('#aSeaCommSel [data-aapi]').forEach(function(el){el.classList.toggle('active',agriSeaComms.has(el.getAttribute('data-aapi')));});
   var el=document.getElementById('aSeaCount');if(el)el.textContent='('+agriSeaComms.size+')';
 }
-function switchAgriSea(ct){
-  agriSeaType=ct;
-  ['old','other','all'].forEach(function(t){
-    var tab=document.getElementById('ast_'+t);if(!tab)return;
-    tab.classList.remove('active-old','active-other','active-all');
-    if(t===ct)tab.classList.add('active-'+ct);
-  });
-  drawAgriSea();
-}
-function drawAgriSea(){
+/* Draw one agri sea chart for a given crop type into a specific canvas */
+function drawOneAgriSea(ct, canvasId, noteId){
   var metric=document.getElementById('aSMet').value,agg=document.getElementById('aSAgg').value;
   var tc=document.getElementById('traderCategory').value||'managed_money';
   var comms=Array.from(agriSeaComms);if(!comms.length)return;
-  /* Build a local season cache for this crop type */
   var localCache={};
   comms.forEach(function(api){
     var raw=agriRaw[api];if(!raw)return;
-    var p=procData(raw,tc,agriSeaType);
-    if(p)localCache[api]=p;
+    var p=procData(raw,tc,ct);if(p)localCache[api]=p;
   });
-  /* Temporarily inject into seaCache */
   var saved={};comms.forEach(function(api){saved[api]=seaCache[api];seaCache[api]=localCache[api]||seaCache[api];});
-  renderSea(metric,agg,comms,'aSeaChart','agriSea','aSeaNote',agriSeaYrs);
-  /* Restore */
+  var chartKey='agriSea_'+ct;
+  renderSea(metric,agg,comms,canvasId,chartKey,noteId,agriSeaYrs);
   comms.forEach(function(api){seaCache[api]=saved[api];});
+}
+function drawAllAgriSea(){
+  drawOneAgriSea('old',  'aSeaChartOld',   'aSeaNoteOld');
+  drawOneAgriSea('other','aSeaChartOther','aSeaNoteOther');
+  drawOneAgriSea('all',  'aSeaChartAll',   'aSeaNoteAll');
 }
 
 /* ===========================================================
@@ -1327,10 +1539,122 @@ function toggleDbg(){
   c.innerHTML=h;
 }
 function doPrint(){
-  var scEls=document.querySelectorAll('.scatter-cont');var saved=[];
-  scEls.forEach(function(el){saved.push(el.style.height);el.style.height='200px';});
-  Object.keys(charts).forEach(function(k){if(charts[k]&&charts[k].resize)try{charts[k].resize();}catch(e){}});
-  setTimeout(function(){window.print();setTimeout(function(){scEls.forEach(function(el,i){el.style.height=saved[i]||'';});Object.keys(charts).forEach(function(k){if(charts[k]&&charts[k].resize)try{charts[k].resize();}catch(e){}}); },500);},300);
+  /* Explicitly resize every chart canvas to its print height before printing.
+     This ensures Chart.js redraws at the correct size rather than overflowing. */
+  var pH={
+    posChart:210,cmpChart:200,trdChart:210,szChart:200,seaChart:330,
+    sc1:195,sc2:195,sc3:195,sc4:195,sc5:195,sc6:195,
+    sp1:195,sp2:195,sp3:195,sp4:195,sp5:195,sp6:195,
+    aSeaChartOld:200,aSeaChartOther:200,aSeaChartAll:200
+  };
+  var saved=[];
+  Object.keys(pH).forEach(function(id){
+    var canvas=document.getElementById(id);if(!canvas)return;
+    var cont=canvas.parentElement;
+    saved.push({el:cont,h:cont.style.height});
+    cont.style.height=pH[id]+'px';
+  });
+  /* Resize all Chart.js instances */
+  Object.keys(charts).forEach(function(k){if(charts[k]&&charts[k].resize){try{charts[k].resize();}catch(e){}}});
+  setTimeout(function(){
+    window.print();
+    setTimeout(function(){
+      saved.forEach(function(s){s.el.style.height=s.h||'';});
+      Object.keys(charts).forEach(function(k){if(charts[k]&&charts[k].resize){try{charts[k].resize();}catch(e){}}});
+    },600);
+  },400);
+}
+/* ===========================================================
+   GROQ AI ANALYSIS
+   =========================================================== */
+function saveGroqKey(){
+  var k=document.getElementById('groqKey').value.trim();
+  if(!k){alert('Paste your Groq API key first (starts with gsk_).');return;}
+  sessionStorage.setItem('groqKey',k);
+  document.getElementById('groqKey').value='';
+  document.getElementById('groqKeyStatus').textContent='✅ Key saved for this session';
+}
+function getGroqKey(){
+  /* Try: saved session key, then live input field */
+  var k=sessionStorage.getItem('groqKey')||'';
+  if(!k){var el=document.getElementById('groqKey');if(el)k=el.value.trim();}
+  if(!k){alert('Paste your Groq API key and click Save (or just paste and click an action button).\n\nGet a free key at console.groq.com/keys');return null;}
+  return k;
+}
+function fillPreset(){
+  var el=document.getElementById('aiPresetQ');
+  if(el&&el.value)document.getElementById('aiQuestion').value=el.value;
+}
+function buildContext(){
+  var out=['=== BCOM COT ANALYZER DATA ==='];
+  if(CD){
+    var l=CD.net.length-1;
+    var tc=document.getElementById('traderCategory').value||'managed_money';
+    out.push('Commodity: '+(CD.comm||'').split(' - ')[0]+' | '+( CAT_LBL[tc]||tc));
+    out.push('Date: '+CD.dates[l].substring(0,10));
+    out.push('Net: '+CD.net[l].toLocaleString()+' ('+pct(CD.net,CD.net[l]).toFixed(0)+'th %ile)');
+    out.push('Long: '+CD.long[l].toLocaleString()+' ('+pct(CD.long,CD.long[l]).toFixed(0)+'th %ile)');
+    out.push('Short: '+CD.short[l].toLocaleString()+' ('+pct(CD.short,CD.short[l]).toFixed(0)+'th %ile)');
+    out.push('Net%OI: '+CD.nPct[l].toFixed(1)+'% ('+pct(CD.nPct,CD.nPct[l]).toFixed(0)+'th %ile)');
+  }
+  if(scData&&scData.length){
+    out.push('\n=== MM POSITIONING — ALL BCOM (%ile since 2006) ===');
+    scData.slice().sort(function(a,b){return Math.abs(b.mNP-50)-Math.abs(a.mNP-50);})
+    .forEach(function(d){out.push(d.comm+': Net='+d.mNP.toFixed(0)+'%ile Short='+d.mSP.toFixed(0)+'%ile Long='+d.mLP.toFixed(0)+'%ile');});
+  }
+  if(agriExecData&&agriExecData.all&&agriExecData.all.length){
+    out.push('\n=== AGRI CROP MM — ALL CROP (%ile since 2006) ===');
+    agriExecData.all.forEach(function(d){out.push(d.comm+': Net='+d.mNP.toFixed(0)+'%ile Short='+d.mSP.toFixed(0)+'%ile Long='+d.mLP.toFixed(0)+'%ile');});
+  }
+  return out.join('\n');
+}
+var AI_SYS='You are an expert commodity futures analyst specializing in CFTC COT reports and the Bloomberg Commodity Index (BCOM). Provide concise actionable analysis. Identify extremes above 80th or below 20th percentile. Keep responses under 350 words. Use bullet points. Be specific with numbers.';
+
+function groqChat(userMsg){
+  var key=getGroqKey();if(!key)return;
+  var spin=document.getElementById('aiSpinner'),resp=document.getElementById('aiResponse');
+  if(spin)spin.style.display='block';
+  if(resp)resp.style.display='none';
+  fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({
+      model:'llama-3.3-70b-versatile',
+      messages:[{role:'system',content:AI_SYS},{role:'user',content:userMsg}],
+      max_tokens:1024,temperature:0.4
+    })
+  })
+  .then(function(r){
+    if(!r.ok)return r.json().then(function(e){throw new Error((e.error&&e.error.message)||'HTTP '+r.status);});
+    return r.json();
+  })
+  .then(function(data){
+    var text=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'No response.';
+    if(resp){resp.textContent=text;resp.style.display='block';}
+    if(spin)spin.style.display='none';
+  })
+  .catch(function(e){
+    if(resp){resp.textContent='Error: '+e.message+'\n\nCheck your Groq API key at console.groq.com/keys';resp.style.display='block';}
+    if(spin)spin.style.display='none';
+  });
+}
+function aiSummary(){
+  if(!CD&&!scData.length){alert('Click Generate Charts first.');return;}
+  groqChat('Summarize the current BCOM COT positioning landscape. Highlight notable extremes and key themes.\n\n'+buildContext());
+}
+function aiSignals(){
+  if(!scData.length){alert('Click Generate Charts first.');return;}
+  groqChat('Identify clearest trading signals. List top 3 long and top 3 short candidates based on extreme positioning percentiles.\n\n'+buildContext());
+}
+function aiExtremes(){
+  if(!scData.length){alert('Click Generate Charts first.');return;}
+  groqChat('Identify all BCOM commodities at historically extreme MM positioning (>80th or <20th %ile). Explain contrarian implications.\n\n'+buildContext());
+}
+function aiAsk(){
+  var q=(document.getElementById('aiQuestion')||{value:''}).value.trim();
+  if(!q){alert('Type a question first.');return;}
+  if(!CD&&!scData.length){alert('Click Generate Charts first.');return;}
+  groqChat(q+'\n\nData context:\n'+buildContext());
 }
 </script>
 </body>
