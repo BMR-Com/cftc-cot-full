@@ -1,0 +1,83 @@
+name: Weekly COT Data Update
+
+on:
+  schedule:
+    # Every Friday at 21:30 UTC = ~4:30 PM ET (safe buffer after 3:30 PM ET CFTC release)
+    - cron: '30 21 * * 5'
+  workflow_dispatch:
+    inputs:
+      full_rebuild:
+        description: 'Force full rebuild from 2006 (delete existing CSV first)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+jobs:
+  update-cot-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45   # Full rebuild of 18yrs × 23 commodities takes ~15-20 min
+
+    permissions:
+      contents: write      # Required to commit CSV and JSON back to repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests pandas
+
+      - name: Delete CSV for full rebuild (if requested)
+        if: ${{ github.event.inputs.full_rebuild == 'true' }}
+        run: |
+          rm -f data/bcom_cot_master.csv
+          echo "Full rebuild requested — existing CSV deleted."
+
+      - name: Run COT data fetcher
+        run: |
+          mkdir -p data
+          python scripts/fetch_cot_data.py
+        env:
+          PYTHONUNBUFFERED: '1'
+
+      - name: Verify outputs exist
+        run: |
+          echo "=== Output files ==="
+          ls -lh data/
+          echo ""
+          echo "CSV rows: $(wc -l < data/bcom_cot_master.csv)"
+          echo "JSON size: $(wc -c < data/latest_summary.json) bytes"
+          echo "Latest report date: $(python3 -c "import json; d=json.load(open('data/latest_summary.json')); print(d['report_date'])")"
+
+      - name: Commit updated data to repository
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/bcom_cot_master.csv data/latest_summary.json index.html
+          # Only commit if there are actual changes
+          if git diff --staged --quiet; then
+            echo "No changes detected — CFTC may not have released new data yet."
+          else
+            REPORT_DATE=$(python3 -c "import json; d=json.load(open('data/latest_summary.json')); print(d['report_date'])")
+            git commit -m "Auto: COT data update ${REPORT_DATE} [skip ci]"
+            git push
+            echo "Changes committed and pushed."
+          fi
+
+      - name: Upload CSV as workflow artifact (backup)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bcom-cot-data-${{ github.run_id }}
+          path: |
+            data/bcom_cot_master.csv
+            data/latest_summary.json
+          retention-days: 90
