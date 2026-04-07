@@ -11,9 +11,6 @@ Outputs:
   data/latest_summary.json   — Latest-week snapshot with pre-calculated
                                 percentiles over 1yr/3yr/5yr/10yr/full
                                 history, historical extremes with dates.
-  index.html (parent dir)    — Injected with window.BCOM_COT_DATA so the
-                                AI tab works with file:// and GitHub Pages.
-
 Run:  python scripts/fetch_cot_data.py
 Deps: pip install requests pandas
 """
@@ -441,37 +438,6 @@ def build_summary(df):
 
     return summary
 
-# ── Inject summary into index.html ─────────────────────────────────────────
-INJECT_START = "/* BCOM_COT_DATA_START */"
-INJECT_END   = "/* BCOM_COT_DATA_END */"
-
-def inject_into_html(summary):
-    """Embed the summary JSON as window.BCOM_COT_DATA inside index.html."""
-    if not HTML_PATH.exists():
-        print(f"  index.html not found at {HTML_PATH} — skipping injection")
-        return
-
-    html = HTML_PATH.read_text(encoding="utf-8")
-    json_str = json.dumps(summary, separators=(",", ":"))
-
-    new_block = (
-        f"<script id='bcom-cot-data'>\n"
-        f"{INJECT_START}\n"
-        f"window.BCOM_COT_DATA={json_str};\n"
-        f"{INJECT_END}\n"
-        f"</script>"
-    )
-
-    # Replace existing injection block if present
-    pattern = r"<script id='bcom-cot-data'>.*?</script>"
-    if re.search(pattern, html, re.DOTALL):
-        html = re.sub(pattern, new_block, html, flags=re.DOTALL)
-    else:
-        # Insert just before </head>
-        html = html.replace("</head>", new_block + "\n</head>", 1)
-
-    HTML_PATH.write_text(html, encoding="utf-8")
-    print(f"  Injected {len(json_str):,} chars into index.html")
 
 # ── Main ───────────────────────────────────────────────────────────────────
 def main():
@@ -562,10 +528,6 @@ def main():
         json.dump(summary, f, separators=(",",":"))
     sz2 = JSON_PATH.stat().st_size / 1024
     print(f"Saved: {JSON_PATH.name} ({sz2:.1f} KB)")
-
-    # Inject into HTML
-    print("Injecting into index.html...")
-    inject_into_html(summary)
 
     print("\n" + "=" * 65)
     print(f"Done: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}")
