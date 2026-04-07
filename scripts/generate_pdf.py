@@ -66,14 +66,10 @@ async def generate():
         # The dropdown starts with just "-- Loading..." and gets filled via JS
         # We need to wait until real options exist [^8^][^12^][^13^]
         print("[COT PDF] Waiting for commodity list to populate...")
+        
+        # Use a proper single-line JavaScript function to avoid syntax errors [^26^]
         await page.wait_for_function(
-            "() => {"
-            "  const sel = document.getElementById('commoditySelect');"
-            "  if (!sel) return false;"
-            "  // Check if we have options beyond the placeholder"
-            "  const opts = sel.querySelectorAll('option[value]');"
-            "  return opts.length > 1 && opts[0].value !== '';"
-            "}",
+            "() => { const sel = document.getElementById('commoditySelect'); if (!sel) return false; const opts = sel.querySelectorAll('option[value]'); return opts.length > 1 && opts[0].value !== ''; }",
             timeout=20_000,
         )
         
@@ -98,8 +94,7 @@ async def generate():
 
         # Wait for the loading spinner to disappear
         await page.wait_for_function(
-            "document.getElementById('loading').style.display === 'none' || "
-            "document.getElementById('loading').style.display === ''",
+            "() => document.getElementById('loading').style.display === 'none' || document.getElementById('loading').style.display === ''",
             timeout=API_WAIT_MS,
         )
 
