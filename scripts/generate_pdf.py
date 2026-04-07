@@ -62,31 +62,43 @@ async def generate():
         print(f"[COT PDF] Loading: {file_url}")
         await page.goto(file_url, wait_until="networkidle", timeout=30_000)
 
-        # ── FIX: Wait for dropdown to be populated with actual options ─────────
-        # The dropdown starts with just "-- Loading..." and gets filled via JS
-        # We need to wait until real options exist [^8^][^12^][^13^]
-        print("[COT PDF] Waiting for commodity list to populate...")
-        
-        # Use a proper single-line JavaScript function to avoid syntax errors [^26^]
-        await page.wait_for_function(
-            "() => { const sel = document.getElementById('commoditySelect'); if (!sel) return false; const opts = sel.querySelectorAll('option[value]'); return opts.length > 1 && opts[0].value !== ''; }",
-            timeout=20_000,
-        )
-        
         # ── FIX: Wait for the specific commodity option to exist ───────────────
-        # This ensures the API has returned data for our target commodity [^4^][^6^]
-        print(f"[COT PDF] Waiting for option: {DEFAULT_COMMODITY}...")
-        await page.wait_for_selector(
-            f'#commoditySelect option[value="{DEFAULT_COMMODITY}"]',
-            timeout=20_000,
-        )
-        print("[COT PDF] Commodity list loaded.")
+        # The dropdown is populated dynamically via JavaScript.
+        # We must wait for the specific option to be added to the DOM [^1^][^4^][^29^]
+        print(f"[COT PDF] Waiting for commodity option: {DEFAULT_COMMODITY}...")
+        
+        # Wait for the specific option to exist in the dropdown
+        option_selector = f'#commoditySelect option[value="{DEFAULT_COMMODITY}"]'
+        
+        try:
+            await page.wait_for_selector(
+                option_selector,
+                state="attached",  # Wait for element to be in DOM [^4^]
+                timeout=30_000,
+            )
+            print("[COT PDF] Commodity option found.")
+        except Exception as e:
+            print(f"[COT PDF] Warning: Could not find exact option. Error: {e}")
+            # Fallback: wait for any option with "Cotton" in the text
+            await page.wait_for_selector(
+                '#commoditySelect option:has-text("Cotton")',
+                state="attached",
+                timeout=10_000,
+            )
+            print("[COT PDF] Found Cotton option (fallback).")
 
         # ── FIX: Select by value (more reliable than label for dynamic dropdowns) ─
-        # Use the exact CFTC API name as the value [^8^]
-        await page.select_option("#commoditySelect", DEFAULT_COMMODITY)
+        # Use the exact CFTC API name as the value [^1^][^8^]
+        try:
+            await page.select_option("#commoditySelect", DEFAULT_COMMODITY)
+            print(f"[COT PDF] Selected commodity: {DEFAULT_COMMODITY}")
+        except Exception as e:
+            print(f"[COT PDF] Error selecting by value: {e}")
+            # Fallback: select by label text
+            await page.select_option("#commoditySelect", label="Cotton (CT)")
+            print("[COT PDF] Selected Cotton by label (fallback).")
+        
         await page.wait_for_timeout(500)
-        print(f"[COT PDF] Selected commodity: {DEFAULT_COMMODITY}")
 
         # Click Generate Charts — this auto-triggers all sections
         await page.click("#fetchBtn")
