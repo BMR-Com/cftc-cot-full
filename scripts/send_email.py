@@ -11,7 +11,6 @@ from pathlib import Path
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
-from email.header import Header
 from email.utils import formatdate
 from email import encoders
 import smtplib
@@ -30,8 +29,7 @@ EMAIL_TO = os.getenv("EMAIL_TO", "")
 # ── Email content ───────────────────────────────────────────────────────────
 EMAIL_SUBJECT = "BCOM COT Weekly Report"
 
-# Use simple ASCII-only body to avoid encoding issues
-# If you need Unicode, use the Header class approach below
+# Use simple ASCII-only body to avoid any encoding issues
 EMAIL_BODY = """BCOM COT Weekly Report
 
 Please find attached the latest CFTC Commitment of Traders report for Bloomberg Commodity Index constituents.
@@ -69,14 +67,12 @@ def send():
     msg['From'] = EMAIL_FROM
     msg['To'] = ", ".join(recipients)
     msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = EMAIL_SUBJECT  # Simple ASCII subject, no Header() needed
     
-    # ── FIX: Use Header class for subject to handle any encoding properly [^51^][^55^]
-    # This avoids the _charset parameter issues with MIMEText
-    msg['Subject'] = Header(EMAIL_SUBJECT, 'utf-8')
-    
-    # ── FIX: Attach body without explicit _charset parameter [^53^][^58^]
-    # MIMEText auto-detects charset in Python 3, or defaults to us-ascii
-    # which is fine for our ASCII-only body
+    # ── FIX: Attach body WITHOUT any _charset parameter ──────────────────────
+    # MIMEText auto-detects charset in Python 3. 
+    # Explicit _charset causes Compat32 errors in Python 3.11 [^53^]
+    # Since our body is ASCII-only, it will default to us-ascii which is fine.
     body_part = MIMEText(EMAIL_BODY, 'plain')
     msg.attach(body_part)
     
@@ -101,8 +97,10 @@ def send():
         
         print(f"[COT Email] Sending to {len(recipients)} recipient(s) ...")
         
-        # ── FIX: Use send_message() for proper encoding handling [^37^][^39^][^41^]
-        server.send_message(msg, EMAIL_FROM, recipients)
+        # ── FIX: Use as_string() and encode to bytes for sendmail ─────────────
+        # This avoids encoding issues with send_message() and Compat32 [^44^][^49^]
+        msg_bytes = msg.as_string().encode('utf-8')
+        server.sendmail(EMAIL_FROM, recipients, msg_bytes)
         
         print(f"[COT Email] Successfully sent to: {', '.join(recipients)}")
         server.quit()
