@@ -60,12 +60,14 @@ async def generate():
         # Navigate to the local HTML file
         file_url = HTML_FILE.resolve().as_uri()
         print(f"[COT PDF] Loading: {file_url}")
+        
+        # Use networkidle to wait for initial page load including JS execution [^27^][^83^]
         await page.goto(file_url, wait_until="networkidle", timeout=30_000)
 
-        # ── FIX: Wait for the specific commodity option to exist ───────────────
-        # The dropdown is populated dynamically via JavaScript.
-        # We must wait for the specific option to be added to the DOM [^1^][^4^][^29^]
-        print(f"[COT PDF] Waiting for commodity option: {DEFAULT_COMMODITY}...")
+        # ── FIX: Wait for dropdown to be populated with actual options ─────────
+        # The dropdown starts with just "-- Loading..." and gets filled via JS
+        # We need to wait until real options exist [^4^][^12^][^13^]
+        print("[COT PDF] Waiting for commodity list to populate...")
         
         # Wait for the specific option to exist in the dropdown
         option_selector = f'#commoditySelect option[value="{DEFAULT_COMMODITY}"]'
@@ -88,7 +90,6 @@ async def generate():
             print("[COT PDF] Found Cotton option (fallback).")
 
         # ── FIX: Select by value (more reliable than label for dynamic dropdowns) ─
-        # Use the exact CFTC API name as the value [^1^][^8^]
         try:
             await page.select_option("#commoditySelect", DEFAULT_COMMODITY)
             print(f"[COT PDF] Selected commodity: {DEFAULT_COMMODITY}")
@@ -100,18 +101,54 @@ async def generate():
         
         await page.wait_for_timeout(500)
 
-        # Click Generate Charts — this auto-triggers all sections
+        # ── FIX: Click Generate Charts and wait for all network activity ───────
+        print(f"[COT PDF] Clicking Generate Charts...")
         await page.click("#fetchBtn")
-        print(f"[COT PDF] Clicked Generate Charts. Waiting up to {API_WAIT_MS/1000:.0f}s for all data...")
-
-        # Wait for the loading spinner to disappear
+        
+        # Wait for network to be idle after clicking - this ensures all API calls complete [^27^][^83^][^91^]
+        print(f"[COT PDF] Waiting up to {API_WAIT_MS/1000:.0f}s for all data...")
+        
+        # Wait for the loading spinner to disappear (charts are rendering)
         await page.wait_for_function(
             "() => document.getElementById('loading').style.display === 'none' || document.getElementById('loading').style.display === ''",
             timeout=API_WAIT_MS,
         )
-
-        # Extra wait to ensure all async sections (scatter, summary) finished rendering
-        await page.wait_for_timeout(5_000)
+        
+        # ── FIX: Additional wait for network idle to ensure all async sections loaded ─
+        # This catches scatter plots, summary tables, and other async content [^27^][^83^]
+        try:
+            await page.wait_for_load_state("networkidle", timeout=30_000)
+            print("[COT PDF] Network idle reached.")
+        except:
+            print("[COT PDF] Network idle timeout (continuing anyway)...")
+        
+        # ── FIX: Wait for key chart sections to be visible ─────────────────────
+        # Ensure all main chart sections are rendered before PDF generation [^4^][^13^]
+        print("[COT PDF] Waiting for chart sections to render...")
+        
+        chart_sections = [
+            "#chart1",  # Position Analysis
+            "#chart2",  # All Trader Categories  
+            "#chart3",  # Trader Count
+            "#chart4",  # Position Size
+            "#weeklyDetail",  # Weekly Detail
+            "#execSec",  # Executive Summary
+            "#sumSec",  # Market Summary
+        ]
+        
+        for section in chart_sections:
+            try:
+                await page.wait_for_selector(
+                    section,
+                    state="visible",
+                    timeout=15_000,
+                )
+                print(f"[COT PDF] Section {section} visible.")
+            except Exception as e:
+                print(f"[COT PDF] Warning: Section {section} not visible: {e}")
+        
+        # Extra safety wait for any final rendering
+        await page.wait_for_timeout(3_000)
         print("[COT PDF] All sections rendered. Generating PDF...")
 
         # Export PDF
