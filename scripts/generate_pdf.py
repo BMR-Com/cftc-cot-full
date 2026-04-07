@@ -18,9 +18,9 @@ from playwright.async_api import async_playwright
 HTML_FILE = Path(__file__).parent.parent / "index.html"
 OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
 
-# The commodity to pre-select (must match exact API name)
-# Leave blank to use whichever is selected by default
-DEFAULT_COMMODITY = "CORN - CHICAGO BOARD OF TRADE"
+# The commodity to pre-select (must match the 'value' attribute in the dropdown)
+# Use the CFTC API name as it appears in the dropdown value
+DEFAULT_COMMODITY = "COTTON NO. 2 - ICE FUTURES U.S."
 
 # How long to wait (ms) after page load for all CFTC API calls to complete
 # CFTC API can be slow — 90 seconds is a safe buffer for all 23 commodities
@@ -62,16 +62,33 @@ async def generate():
         print(f"[COT PDF] Loading: {file_url}")
         await page.goto(file_url, wait_until="networkidle", timeout=30_000)
 
-        # Wait for commodity list to load (spinner disappears)
+        # ── FIX: Wait for dropdown to be populated with actual options ─────────
+        # The dropdown starts with just "-- Loading..." and gets filled via JS
+        # We need to wait until real options exist [^8^][^12^][^13^]
+        print("[COT PDF] Waiting for commodity list to populate...")
         await page.wait_for_function(
-            "document.getElementById('commoditySelect') && "
-            "!document.getElementById('commoditySelect').disabled",
+            "() => {"
+            "  const sel = document.getElementById('commoditySelect');"
+            "  if (!sel) return false;"
+            "  // Check if we have options beyond the placeholder"
+            "  const opts = sel.querySelectorAll('option[value]');"
+            "  return opts.length > 1 && opts[0].value !== '';"
+            "}",
+            timeout=20_000,
+        )
+        
+        # ── FIX: Wait for the specific commodity option to exist ───────────────
+        # This ensures the API has returned data for our target commodity [^4^][^6^]
+        print(f"[COT PDF] Waiting for option: {DEFAULT_COMMODITY}...")
+        await page.wait_for_selector(
+            f'#commoditySelect option[value="{DEFAULT_COMMODITY}"]',
             timeout=20_000,
         )
         print("[COT PDF] Commodity list loaded.")
 
-        # Select the default commodity
-        await page.select_option("#commoditySelect", label=DEFAULT_COMMODITY.split(" - ")[0])
+        # ── FIX: Select by value (more reliable than label for dynamic dropdowns) ─
+        # Use the exact CFTC API name as the value [^8^]
+        await page.select_option("#commoditySelect", DEFAULT_COMMODITY)
         await page.wait_for_timeout(500)
         print(f"[COT PDF] Selected commodity: {DEFAULT_COMMODITY}")
 
