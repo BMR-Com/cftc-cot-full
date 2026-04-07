@@ -2,16 +2,17 @@ name: COT Report Weekly Email
 
 on:
   schedule:
-    # Every Friday at 20:30 UTC = 3:30 PM ET (EST) / 4:30 PM ET (EDT)
-    # CFTC releases at 3:30 PM ET on Fridays — we wait 30 min for data to propagate
-    - cron: '0 21 * * 5'   # 9:00 PM UTC Friday = ~4-5 PM ET, safe buffer
-  workflow_dispatch:        # Allow manual trigger from GitHub Actions UI
+    # 3:31 PM ET = 20:31 UTC (EST) or 19:31 UTC (EDT)
+    # Using 20:31 UTC which covers both EST (3:31 PM) and EDT (4:31 PM)
+    - cron: '31 20 * * 5'  # 20:31 UTC Friday
+    
+  workflow_dispatch:
 
 jobs:
   send-cot-report:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+    timeout-minutes: 15  # Extended timeout for 5-minute retry
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,13 +27,37 @@ jobs:
           pip install requests playwright
           playwright install chromium --with-deps
 
-      - name: Fetch COT data and generate PDF
+      - name: Fetch COT data and generate PDF (with retry)
+        id: fetch_pdf
         env:
           CFTC_API_BASE: 'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'
         run: |
-          python scripts/generate_pdf.py
+          # First attempt at 3:31 PM ET (20:31 UTC)
+          echo "First attempt at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          
+          if python scripts/generate_pdf.py; then
+            echo "pdf_status=success" >> $GITHUB_OUTPUT
+            echo "PDF generated successfully on first attempt"
+          else
+            echo "First attempt failed - CFTC data not available yet"
+            echo "Waiting 5 minutes before retry..."
+            sleep 300  # 5 minutes = 300 seconds
+            
+            # Second attempt at ~3:36 PM ET
+            echo "Retry attempt at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            
+            if python scripts/generate_pdf.py; then
+              echo "pdf_status=success" >> $GITHUB_OUTPUT
+              echo "PDF generated successfully on retry"
+            else
+              echo "pdf_status=failed" >> $GITHUB_OUTPUT
+              echo "CFTC data still not available after retry - no email will be sent"
+              exit 0  # Exit gracefully without failing the workflow
+            fi
+          fi
 
       - name: Send email with PDF
+        if: steps.fetch_pdf.outputs.pdf_status == 'success'
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
@@ -42,3 +67,9 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
           python scripts/send_email.py
+          echo "Email sent successfully with COT report"
+
+      - name: Report no data available
+        if: steps.fetch_pdf.outputs.pdf_status == 'failed'
+        run: |
+          echo "No CFTC data available for this week - email not sent"
