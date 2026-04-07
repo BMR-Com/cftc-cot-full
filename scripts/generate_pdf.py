@@ -31,6 +31,7 @@ PDF_OPTIONS = {
     "format": "A4",
     "landscape": True,
     "print_background": True,
+    "prefer_css_page_size": True,  # Respect @page CSS rules from HTML [^107^][^110^]
     "margin": {
         "top": "8mm",
         "bottom": "8mm",
@@ -149,9 +150,22 @@ async def generate():
         
         # Extra safety wait for any final rendering
         await page.wait_for_timeout(3_000)
+
+        # ── CRITICAL FIX: Emulate print media before PDF generation ────────────
+        # This applies @media print CSS rules so charts resize correctly [^92^][^96^][^100^][^111^]
+        print("[COT PDF] Emulating print media for proper chart sizing...")
+        await page.emulate_media(media="print")
+        
+        # Wait for Chart.js to redraw after media change
+        await page.wait_for_timeout(2_000)
+        
+        # Trigger window resize to force chart redraw
+        await page.evaluate("() => { window.dispatchEvent(new Event('resize')); }")
+        await page.wait_for_timeout(1_000)
+        
         print("[COT PDF] All sections rendered. Generating PDF...")
 
-        # Export PDF
+        # Export PDF with prefer_css_page_size to respect @page rules [^107^][^110^]
         pdf_bytes = await page.pdf(**PDF_OPTIONS)
         OUTPUT_PDF.write_bytes(pdf_bytes)
         print(f"[COT PDF] PDF saved to: {OUTPUT_PDF} ({len(pdf_bytes)/1024:.1f} KB)")
