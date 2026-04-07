@@ -1943,6 +1943,189 @@ function renderSnapTable(data,tbody){
   });
 }
 
+
+/* ===========================================================
+   AI RESPONSE PARSING & CHART RENDERING
+   =========================================================== */
+
+/* Parse AI response for [CHART:{...}] tags and extract clean text */
+function parseAiResponse(rawText){
+  var clean = rawText;
+  var specs = [];
+
+  // Find all [CHART:{...}] tags
+  var regex = /\[CHART:(\{[^\}]+\})\]/g;
+  var match;
+
+  while((match = regex.exec(rawText)) !== null){
+    try{
+      var spec = JSON.parse(match[1]);
+      if(spec.commodity && spec.metric){
+        specs.push(spec);
+      }
+    }catch(e){
+      console.warn('Failed to parse chart spec:', match[1]);
+    }
+  }
+
+  // Remove chart tags from clean text
+  clean = clean.replace(/\[CHART:[^\]]+\]/g, '').trim();
+
+  return {clean: clean, specs: specs};
+}
+
+/* Render a chart based on AI-requested spec */
+function renderAiChart(spec){
+  var area = document.getElementById('aiChartArea');
+  var title = document.getElementById('aiChartTitle');
+  var sub = document.getElementById('aiChartSub');
+  var note = document.getElementById('aiChartNote');
+  var spinner = document.getElementById('aiChartSpinner');
+
+  area.style.display = 'block';
+  spinner.style.display = 'block';
+
+  // Map commodity name to API name
+  var commApi = null;
+  for(var i=0; i<allBCOM.length; i++){
+    if(allBCOM[i].name.toLowerCase() === spec.commodity.toLowerCase()){
+      commApi = allBCOM[i].api;
+      break;
+    }
+  }
+
+  if(!commApi){
+    title.textContent = 'Error: Commodity not found';
+    sub.textContent = spec.commodity;
+    spinner.style.display = 'none';
+    return;
+  }
+
+  // Determine metric mapping
+  var metricMap = {
+    'mm_net': {field: 'net', cat: 'managed_money', label: 'Managed Money Net'},
+    'mm_long': {field: 'long', cat: 'managed_money', label: 'MM Gross Long'},
+    'mm_short': {field: 'short', cat: 'managed_money', label: 'MM Gross Short'},
+    'mm_net_pct_oi': {field: 'nPct', cat: 'managed_money', label: 'MM Net %OI'},
+    'pm_net': {field: 'net', cat: 'prod_merc', label: 'Prod/Merchant Net'},
+    'pm_long': {field: 'long', cat: 'prod_merc', label: 'PM Gross Long'},
+    'pm_short': {field: 'short', cat: 'prod_merc', label: 'PM Gross Short'},
+    'sd_net': {field: 'net', cat: 'swap_dealers', label: 'Swap Dealers Net'},
+    'or_net': {field: 'net', cat: 'other_rept', label: 'Other Reportables Net'},
+    'open_interest': {field: 'oi', cat: 'managed_money', label: 'Open Interest'}
+  };
+
+  var m = metricMap[spec.metric] || metricMap['mm_net'];
+
+  title.textContent = m.label + ' — ' + spec.commodity;
+  sub.textContent = (spec.years || 10) + ' year history' + (spec.crop_type && spec.crop_type !== 'all' ? ' (' + spec.crop_type + ' crop)' : '');
+
+  // Calculate date range
+  var endDate = new Date();
+  var startDate = new Date();
+  startDate.setFullYear(endDate.getFullYear() - (spec.years || 10));
+
+  var ep = EP.combined;
+  var enc = commApi.replace(/'/g, "''");
+  var url = ep + "?$where=market_and_exchange_names='" + enc + "' AND report_date_as_yyyy_mm_dd >= '" + startDate.toISOString().split('T')[0] + "' AND report_date_as_yyyy_mm_dd <= '" + endDate.toISOString().split('T')[0] + "'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000";
+
+  fetchT(url, 20000)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data || !data.length){
+        throw new Error('No data returned from CFTC');
+      }
+
+      var p = procData(data, m.cat, spec.crop_type || 'all');
+      if(!p){
+        throw new Error('Failed to process data for ' + spec.crop_type + ' crop type');
+      }
+
+      // Get values
+      var values, label, color;
+      switch(m.field){
+        case 'net': values = p.net; color = '#2a5298'; label = 'Net Position'; break;
+        case 'long': values = p.long; color = '#1a8c4e'; label = 'Long'; break;
+        case 'short': values = p.short; color = '#c0392b'; label = 'Short'; break;
+        case 'nPct': values = p.nPct; color = '#2a5298'; label = 'Net %OI'; break;
+        case 'lPct': values = p.lPct; color = '#1a8c4e'; label = 'Long %OI'; break;
+        case 'sPct': values = p.sPct; color = '#c0392b'; label = 'Short %OI'; break;
+        case 'oi': values = p.oi; color = '#8e44ad'; label = 'Open Interest'; break;
+        default: values = p.net; color = '#2a5298'; label = 'Net';
+      }
+
+      var isPct = m.field.indexOf('Pct') !== -1 || m.field === 'nPct' || m.field === 'lPct' || m.field === 'sPct';
+
+      // Create chart
+      var ctx = document.getElementById('aiChartCanvas').getContext('2d');
+      if(charts.aiChart) charts.aiChart.destroy();
+
+      charts.aiChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: label,
+            data: pts(p.dates, values),
+            borderColor: color,
+            backgroundColor: color + '20',
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  var v = ctx.raw.y;
+                  return label + ': ' + (isPct ? v.toFixed(1) + '%' : v.toLocaleString());
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: { unit: 'month', displayFormats: { month: 'MMM yy' } },
+              grid: { display: false },
+              ticks: { maxTicksLimit: 12, font: { size: 9 } }
+            },
+            y: {
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              ticks: {
+                callback: function(v) {
+                  return isPct ? v.toFixed(0) + '%' : (Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v);
+                },
+                font: { size: 9 }
+              }
+            }
+          }
+        }
+      });
+
+      // Add note
+      var latest = values[values.length - 1];
+      var pctile = pct(values, latest);
+      note.innerHTML = '<strong>Latest:</strong> ' + (isPct ? latest.toFixed(1) + '%' : latest.toLocaleString()) + 
+                       ' | <strong>Historical %ile:</strong> ' + pctile.toFixed(0) + 'th percentile vs ' + spec.years + '-year range';
+
+      spinner.style.display = 'none';
+    })
+    .catch(function(e){
+      title.textContent = 'Error loading chart';
+      sub.textContent = e.message;
+      spinner.style.display = 'none';
+      console.error('Chart error:', e);
+    });
+}
+
 /* Restore saved Groq key on load */
 (function(){
   var k=sessionStorage.getItem('groqApiKey');
