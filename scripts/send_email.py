@@ -1,116 +1,109 @@
 """
 send_email.py
-Sends the generated COT PDF report via SMTP email.
+Sends the generated COT report PDF via email using SMTP.
 
-Reads credentials from environment variables (set as GitHub Secrets):
-  SMTP_HOST  — e.g. smtp.gmail.com
-  SMTP_PORT  — e.g. 587
-  SMTP_USER  — your email address
-  SMTP_PASS  — your app password (NOT your login password)
-  EMAIL_FROM — sender address (usually same as SMTP_USER)
-  EMAIL_TO   — comma-separated list of recipients
-
-Gmail setup:
-  1. Enable 2FA on your Google account
-  2. Create an App Password at myaccount.google.com/apppasswords
-  3. Use that 16-char password as SMTP_PASS
-
-Outlook/Office365:
-  SMTP_HOST=smtp.office365.com  SMTP_PORT=587
+Requirements: Set environment variables for SMTP credentials
 """
 
 import os
-import smtplib
 import sys
-from datetime import datetime, timezone, timedelta
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email import encoders
 from pathlib import Path
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email.utils import formatdate
+from email import encoders
+import smtplib
 
 # ── Config ─────────────────────────────────────────────────────────────────
-PDF_PATH = Path(__file__).parent.parent / "cot_report.pdf"
+PDF_FILE = Path(__file__).parent.parent / "cot_report.pdf"
 
-def get_env(key: str) -> str:
-    val = os.environ.get(key, "").strip()
-    if not val:
-        print(f"ERROR: Environment variable '{key}' is not set.")
-        sys.exit(1)
-    return val
+# Email configuration from environment variables
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+EMAIL_FROM = os.getenv("EMAIL_FROM", "")
+EMAIL_TO = os.getenv("EMAIL_TO", "")
+
+# ── Email content ───────────────────────────────────────────────────────────
+EMAIL_SUBJECT = "BCOM COT Weekly Report"
+EMAIL_BODY = """BCOM COT Weekly Report
+
+Please find attached the latest CFTC Commitment of Traders report for Bloomberg Commodity Index constituents.
+
+Report generated automatically from CFTC public data.
+
+---
+This is an automated email. Please do not reply.
+"""
 
 
 def send():
-    smtp_host = get_env("SMTP_HOST")
-    smtp_port = int(get_env("SMTP_PORT"))
-    smtp_user = get_env("SMTP_USER")
-    smtp_pass = get_env("SMTP_PASS")
-    email_from = get_env("EMAIL_FROM")
-    email_to_raw = get_env("EMAIL_TO")
-    recipients = [r.strip() for r in email_to_raw.split(",") if r.strip()]
-
-    if not PDF_PATH.exists():
-        print(f"ERROR: PDF not found at {PDF_PATH}. Run generate_pdf.py first.")
+    """Send the PDF report via email."""
+    
+    # Validate configuration
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASS, EMAIL_FROM, EMAIL_TO]):
+        print("ERROR: Missing email configuration. Check environment variables:")
+        print("  SMTP_HOST, SMTP_USER, SMTP_PASS, EMAIL_FROM, EMAIL_TO")
         sys.exit(1)
-
-    et = timezone(timedelta(hours=-5))  # EST
-    now_et = datetime.now(et)
-    date_str = now_et.strftime("%B %d, %Y")
-    week_str = now_et.strftime("Week of %Y-%m-%d")
-
-    # Build email
+    
+    if not PDF_FILE.exists():
+        print(f"ERROR: PDF file not found at {PDF_FILE}")
+        sys.exit(1)
+    
+    # Parse recipients (comma-separated)
+    recipients = [email.strip() for email in EMAIL_TO.split(",") if email.strip()]
+    if not recipients:
+        print("ERROR: No valid recipients found in EMAIL_TO")
+        sys.exit(1)
+    
+    print(f"[COT Email] Connecting to {SMTP_HOST}:{SMTP_PORT} ...")
+    
+    # Create the email message
     msg = MIMEMultipart()
-    msg["From"] = email_from
-    msg["To"] = ", ".join(recipients)
-    msg["Subject"] = f"BCOM COT Weekly Report — {date_str}"
-
-    body = f"""
-<html><body>
-<p>Please find attached the <strong>Bloomberg Commodity Index (BCOM) COT Weekly Report</strong>
-for <strong>{date_str}</strong>.</p>
-
-<p><strong>Report contents (A4 Landscape PDF):</strong></p>
-<ul>
-  <li>BCOM COT Executive Summary — Managed Money Positioning Extremes</li>
-  <li>BCOM Market Summary — All Trader Categories (since 2006)</li>
-  <li>4-Week Positioning Detail — All Trader Categories (Old/Other/All Crop)</li>
-  <li>Position Analysis, Trader Count, Position Size charts</li>
-  <li>Prod/Merch vs Managed Money (%ile) — 6 scatter charts</li>
-  <li>%OI Positioning (%ile) — 6 scatter charts</li>
-  <li>Agri Crop COT Executive Summary (Old / Other / All Crop)</li>
-  <li>Agri Crop Market Summary (Old / Other / All Crop)</li>
-  <li>Agri Crop Weekly Seasonality — 3 charts</li>
-</ul>
-
-<p><em>Data source: CFTC Disaggregated Reports (Futures &amp; Options Combined)</em><br>
-<em>Generated automatically every Friday after 3:30 PM ET CFTC release.</em></p>
-
-<p style="color:#666;font-size:0.9em;">This is an automated report. Do not reply to this email.</p>
-</body></html>
-"""
-
-    msg.attach(MIMEText(body, "html"))
-
-    # Attach PDF
-    pdf_bytes = PDF_PATH.read_bytes()
-    attachment = MIMEBase("application", "pdf")
-    attachment.set_payload(pdf_bytes)
-    encoders.encode_base64(attachment)
-    filename = f"BCOM_COT_{now_et.strftime('%Y%m%d')}.pdf"
-    attachment.add_header("Content-Disposition", f'attachment; filename="{filename}"')
-    msg.attach(attachment)
-
-    # Send
-    print(f"[COT Email] Connecting to {smtp_host}:{smtp_port} ...")
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.ehlo()
+    msg['From'] = EMAIL_FROM
+    msg['To'] = ", ".join(recipients)
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = EMAIL_SUBJECT
+    
+    # Attach the email body with proper UTF-8 encoding [^49^]
+    # Use MIMEText with _charset='utf-8' to handle Unicode properly
+    body_part = MIMEText(EMAIL_BODY, 'plain', _charset='utf-8')
+    msg.attach(body_part)
+    
+    # Attach the PDF file
+    print(f"[COT Email] Attaching PDF: {PDF_FILE.name}")
+    with open(PDF_FILE, "rb") as f:
+        pdf_part = MIMEBase("application", "octet-stream")
+        pdf_part.set_payload(f.read())
+    
+    encoders.encode_base64(pdf_part)
+    pdf_part.add_header(
+        "Content-Disposition",
+        f"attachment; filename={PDF_FILE.name}",
+    )
+    msg.attach(pdf_part)
+    
+    # Send the email
+    try:
+        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
         server.starttls()
-        server.ehlo()
-        server.login(smtp_user, smtp_pass)
-        server.sendmail(email_from, recipients, msg.as_string())
-
-    print(f"[COT Email] Email sent to: {', '.join(recipients)}")
-    print(f"[COT Email] PDF size: {len(pdf_bytes)/1024:.1f} KB")
+        server.login(SMTP_USER, SMTP_PASS)
+        
+        print(f"[COT Email] Sending to {len(recipients)} recipient(s) ...")
+        
+        # ── FIX: Use send_message() instead of sendmail() for proper UTF-8 handling [^37^][^39^][^41^]
+        # send_message() properly handles email.message.Message objects and encodes them correctly
+        # sendmail() expects ASCII strings and fails with Unicode characters
+        server.send_message(msg, EMAIL_FROM, recipients)
+        
+        print(f"[COT Email] Successfully sent to: {', '.join(recipients)}")
+        server.quit()
+        
+    except Exception as e:
+        print(f"[COT Email] ERROR: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
