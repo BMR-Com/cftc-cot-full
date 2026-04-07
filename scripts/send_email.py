@@ -8,11 +8,8 @@ Requirements: Set environment variables for SMTP credentials
 import os
 import sys
 from pathlib import Path
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
+from email.message import EmailMessage
 from email.utils import formatdate
-from email import encoders
 import smtplib
 
 # ── Config ─────────────────────────────────────────────────────────────────
@@ -27,9 +24,8 @@ EMAIL_FROM = os.getenv("EMAIL_FROM", "")
 EMAIL_TO = os.getenv("EMAIL_TO", "")
 
 # ── Email content ───────────────────────────────────────────────────────────
+# Use raw ASCII-only strings to avoid any hidden Unicode characters
 EMAIL_SUBJECT = "BCOM COT Weekly Report"
-
-# Use simple ASCII-only body to avoid any encoding issues
 EMAIL_BODY = """BCOM COT Weekly Report
 
 Please find attached the latest CFTC Commitment of Traders report for Bloomberg Commodity Index constituents.
@@ -39,6 +35,11 @@ Report generated automatically from CFTC public data.
 ---
 This is an automated email. Please do not reply.
 """
+
+
+def clean_string(s):
+    """Remove any non-ASCII characters to avoid encoding issues."""
+    return s.encode('ascii', 'ignore').decode('ascii')
 
 
 def send():
@@ -62,32 +63,29 @@ def send():
     
     print(f"[COT Email] Connecting to {SMTP_HOST}:{SMTP_PORT} ...")
     
-    # Create the email message
-    msg = MIMEMultipart()
-    msg['From'] = EMAIL_FROM
-    msg['To'] = ", ".join(recipients)
+    # Create the email message using modern EmailMessage API [^69^][^75^][^77^]
+    msg = EmailMessage()
+    msg['From'] = clean_string(EMAIL_FROM)
+    msg['To'] = clean_string(", ".join(recipients))
     msg['Date'] = formatdate(localtime=True)
-    msg['Subject'] = EMAIL_SUBJECT  # Simple ASCII subject, no Header() needed
+    msg['Subject'] = clean_string(EMAIL_SUBJECT)
     
-    # ── FIX: Attach body WITHOUT any _charset parameter ──────────────────────
-    # MIMEText auto-detects charset in Python 3. 
-    # Explicit _charset causes Compat32 errors in Python 3.11 [^53^]
-    # Since our body is ASCII-only, it will default to us-ascii which is fine.
-    body_part = MIMEText(EMAIL_BODY, 'plain')
-    msg.attach(body_part)
+    # Set content with explicit UTF-8 encoding [^74^][^75^]
+    # EmailMessage handles encoding automatically
+    msg.set_content(clean_string(EMAIL_BODY))
     
-    # Attach the PDF file
+    # Attach the PDF file [^69^][^75^][^77^]
     print(f"[COT Email] Attaching PDF: {PDF_FILE.name}")
     with open(PDF_FILE, "rb") as f:
-        pdf_part = MIMEBase("application", "octet-stream")
-        pdf_part.set_payload(f.read())
+        pdf_data = f.read()
     
-    encoders.encode_base64(pdf_part)
-    pdf_part.add_header(
-        "Content-Disposition",
-        f"attachment; filename={PDF_FILE.name}",
+    # Use add_attachment with proper MIME type [^72^][^77^]
+    msg.add_attachment(
+        pdf_data,
+        maintype='application',
+        subtype='pdf',
+        filename=PDF_FILE.name
     )
-    msg.attach(pdf_part)
     
     # Send the email
     try:
@@ -97,10 +95,8 @@ def send():
         
         print(f"[COT Email] Sending to {len(recipients)} recipient(s) ...")
         
-        # ── FIX: Use as_string() and encode to bytes for sendmail ─────────────
-        # This avoids encoding issues with send_message() and Compat32 [^44^][^49^]
-        msg_bytes = msg.as_string().encode('utf-8')
-        server.sendmail(EMAIL_FROM, recipients, msg_bytes)
+        # Use send_message() which handles EmailMessage properly [^69^][^75^][^77^]
+        server.send_message(msg, EMAIL_FROM, recipients)
         
         print(f"[COT Email] Successfully sent to: {', '.join(recipients)}")
         server.quit()
