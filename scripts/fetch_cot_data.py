@@ -28,7 +28,6 @@ ROOT_DIR    = SCRIPT_DIR.parent
 DATA_DIR    = ROOT_DIR / "data"
 CSV_PATH    = DATA_DIR / "bcom_cot_master.csv"
 JSON_PATH   = DATA_DIR / "latest_summary.json"
-HTML_PATH   = ROOT_DIR / "index.html"
 DATA_DIR.mkdir(exist_ok=True)
 
 # ── CFTC Socrata API ───────────────────────────────────────────────────────
