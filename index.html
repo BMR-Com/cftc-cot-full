@@ -1747,261 +1747,50 @@ function aiFillPreset(){
   if(q){ document.getElementById('aiCustomQ').value = q; }
 }
 
-/* Build context string — uses fetched summary data if available, else live chart data */
+/* Build context string from pre-computed JSON (or live chart data fallback) */
 function buildAiContext(){
-  var ctx = '';
-  var data = window._cotData;   // set by loadAiData() via fetch()
-
-  if(data && data.commodities){
-    ctx += '=== BCOM COT DATA — Report date: ' + data.report_date + ' ===\n';
-    ctx += 'Data history from: ' + data.data_from + '\n\n';
-    ctx += 'MANAGED MONEY POSITIONING:\n';
-    ctx += 'Format: Commodity [Crop] | Net | WkChg | Net%ile(Full) | Net%ile(10yr) | Long%ile | Short%ile\n';
-    ctx += '        + 10yr and all-time extremes with dates\n\n';
-
+  var ctx='';
+  var data=window._cotData;
+  if(data&&data.commodities){
+    ctx+='BCOM COT DATA — Report: '+data.report_date+' | History from: '+data.data_from+'\n\n';
+    ctx+='MANAGED MONEY POSITIONING (net, wk change, percentile vs full history & 10yr, extremes):\n';
     data.commodities.forEach(function(comm){
       comm.variants.forEach(function(v){
-        var mm = v.categories && v.categories.managed_money;
-        if(!mm) return;
-        var crop = comm.is_crop ? '['+v.crop_type.toUpperCase()+']' : '[—]';
-        var p = mm.pctiles || {};
-        var h = mm.historical || {};
-        var hn = h.net || {};
-        var hl = h.long || {};
-        var hs = h.short || {};
-
-        ctx += comm.name+' ('+comm.ticker+') '+crop+' | ';
-        ctx += 'Net='+(mm.net||0).toLocaleString()+' Chg='+((mm.wk_chg_net||0)>=0?'+':'')+(mm.wk_chg_net||0).toLocaleString()+' | ';
-        ctx += 'Net%ile: Full='+(p.net_full||'?')+'% 10yr='+(p.net_10yr||'?')+'% | ';
-        ctx += 'Long%ile: Full='+(p.long_full||'?')+'% | Short%ile: Full='+(p.short_full||'?')+'% | ';
-        ctx += 'Net%OI='+(mm.net_pct_oi||0).toFixed(1)+'%\n';
-        if(hn['10yr_min']!==undefined) ctx += '  10yr: NetMin='+hn['10yr_min']+'('+hn['10yr_min_date']+') NetMax='+hn['10yr_max']+'('+hn['10yr_max_date']+')\n';
-        if(hn.full_min!==undefined)   ctx += '  Full: NetMin='+hn.full_min+'('+hn.full_min_date+') NetMax='+hn.full_max+'('+hn.full_max_date+')\n';
-        ctx += '\n';
+        var mm=v.categories&&v.categories.managed_money;if(!mm)return;
+        var p=mm.pctiles||{},h=mm.historical||{},hn=h.net||{};
+        var crop=comm.is_crop?'['+v.crop_type.toUpperCase()+']':'';
+        ctx+=comm.name+'('+comm.ticker+')'+crop+': ';
+        ctx+='Net='+(mm.net||0).toLocaleString();
+        ctx+=' Chg='+((mm.wk_chg_net||0)>=0?'+':'')+(mm.wk_chg_net||0).toLocaleString();
+        ctx+=' Net%ile=Full:'+(p.net_full||'?')+'% 10yr:'+(p.net_10yr||'?')+'%';
+        ctx+=' Long%ile:'+(p.long_full||'?')+'% Short%ile:'+(p.short_full||'?')+'%';
+        ctx+=' Net%OI='+(mm.net_pct_oi||0).toFixed(1)+'%\n';
+        if(hn['10yr_min']!==undefined)ctx+='  10yr: min='+hn['10yr_min']+'('+hn['10yr_min_date']+') max='+hn['10yr_max']+'('+hn['10yr_max_date']+')\n';
+        if(hn.full_min!==undefined)ctx+='  AllTime: min='+hn.full_min+'('+hn.full_min_date+') max='+hn.full_max+'('+hn.full_max_date+')\n';
       });
     });
-
-    ctx += '\nPROD/MERCHANT POSITIONING (net, full %ile):\n';
+    ctx+='\nPROD/MERCHANT NET (full %ile):\n';
     data.commodities.forEach(function(comm){
-      var v0 = comm.variants&&comm.variants[0];
-      if(!v0) return;
-      var pm = v0.categories&&v0.categories.prod_merc;
-      if(!pm) return;
-      var p = pm.pctiles||{};
-      ctx += comm.name+' ('+comm.ticker+'): Net='+(pm.net||0).toLocaleString()+' Net%ile='+(p.net_full||'?')+'%\n';
+      var v0=comm.variants&&comm.variants[0];if(!v0)return;
+      var pm=v0.categories&&v0.categories.prod_merc;if(!pm)return;
+      ctx+=comm.name+'('+comm.ticker+'): Net='+(pm.net||0).toLocaleString()+' %ile='+(pm.pctiles&&pm.pctiles.net_full||'?')+'%\n';
     });
-
   } else {
-    ctx += '=== Pre-computed data not yet loaded. Using live chart data. ===\n\n';
-    if(typeof buildContext === 'function') ctx += buildContext();
+    ctx+='Pre-computed data not loaded. Using live chart data.\n';
+    if(CD){
+      var l=CD.net.length-1,tc=document.getElementById('traderCategory').value||'managed_money';
+      ctx+='Selected: '+(CD.comm||'').split(' - ')[0]+' | '+(CAT_LBL[tc]||tc)+'\n';
+      ctx+='Date: '+CD.dates[l].substring(0,10)+'\n';
+      ctx+='Net: '+CD.net[l].toLocaleString()+' ('+pct(CD.net,CD.net[l]).toFixed(0)+'th %ile)\n';
+      ctx+='Long: '+CD.long[l].toLocaleString()+' ('+pct(CD.long,CD.long[l]).toFixed(0)+'th %ile)\n';
+      ctx+='Short: '+CD.short[l].toLocaleString()+' ('+pct(CD.short,CD.short[l]).toFixed(0)+'th %ile)\n';
+    }
+    if(scData&&scData.length){
+      ctx+='\nALL BCOM MM (%ile):\n';
+      scData.forEach(function(d){ctx+=d.comm+': Net='+d.mNP.toFixed(0)+'% Short='+d.mSP.toFixed(0)+'% Long='+d.mLP.toFixed(0)+'%\n';});
+    }
   }
   return ctx;
-}
-
-/* ── Chart metric definitions ── */
-var AI_METRIC_LABEL = {
-  mm_net:'Managed Money Net Position', mm_long:'MM Gross Long', mm_short:'MM Gross Short',
-  mm_net_pct_oi:'MM Net % of Open Interest', mm_long_pct_oi:'MM Long % of OI',
-  pm_net:'Prod/Merchant Net', pm_long:'Prod/Merchant Long', pm_short:'Prod/Merchant Short',
-  sd_net:'Swap Dealers Net', or_net:'Other Reportables Net', open_interest:'Open Interest'
-};
-var AI_METRIC_COLOR = {
-  mm_net:'#2a5298', mm_long:'#1a8c4e', mm_short:'#c0392b',
-  mm_net_pct_oi:'#2a5298', mm_long_pct_oi:'#1a8c4e',
-  pm_net:'#d4880f', pm_long:'#d4880f', pm_short:'#e67e22',
-  sd_net:'#27ae60', or_net:'#8e44ad', open_interest:'#34495e'
-};
-
-/* Build flat commodity name → CFTC API name map from existing BCOM constant */
-function getAiCommMap(){
-  var map = {};
-  Object.values(BCOM).forEach(function(comms){
-    comms.forEach(function(c){ map[c.name] = {cftc: c.cftc, ticker: c.ticker}; });
-  });
-  return map;
-}
-
-/* Fuzzy commodity name matching — handles "cotton", "CORN", "crude oil" etc. */
-function fuzzyCommMatch(name){
-  var map = getAiCommMap();
-  var n = (name||'').toLowerCase().trim();
-  // Exact
-  for(var k in map){ if(k.toLowerCase()===n) return {name:k, cftc:map[k].cftc, ticker:map[k].ticker}; }
-  // Contains
-  for(var k in map){ if(k.toLowerCase().indexOf(n)!==-1||n.indexOf(k.toLowerCase())!==-1) return {name:k, cftc:map[k].cftc, ticker:map[k].ticker}; }
-  // Word match (e.g. "crude" → "WTI Crude Oil")
-  var words = n.split(/\s+/);
-  for(var k in map){
-    var kl = k.toLowerCase();
-    if(words.some(function(w){ return w.length>3 && kl.indexOf(w)!==-1; }))
-      return {name:k, cftc:map[k].cftc, ticker:map[k].ticker};
-  }
-  return null;
-}
-
-/* Extract metric values from raw CFTC records */
-function extractAiMetric(raw, metric, cropType){
-  var f = WD[cropType||'all'];
-  var si2 = function(v){ return (!v||v==='')?0:(parseInt(v)||0); };
-  return raw.map(function(rec){
-    var oi = si2(rec[f.oi]);
-    switch(metric){
-      case 'mm_net':         return si2(rec[f.mmL]) - si2(rec[f.mmS]);
-      case 'mm_long':        return si2(rec[f.mmL]);
-      case 'mm_short':       return si2(rec[f.mmS]);
-      case 'mm_net_pct_oi':  var mn=si2(rec[f.mmL])-si2(rec[f.mmS]); return oi>0?(mn/oi*100):0;
-      case 'mm_long_pct_oi': return oi>0?(si2(rec[f.mmL])/oi*100):0;
-      case 'pm_net':         return si2(rec[f.pmL]) - si2(rec[f.pmS]);
-      case 'pm_long':        return si2(rec[f.pmL]);
-      case 'pm_short':       return si2(rec[f.pmS]);
-      case 'sd_net':         return si2(rec[f.sdL]) - si2(rec[f.sdS]);
-      case 'or_net':         return si2(rec[f.orL]) - si2(rec[f.orS]);
-      case 'open_interest':  return oi;
-      default:               return si2(rec[f.mmL]) - si2(rec[f.mmS]);
-    }
-  });
-}
-
-/* Draw the actual chart using Chart.js */
-var _aiChart = null;
-function drawAiLineChart(dates, values, spec, commInfo){
-  var ca = document.getElementById('aiChartArea');
-  ca.style.display = 'block';
-  document.getElementById('aiChartTitle').textContent =
-    (commInfo?commInfo.name+' ('+commInfo.ticker+')':'') + ' — ' + (AI_METRIC_LABEL[spec.metric]||spec.metric);
-  document.getElementById('aiChartSub').textContent =
-    (spec.years?'Last '+spec.years+' years':'All history') +
-    (spec.crop_type&&spec.crop_type!=='all'?' · '+(spec.crop_type.charAt(0).toUpperCase()+spec.crop_type.slice(1))+' Crop':'') +
-    ' · Source: CFTC Disaggregated Reports';
-
-  var color = AI_METRIC_COLOR[spec.metric]||'#2a5298';
-  var isNet = spec.metric.indexOf('net')!==-1;
-  var isPct = spec.metric.indexOf('pct')!==-1;
-
-  var datasets = [{
-    label: AI_METRIC_LABEL[spec.metric]||spec.metric,
-    data: values,
-    borderColor: color,
-    backgroundColor: color+'18',
-    borderWidth: 2,
-    pointRadius: 0,
-    pointHoverRadius: 5,
-    fill: true,
-    tension: 0.3
-  }];
-  if(isNet) datasets.push({
-    label:'Zero',
-    data: dates.map(function(){return 0;}),
-    borderColor:'rgba(192,57,43,0.3)',
-    borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false
-  });
-
-  if(_aiChart){ _aiChart.destroy(); _aiChart=null; }
-  var ctx = document.getElementById('aiChartCanvas').getContext('2d');
-  _aiChart = new Chart(ctx,{
-    type:'line',
-    data:{ labels:dates, datasets:datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{
-          label:function(c){
-            var v=c.parsed.y;
-            return (AI_METRIC_LABEL[spec.metric]||spec.metric)+': '+(isPct?v.toFixed(2)+'%':Math.round(v).toLocaleString());
-          }
-        }}
-      },
-      scales:{
-        x:{type:'time',time:{unit:'month',displayFormats:{month:'MMM yy'}},
-           grid:{display:false},ticks:{maxTicksLimit:14,font:{size:9}}},
-        y:{grid:{color:'rgba(0,0,0,0.05)'},
-           ticks:{font:{size:9},callback:function(v){
-             return isPct?v.toFixed(1)+'%':(Math.abs(v)>=1000?(v/1000).toFixed(0)+'k':v);
-           }},
-           title:{display:true,text:isPct?'% of OI':'Contracts',font:{size:9,weight:'bold'}}}
-      }
-    }
-  });
-
-  // Compute quick stats
-  var min=Math.min.apply(null,values), max=Math.max.apply(null,values);
-  var minI=values.indexOf(min), maxI=values.indexOf(max);
-  document.getElementById('aiChartNote').innerHTML =
-    '<strong>Range shown:</strong> '+dates[0].substring(0,10)+' → '+dates[dates.length-1].substring(0,10)+
-    ' &nbsp;|&nbsp; <strong style="color:#c0392b;">Min: '+(isPct?min.toFixed(2)+'%':Math.round(min).toLocaleString())+'</strong> ('+dates[minI].substring(0,10)+')'+
-    ' &nbsp;|&nbsp; <strong style="color:#1a8c4e;">Max: '+(isPct?max.toFixed(2)+'%':Math.round(max).toLocaleString())+'</strong> ('+dates[maxI].substring(0,10)+')';
-
-  ca.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-/* Fetch data from CFTC and render chart */
-async function renderAiChart(spec){
-  document.getElementById('aiChartArea').style.display='block';
-  document.getElementById('aiChartSpinner').style.display='block';
-  document.getElementById('aiChartCanvas').style.display='none';
-  document.getElementById('aiChartNote').textContent='';
-
-  var commInfo = fuzzyCommMatch(spec.commodity);
-  if(!commInfo){
-    document.getElementById('aiChartTitle').textContent='⚠ Could not find commodity: '+spec.commodity;
-    document.getElementById('aiChartSpinner').style.display='none';
-    document.getElementById('aiChartCanvas').style.display='block';
-    return;
-  }
-
-  // Calculate date range
-  var endDate = new Date();
-  var startDate = new Date();
-  if(spec.years && spec.years !== 'all'){
-    startDate.setFullYear(endDate.getFullYear() - parseInt(spec.years));
-  } else {
-    startDate = new Date('2006-01-01');
-  }
-  var startStr = startDate.toISOString().split('T')[0];
-  var endStr   = endDate.toISOString().split('T')[0];
-  var ep = EP[document.getElementById('reportType').value] || EP.combined;
-  var enc = commInfo.cftc.replace(/'/g,"''");
-  var url = ep+"?$where=market_and_exchange_names='"+enc+"' AND report_date_as_yyyy_mm_dd>='"+startStr+"' AND report_date_as_yyyy_mm_dd<='"+endStr+"'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000";
-
-  try{
-    var r = await fetchT(url, 30000);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    var raw = await r.json();
-    if(!raw.length) throw new Error('No data returned for '+commInfo.name);
-
-    var cropType = spec.crop_type || 'all';
-    // Check if old/other crop fields exist; fall back to all if not
-    if(cropType!=='all' && !raw[raw.length-1][WD[cropType].mmL]){
-      cropType='all';
-    }
-
-    var dates  = raw.map(function(d){ return d.report_date_as_yyyy_mm_dd.substring(0,10); });
-    var values = extractAiMetric(raw, spec.metric||'mm_net', cropType);
-
-    document.getElementById('aiChartSpinner').style.display='none';
-    document.getElementById('aiChartCanvas').style.display='block';
-    drawAiLineChart(dates, values, Object.assign({},spec,{crop_type:cropType}), commInfo);
-
-  } catch(e){
-    document.getElementById('aiChartTitle').textContent='Error fetching chart: '+e.message;
-    document.getElementById('aiChartSpinner').style.display='none';
-    document.getElementById('aiChartCanvas').style.display='block';
-  }
-}
-
-/* Parse Groq response for [CHART:{...}] tags */
-function parseAiResponse(text){
-  var chartRx = /\[CHART:\s*(\{[^}]+\})\]/gi;
-  var specs = [];
-  var match;
-  while((match=chartRx.exec(text))!==null){
-    try{ specs.push(JSON.parse(match[1])); }catch(e){}
-  }
-  // Remove tags from displayed text
-  var clean = text.replace(/\[CHART:\s*\{[^}]+\}\]/gi,'').replace(/\n{3,}/g,'\n\n').trim();
-  return {clean:clean, specs:specs};
 }
 
 async function aiQ(question){
@@ -2087,101 +1876,79 @@ function aiAskCustom(){
   aiQ(q);
 }
 
-/* Load pre-computed summary JSON via fetch().
-   Works on GitHub Pages. Falls back gracefully if not available. */
+/* Populate the snapshot table from pre-computed data */
 function loadAiData(){
-  var status  = document.getElementById('aiDataStatus');
-  var tbody   = document.getElementById('aiSnapBody');
-  var snapDate= document.getElementById('aiSnapDate');
-  var dataFrom= document.getElementById('aiDataFrom');
-
-  status.innerHTML = '⏳ Loading pre-computed data from data/latest_summary.json...';
-
-  fetch('data/latest_summary.json', {cache:'no-cache'})
-    .then(function(r){
-      if(!r.ok) throw new Error('HTTP '+r.status+' — file not found');
-      return r.json();
-    })
+  var status=document.getElementById('aiDataStatus');
+  status.innerHTML='⏳ Loading data/latest_summary.json...';
+  fetch('data/latest_summary.json',{cache:'no-cache'})
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
-      window._cotData = data;   // store globally for buildAiContext and renderAiChart
-
-      status.innerHTML =
-        '✅ Data loaded · Report: <strong>'+data.report_date+'</strong>' +
-        ' · History from: '+data.data_from+
-        ' · '+data.commodities.length+' commodities';
-      status.style.color   = '#c8f7c5';
-      status.style.background = 'rgba(39,174,96,0.15)';
-
-      if(snapDate) snapDate.textContent = 'Report date: '+data.report_date;
-      if(dataFrom) dataFrom.textContent = 'History from '+data.data_from+'.';
-
-      renderSnapTable(data, tbody);
+      window._cotData=data;
+      status.innerHTML='✅ Data loaded · Report: <strong>'+data.report_date+'</strong> · History from: '+data.data_from;
+      status.style.color='#c8f7c5';status.style.background='rgba(39,174,96,0.15)';
+      var sd=document.getElementById('aiSnapDate');if(sd)sd.textContent='Report: '+data.report_date;
+      var df=document.getElementById('aiDataFrom');if(df)df.textContent='History from '+data.data_from;
+      renderSnapTable(data,document.getElementById('aiSnapBody'));
     })
     .catch(function(err){
-      window._cotData = null;
-      status.innerHTML =
-        '⚠️ Pre-computed data not available yet ('+err.message+').<br>' +
-        'Run the GitHub Action <strong>Weekly COT Data Update</strong> once to generate it.<br>' +
-        'Until then the AI uses live chart data from the COT Analyzer tab — ' +
-        'load a commodity there first, then ask questions here.';
-      status.style.background = 'rgba(231,76,60,0.15)';
-      status.style.color = '#ffcdd2';
+      window._cotData=null;
+      status.innerHTML='ℹ️ '+err.message+' — Run the <strong>Weekly COT Data Update</strong> GitHub Action once to generate data/latest_summary.json. Until then AI uses live chart data — load a commodity in the COT tab first.';
+      status.style.background='rgba(231,76,60,0.15)';status.style.color='#ffcdd2';
     });
 }
-
-function renderSnapTable(data, tbody){
-  if(!tbody) return;
-  tbody.innerHTML = '';
-  var SECTOR_ORDER = ['Energy','Grains','Industrial Metals','Precious Metals','Softs','Livestock'];
-  var sorted = data.commodities.slice().sort(function(a,b){
-    return SECTOR_ORDER.indexOf(a.sector)-SECTOR_ORDER.indexOf(b.sector)||a.name.localeCompare(b.name);
+function renderSnapTable(data,tbody){
+  if(!tbody)return;
+  tbody.innerHTML='';
+  var SO=['Energy','Grains','Industrial Metals','Precious Metals','Softs','Livestock'];
+  var sorted=data.commodities.slice().sort(function(a,b){
+    return SO.indexOf(a.sector)-SO.indexOf(b.sector)||a.name.localeCompare(b.name);
   });
-  var lastSector = '';
-
+  var lastSec='';
   sorted.forEach(function(comm){
-    if(comm.sector !== lastSector){
-      lastSector = comm.sector;
-      var hr = document.createElement('tr');
-      hr.innerHTML = '<td colspan="12" style="background:#34495e;color:white;font-weight:700;padding:5px 8px;font-size:0.82em;">'+comm.sector+'</td>';
+    if(comm.sector!==lastSec){
+      lastSec=comm.sector;
+      var hr=document.createElement('tr');
+      hr.innerHTML='<td colspan="12" style="background:#34495e;color:white;font-weight:700;padding:5px 8px;font-size:0.82em;">'+comm.sector+'</td>';
       tbody.appendChild(hr);
     }
-    comm.variants.forEach(function(v, vi){
-      var mm = v.categories&&v.categories.managed_money;
-      if(!mm) return;
-      var p  = mm.pctiles||{};
-      var hn = (mm.historical&&mm.historical.net)||{};
-
-      function pCol(val){
-        if(val<0) return '#999';
-        if(val<=15) return '#c0392b'; if(val<=30) return '#e67e22';
-        if(val>=85) return '#1a8c4e'; if(val>=70) return '#2980b9';
-        return '#555';
+    comm.variants.forEach(function(v,vi){
+      var mm=v.categories&&v.categories.managed_money;if(!mm)return;
+      var p=mm.pctiles||{},hn=(mm.historical&&mm.historical.net)||{};
+      function pc(val){
+        if(val<0)return'#999';if(val<=15)return'#c0392b';if(val<=30)return'#e67e22';
+        if(val>=85)return'#1a8c4e';if(val>=70)return'#2980b9';return'#555';
       }
-      function fmt(n){ return (n!==undefined&&n!==null)?Number(n).toLocaleString():'—'; }
-      function fPct(v){ return v>=0?('<span style="color:'+pCol(v)+';font-weight:700;">'+Number(v).toFixed(0)+'%</span>'):'—'; }
-
-      var row = document.createElement('tr');
-      row.style.borderBottom = '1px solid #eee';
-      if(vi%2===1) row.style.background='#fafafa';
-      row.innerHTML =
+      function fmt(n){return(n!==undefined&&n!==null)?Number(n).toLocaleString():'—';}
+      function fp(v){return v>=0?('<span style="color:'+pc(v)+';font-weight:700;">'+Number(v).toFixed(0)+'%</span>'):'—';}
+      var row=document.createElement('tr');
+      row.style.borderBottom='1px solid #eee';
+      if(vi%2===1)row.style.background='#fafafa';
+      row.innerHTML=
         '<td style="padding:4px 8px;font-weight:'+(vi===0?'600':'400')+';color:#1a1a1a;">'+(vi===0?comm.name+' ('+comm.ticker+')':'')+'</td>'+
-        '<td style="padding:4px 6px;text-align:center;font-size:0.82em;color:#777;">'+(comm.is_crop?v.crop_type.toUpperCase():'—')+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;font-size:0.8em;color:#777;">'+(comm.is_crop?v.crop_type.toUpperCase():'—')+'</td>'+
         '<td style="padding:4px 6px;text-align:right;font-family:monospace;color:'+(mm.net>=0?'#1a8c4e':'#c0392b')+';font-weight:600;">'+(mm.net>=0?'+':'')+fmt(mm.net)+'</td>'+
-        '<td style="padding:4px 6px;text-align:right;font-family:monospace;color:'+((mm.wk_chg_net||0)>=0?'#1a8c4e':'#c0392b')+'">'+(((mm.wk_chg_net||0)>=0)?'+':'')+fmt(mm.wk_chg_net)+'</td>'+
-        '<td style="padding:4px 6px;text-align:center;">'+fPct(p.net_full)+'</td>'+
-        '<td style="padding:4px 6px;text-align:center;">'+fPct(p.net_10yr)+'</td>'+
-        '<td style="padding:4px 6px;text-align:center;">'+fPct(p.long_full)+'</td>'+
-        '<td style="padding:4px 6px;text-align:center;">'+fPct(p.short_full)+'</td>'+
-        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.82em;color:#c0392b;">'+fmt(hn['10yr_min'])+'<br><span style="font-size:0.78em;color:#aaa;">'+(hn['10yr_min_date']||'')+'</span></td>'+
-        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.82em;color:#1a8c4e;">'+fmt(hn['10yr_max'])+'<br><span style="font-size:0.78em;color:#aaa;">'+(hn['10yr_max_date']||'')+'</span></td>'+
-        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.82em;color:#c0392b;">'+fmt(hn.full_min)+'<br><span style="font-size:0.78em;color:#aaa;">'+(hn.full_min_date||'')+'</span></td>'+
-        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.82em;color:#1a8c4e;">'+fmt(hn.full_max)+'<br><span style="font-size:0.78em;color:#aaa;">'+(hn.full_max_date||'')+'</span></td>';
+        '<td style="padding:4px 6px;text-align:right;font-family:monospace;color:'+((mm.wk_chg_net||0)>=0?'#1a8c4e':'#c0392b')+';">'+(((mm.wk_chg_net||0)>=0)?'+':'')+fmt(mm.wk_chg_net)+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;">'+fp(p.net_full)+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;">'+fp(p.net_10yr)+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;">'+fp(p.long_full)+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;">'+fp(p.short_full)+'</td>'+
+        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.8em;color:#c0392b;">'+fmt(hn['10yr_min'])+'<br><small style="color:#aaa;">'+(hn['10yr_min_date']||'')+'</small></td>'+
+        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.8em;color:#1a8c4e;">'+fmt(hn['10yr_max'])+'<br><small style="color:#aaa;">'+(hn['10yr_max_date']||'')+'</small></td>'+
+        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.8em;color:#c0392b;">'+fmt(hn.full_min)+'<br><small style="color:#aaa;">'+(hn.full_min_date||'')+'</small></td>'+
+        '<td style="padding:4px 6px;text-align:right;font-family:monospace;font-size:0.8em;color:#1a8c4e;">'+fmt(hn.full_max)+'<br><small style="color:#aaa;">'+(hn.full_max_date||'')+'</small></td>';
       tbody.appendChild(row);
     });
   });
 }
 
-
+/* Restore saved Groq key on load */
+(function(){
+  var k=sessionStorage.getItem('groqApiKey');
+  if(k){
+    var el=document.getElementById('aiKeyStatus');
+    if(el)el.textContent='✅ Key ready';
+  }
+})();
 </script>
 </body>
 </html>
