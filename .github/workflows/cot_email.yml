@@ -2,8 +2,10 @@ name: COT Report Weekly Email
 
 on:
   schedule:
-    - cron: '30 19 * * 5'  # 19:30 UTC = 3:30 PM EDT (Summer)
-    - cron: '30 20 * * 5'  # 20:30 UTC = 3:30 PM EST (Winter)
+    # 3:30 PM ET = 19:30 UTC (EDT/Summer) or 20:30 UTC (EST/Winter)
+    # Run at both times to cover DST transitions
+    - cron: '30 19 * * 5'  # 19:30 UTC = 2:30 PM CDT / 3:30 PM EDT (Summer)
+    - cron: '30 20 * * 5'  # 20:30 UTC = 2:30 PM CST / 3:30 PM EST (Winter)
     
   workflow_dispatch:
     inputs:
@@ -15,7 +17,7 @@ on:
 jobs:
   send-cot-report:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Increased for chart rendering
+    timeout-minutes: 30
     
     steps:
       - name: Checkout repository
@@ -36,38 +38,41 @@ jobs:
         env:
           CFTC_API_BASE: 'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'
           ATTEMPT: ${{ github.event.inputs.retry_attempt || '0' }}
-          # Skip fresh check on manual runs (workflow_dispatch), enforce on schedule
           SKIP_FRESH_CHECK: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
         run: |
           echo "Event type: ${{ github.event_name }}"
-          echo "Skip fresh check: $SKIP_FRESH_CHECK"
-          echo "Attempt $ATTEMPT at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Current UTC: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "Current ET:  $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z')"
+          echo "Current CT:  $(TZ=America/Chicago date '+%Y-%m-%d %H:%M:%S %Z')"
+          echo "Attempt: $ATTEMPT"
           
-          # Manual run: try once immediately
-          # Scheduled run: try up to 3 times with 5-minute delays
+          # Manual run: single attempt, use whatever data is available
+          # Scheduled run: up to 3 attempts with 5-min delays for CFTC data
           MAX_ATTEMPTS=3
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             MAX_ATTEMPTS=1
-            echo "Manual run - single attempt mode"
+            echo "MANUAL RUN MODE: Single attempt"
+          else
+            echo "SCHEDULED MODE: Up to 3 attempts"
           fi
           
           for i in $(seq 1 $MAX_ATTEMPTS); do
-            echo "Attempt $i: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo "=== Attempt $i at $(date -u '+%Y-%m-%d %H:%M:%S UTC') ==="
             
             if python scripts/generate_pdf.py; then
               echo "pdf_status=success" >> $GITHUB_OUTPUT
-              echo "PDF generated successfully on attempt $i"
+              echo "SUCCESS: PDF generated"
               exit 0
             fi
             
             if [ $i -lt $MAX_ATTEMPTS ]; then
-              echo "Attempt $i failed - waiting 5 minutes before retry..."
+              echo "Waiting 5 minutes for CFTC data..."
               sleep 300
             fi
           done
           
           echo "pdf_status=failed" >> $GITHUB_OUTPUT
-          echo "CFTC data not available after $MAX_ATTEMPTS attempts"
+          echo "FAILED: CFTC data not available after $MAX_ATTEMPTS attempts"
 
       - name: Send email with PDF
         if: steps.fetch_pdf.outputs.pdf_status == 'success'
@@ -80,17 +85,14 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
           python scripts/send_email.py
-          echo "Email sent successfully with COT report"
+          echo "Email sent at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 
-      - name: Trigger next-day retry if failed (scheduled only, Attempt 0)
+      - name: Trigger next-day retry if failed (scheduled only)
         if: steps.fetch_pdf.outputs.pdf_status == 'failed' && github.event_name == 'schedule' && (github.event.inputs.retry_attempt || '0') == '0'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const tomorrow = new Date();
-            tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-            
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -98,4 +100,4 @@ jobs:
               ref: context.ref,
               inputs: { retry_attempt: '1' }
             });
-            console.log('Next-day retry scheduled for tomorrow');
+            console.log('Next-day retry scheduled');
