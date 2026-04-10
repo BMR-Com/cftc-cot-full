@@ -1,7 +1,7 @@
 """
 generate_pdf.py
 Loads the BCOM COT Analyzer HTML page in a headless Chromium browser,
-waits for all charts to render, then exports to PDF with Tullett Prebon Agriculture watermark.
+waits for all charts to render, then exports to PDF with Tullett Prebon Agriculture branding.
 """
 
 import asyncio
@@ -18,12 +18,10 @@ HTML_FILE = Path(__file__).parent.parent / "index.html"
 OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
-# Cotton display name
 COTTON_DISPLAY_NAME = "Cotton"
 
 ET = tz.gettz('US/Eastern')
 
-# INCREASED TIMEOUTS for chart rendering
 API_WAIT_MS = 180_000
 CHART_RENDER_MS = 120_000
 
@@ -31,9 +29,9 @@ PDF_OPTIONS = {
     "format": "A4",
     "landscape": True,
     "print_background": True,
-    "prefer_css_page_size": False,  # Changed to use our margins
+    "prefer_css_page_size": False,
     "margin": {
-        "top": "10mm",      # Reduced top margin
+        "top": "10mm",
         "bottom": "10mm",
         "left": "10mm",
         "right": "10mm",
@@ -95,66 +93,92 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Watermark Logo ──────────────────────────────────────────
+        # ── Inject Logo Header (First Page Only) + Watermark (All Pages) ───
         if logo_base64:
-            print("[COT PDF] Injecting Tullett Prebon Agriculture watermark...")
+            print("[COT PDF] Injecting Tullett Prebon Agriculture branding...")
             
-            watermark_html = f"""
+            branding_html = f"""
+            <!-- First Page Header Logo - Big and Visible -->
+            <div id="tp-first-page-header" style="
+                position: relative;
+                width: 100%;
+                height: 60px;
+                background: white;
+                border-bottom: 3px solid #0072C6;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 20px;
+                margin-bottom: 20px;
+                box-sizing: border-box;
+            ">
+                <img src="{logo_base64}" style="height: 45px; width: auto;" />
+                <div style="
+                    font-family: Arial, sans-serif;
+                    font-size: 14px;
+                    color: #333;
+                    font-weight: bold;
+                ">
+                    COT Report: {expected_report}
+                </div>
+            </div>
+            
+            <!-- Watermark - All Pages -->
             <div id="tp-watermark" style="
                 position: fixed;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%) rotate(-30deg);
-                opacity: 0.08;
+                opacity: 0.06;
                 pointer-events: none;
-                z-index: 1000;
-                width: 500px;
+                z-index: -1;
+                width: 400px;
                 height: auto;
             ">
                 <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
             </div>
-            <div id="tp-header" style="
-                position: fixed;
-                top: 5mm;
-                right: 10mm;
-                opacity: 0.9;
-                z-index: 1001;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            ">
-                <img src="{logo_base64}" style="height: 25px; width: auto;" />
-                <span style="font-family: Arial, sans-serif; font-size: 10px; color: #666;">
-                    {expected_report}
-                </span>
-            </div>
             """
             
             await page.evaluate(f"""() => {{
-                const watermark = document.createElement('div');
-                watermark.innerHTML = `{watermark_html}`;
-                document.body.appendChild(watermark);
+                const branding = document.createElement('div');
+                branding.innerHTML = `{branding_html}`;
+                document.body.insertBefore(branding, document.body.firstChild);
             }}""")
             
-            # Add print styles to ensure watermark appears on all pages
-            await page.add_style_tag(content="""
-                @media print {
-                    #tp-watermark {
+            # Add print styles
+            await page.add_style_tag(content=f"""
+                @media print {{
+                    /* First page header - only show on first page */
+                    #tp-first-page-header {{
+                        display: flex !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }}
+                    
+                    /* Watermark - show on all pages */
+                    #tp-watermark {{
                         position: fixed !important;
                         top: 50% !important;
                         left: 50% !important;
                         transform: translate(-50%, -50%) rotate(-30deg) !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
-                    }
-                    #tp-header {
-                        position: fixed !important;
-                        top: 5mm !important;
-                        right: 10mm !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                }
+                    }}
+                    
+                    /* Hide first page header on subsequent pages using page break */
+                    @page :first {{
+                        margin-top: 0;
+                    }}
+                    
+                    @page {{
+                        margin-top: 10mm;
+                    }}
+                }}
+                
+                /* Ensure content starts below header on first page */
+                body {{
+                    padding-top: 0 !important;
+                }}
             """)
         
         # ── Wait for commodity dropdown ───────────────────────────────────
