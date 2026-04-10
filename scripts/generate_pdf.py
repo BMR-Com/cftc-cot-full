@@ -1,7 +1,7 @@
 """
 generate_pdf.py
 Loads the BCOM COT Analyzer HTML page in a headless Chromium browser,
-waits for all charts to render, then exports to PDF with Tullett Prebon Agriculture branding.
+waits for all charts to render, then exports to PDF with cover page.
 """
 
 import asyncio
@@ -19,6 +19,7 @@ OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
 COTTON_DISPLAY_NAME = "Cotton"
+REPORT_TITLE = "BCOM COT Weekly Intelligence Report"
 
 ET = tz.gettz('US/Eastern')
 
@@ -39,12 +40,12 @@ PDF_OPTIONS = {
 }
 
 
-def get_expected_report_date():
-    """Calculate the expected Tuesday report date for current week."""
+def get_report_date():
+    """Get the report date (Tuesday of current week)."""
     today = datetime.now(ET)
     days_since_tuesday = (today.weekday() - 1) % 7
     tuesday = today - __import__('datetime').timedelta(days=days_since_tuesday)
-    return tuesday.strftime("%Y-%m-%d")
+    return tuesday.strftime("%B %d, %Y")
 
 
 def encode_logo_base64():
@@ -63,12 +64,11 @@ def encode_logo_base64():
 
 
 async def generate():
-    now_et = datetime.now(ET)
-    date_str = now_et.strftime("%Y-%m-%d")
-    expected_report = get_expected_report_date()
+    report_date = get_report_date()
+    generation_date = datetime.now(ET).strftime("%Y-%m-%d %H:%M %Z")
     
-    print(f"[COT PDF] Starting generation for report week: {date_str}")
-    print(f"[COT PDF] Expected CFTC report date (Tuesday): {expected_report}")
+    print(f"[COT PDF] Report Date (Tuesday): {report_date}")
+    print(f"[COT PDF] Generated: {generation_date}")
 
     if not HTML_FILE.exists():
         print(f"ERROR: HTML file not found at {HTML_FILE}")
@@ -93,34 +93,60 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Logo Header (First Page Only) + Watermark (All Pages) ───
+        # ── Inject Cover Page + Watermark ──────────────────────────────────
         if logo_base64:
-            print("[COT PDF] Injecting Tullett Prebon Agriculture branding...")
+            print("[COT PDF] Injecting cover page and watermark...")
             
-            branding_html = f"""
-            <!-- First Page Header Logo - Big and Visible -->
-            <div id="tp-first-page-header" style="
-                position: relative;
+            cover_html = f"""
+            <style>
+                @media print {{
+                    /* Cover page - page 1 */
+                    #tp-cover-page {{
+                        page-break-after: always !important;
+                        break-after: page !important;
+                    }}
+                    
+                    /* Ensure cover is only on first page */
+                    @page :first {{
+                        margin: 0;
+                    }}
+                }}
+            </style>
+            
+            <!-- Cover Page -->
+            <div id="tp-cover-page" style="
                 width: 100%;
-                height: 60px;
-                background: white;
-                border-bottom: 3px solid #0072C6;
+                height: 100vh;
                 display: flex;
+                flex-direction: column;
+                justify-content: center;
                 align-items: center;
-                justify-content: space-between;
-                padding: 10px 20px;
-                margin-bottom: 20px;
-                box-sizing: border-box;
+                background: white;
+                page-break-after: always;
+                break-after: page;
             ">
-                <img src="{logo_base64}" style="height: 45px; width: auto;" />
-                <div style="
+                <img src="{logo_base64}" style="width: 300px; height: auto; margin-bottom: 40px;" />
+                <h1 style="
                     font-family: Arial, sans-serif;
-                    font-size: 14px;
-                    color: #333;
+                    font-size: 28px;
                     font-weight: bold;
-                ">
-                    COT Report: {expected_report}
-                </div>
+                    color: #0072C6;
+                    text-align: center;
+                    margin: 0;
+                    padding: 0 40px;
+                ">{REPORT_TITLE}</h1>
+                <p style="
+                    font-family: Arial, sans-serif;
+                    font-size: 16px;
+                    color: #666;
+                    margin-top: 20px;
+                ">Report Date: {report_date}</p>
+                <p style="
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    color: #999;
+                    margin-top: 10px;
+                ">Generated: {generation_date}</p>
             </div>
             
             <!-- Watermark - All Pages -->
@@ -140,45 +166,28 @@ async def generate():
             """
             
             await page.evaluate(f"""() => {{
-                const branding = document.createElement('div');
-                branding.innerHTML = `{branding_html}`;
-                document.body.insertBefore(branding, document.body.firstChild);
+                const cover = document.createElement('div');
+                cover.innerHTML = `{cover_html}`;
+                document.body.insertBefore(cover, document.body.firstChild);
             }}""")
             
             # Add print styles
-            await page.add_style_tag(content=f"""
-                @media print {{
-                    /* First page header - only show on first page */
-                    #tp-first-page-header {{
-                        display: flex !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }}
+            await page.add_style_tag(content="""
+                @media print {
+                    #tp-cover-page {
+                        page-break-after: always !important;
+                        break-after: page !important;
+                    }
                     
-                    /* Watermark - show on all pages */
-                    #tp-watermark {{
+                    #tp-watermark {
                         position: fixed !important;
                         top: 50% !important;
                         left: 50% !important;
                         transform: translate(-50%, -50%) rotate(-30deg) !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
-                    }}
-                    
-                    /* Hide first page header on subsequent pages using page break */
-                    @page :first {{
-                        margin-top: 0;
-                    }}
-                    
-                    @page {{
-                        margin-top: 10mm;
-                    }}
-                }}
-                
-                /* Ensure content starts below header on first page */
-                body {{
-                    padding-top: 0 !important;
-                }}
+                    }
+                }
             """)
         
         # ── Wait for commodity dropdown ───────────────────────────────────
