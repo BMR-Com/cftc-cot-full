@@ -20,10 +20,9 @@ LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
 ET = tz.gettz('US/Eastern')
 
-# INCREASED TIMEOUTS for chart rendering (you mentioned 60+ seconds)
+# INCREASED TIMEOUTS for chart rendering
 API_WAIT_MS = 180_000      # 3 minutes for CFTC API data loading
 CHART_RENDER_MS = 120_000  # 2 minutes for chart rendering after data loaded
-TOTAL_TIMEOUT_MS = 300_000 # 5 minutes total page timeout
 
 PDF_OPTIONS = {
     "format": "A4",
@@ -141,32 +140,46 @@ async def generate():
                 }
             """)
         
-        # ── Wait for commodity dropdown ───────────────────────────────────
+        # ── Wait for commodity dropdown to be populated ───────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
         
         try:
+            # Wait for any option to exist (not just specific value)
             await page.wait_for_selector(
-                '#commoditySelect option[value]',
+                '#commoditySelect option',
                 state="attached",
                 timeout=30_000,
             )
             
+            # Get the first option's value
             first_option = await page.eval_on_selector(
-                '#commoditySelect option[value]', 
+                '#commoditySelect option', 
                 'el => el.value'
             )
             
+            # Also get text for logging
+            first_option_text = await page.eval_on_selector(
+                '#commoditySelect option',
+                'el => el.textContent'
+            )
+            
             if not first_option:
-                raise Exception("No commodities found in dropdown")
+                raise Exception("No commodity options found in dropdown")
                 
-            print(f"[COT PDF] Found commodity: {first_option}")
+            print(f"[COT PDF] Found commodity: {first_option_text} (value: {first_option})")
             
         except Exception as e:
-            print(f"[COT PDF] ERROR: Commodity list not populated - CFTC data may not be available yet")
+            print(f"[COT PDF] ERROR: Commodity list not populated - {e}")
+            # Debug: check what's in the dropdown
+            try:
+                select_html = await page.eval_on_selector('#commoditySelect', 'el => el.innerHTML')
+                print(f"[COT PDF] Dropdown HTML: {select_html[:200]}...")
+            except:
+                pass
             await browser.close()
             sys.exit(1)
 
-        # ── Select commodity and generate charts ───────────────────────────
+        # ── Select first commodity ─────────────────────────────────────────
         try:
             await page.select_option("#commoditySelect", first_option)
             print(f"[COT PDF] Selected commodity: {first_option}")
@@ -177,8 +190,15 @@ async def generate():
 
         await page.wait_for_timeout(500)
 
+        # ── Click Generate Charts ─────────────────────────────────────────
         print(f"[COT PDF] Clicking Generate Charts...")
-        await page.click("#fetchBtn")
+        
+        try:
+            await page.click("#fetchBtn")
+        except Exception as e:
+            print(f"[COT PDF] ERROR clicking Generate Charts button: {e}")
+            await browser.close()
+            sys.exit(1)
         
         # ── Wait for loading spinner to disappear (data loaded) ─────────────
         print(f"[COT PDF] Waiting up to {API_WAIT_MS/1000:.0f}s for CFTC API data...")
@@ -193,15 +213,14 @@ async def generate():
             )
             print("[COT PDF] Data loading complete")
         except Exception as e:
-            print(f"[COT PDF] ERROR: Loading timeout - CFTC data not available")
+            print(f"[COT PDF] ERROR: Loading timeout - {e}")
             await browser.close()
             sys.exit(1)
 
-        # ── ADDITIONAL WAIT: Ensure charts are fully rendered ───────────────
+        # ── Wait for charts to be fully rendered ───────────────────────────
         print(f"[COT PDF] Waiting up to {CHART_RENDER_MS/1000:.0f}s for charts to render...")
         
         try:
-            # Wait for Chart.js instances to be ready with data
             await page.wait_for_function(
                 """() => {
                     const canvases = document.querySelectorAll('canvas');
@@ -219,7 +238,6 @@ async def generate():
                         }
                     });
                     
-                    // Expect at least 4 charts (chart1, chart2, chart3, chart4)
                     return chartsWithData >= 4;
                 }""",
                 timeout=CHART_RENDER_MS,
@@ -228,13 +246,11 @@ async def generate():
             
         except Exception as e:
             print(f"[COT PDF] WARNING: Chart rendering timeout: {e}")
-            # Continue anyway - partial data is better than no email
 
         # ── Wait for table content ─────────────────────────────────────────
         print("[COT PDF] Waiting for table content...")
         
         try:
-            # Wait for weekly detail table to have rows
             await page.wait_for_selector(
                 '#weeklyDetail tbody tr, #weeklyDetail table tr',
                 timeout=30_000,
@@ -244,20 +260,20 @@ async def generate():
             print(f"[COT PDF] WARNING: Table content timeout: {e}")
 
         # ── Wait for summary sections ───────────────────────────────────────
-        chart_sections = [
+        sections = [
             "#chart1", "#chart2", "#chart3", "#chart4",
             "#weeklyDetail", "#execSec", "#sumSec",
         ]
         
         print("[COT PDF] Verifying all sections visible...")
-        for section in chart_sections:
+        for section in sections:
             try:
                 await page.wait_for_selector(section, state="visible", timeout=15_000)
                 print(f"[COT PDF] ✓ {section}")
             except Exception as e:
                 print(f"[COT PDF] ⚠ {section} not visible: {e}")
 
-        # Extra wait for any final rendering
+        # Extra wait for final rendering
         print("[COT PDF] Final rendering wait (5 seconds)...")
         await page.wait_for_timeout(5_000)
 
@@ -276,7 +292,7 @@ async def generate():
         OUTPUT_PDF.write_bytes(pdf_bytes)
         
         pdf_size = OUTPUT_PDF.stat().st_size
-        if pdf_size < 10_000:  # Less than 10KB is likely empty
+        if pdf_size < 10_000:
             print(f"[COT PDF] ERROR: PDF file too small ({pdf_size} bytes)")
             await browser.close()
             sys.exit(1)
