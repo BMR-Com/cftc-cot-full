@@ -1,7 +1,7 @@
 """
 generate_pdf.py
 Loads the BCOM COT Analyzer HTML page in a headless Chromium browser,
-waits for all charts to render, then exports to PDF with Tullett Prebon Agriculture branding.
+waits for all charts to render, then exports to PDF with Tullett Prebon Agriculture watermark.
 """
 
 import asyncio
@@ -18,23 +18,23 @@ HTML_FILE = Path(__file__).parent.parent / "index.html"
 OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
-# Cotton CFTC API name (must match the value attribute exactly)
-DEFAULT_COMMODITY = "COTTON NO. 2 - ICE FUTURES U.S."
+# Cotton display name
+COTTON_DISPLAY_NAME = "Cotton"
 
 ET = tz.gettz('US/Eastern')
 
 # INCREASED TIMEOUTS for chart rendering
-API_WAIT_MS = 180_000      # 3 minutes for CFTC API data loading
-CHART_RENDER_MS = 120_000  # 2 minutes for chart rendering after data loaded
+API_WAIT_MS = 180_000
+CHART_RENDER_MS = 120_000
 
 PDF_OPTIONS = {
     "format": "A4",
     "landscape": True,
     "print_background": True,
-    "prefer_css_page_size": True,
+    "prefer_css_page_size": False,  # Changed to use our margins
     "margin": {
-        "top": "15mm",
-        "bottom": "8mm",
+        "top": "10mm",      # Reduced top margin
+        "bottom": "10mm",
         "left": "10mm",
         "right": "10mm",
     },
@@ -95,78 +95,108 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Logo Header ─────────────────────────────────────────────
+        # ── Inject Watermark Logo ──────────────────────────────────────────
         if logo_base64:
-            print("[COT PDF] Injecting Tullett Prebon Agriculture branding...")
+            print("[COT PDF] Injecting Tullett Prebon Agriculture watermark...")
             
-            header_html = f"""
+            watermark_html = f"""
+            <div id="tp-watermark" style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-30deg);
+                opacity: 0.08;
+                pointer-events: none;
+                z-index: 1000;
+                width: 500px;
+                height: auto;
+            ">
+                <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
+            </div>
             <div id="tp-header" style="
                 position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 50px;
-                background: white;
-                border-bottom: 2px solid #0072C6;
+                top: 5mm;
+                right: 10mm;
+                opacity: 0.9;
+                z-index: 1001;
                 display: flex;
                 align-items: center;
-                padding: 0 20px;
-                z-index: 1000;
-                box-sizing: border-box;
+                gap: 10px;
             ">
-                <img src="{logo_base64}" style="height: 35px; width: auto;" />
-                <div style="
-                    margin-left: auto;
-                    font-family: Arial, sans-serif;
-                    font-size: 12px;
-                    color: #666;
-                ">
-                    COT Report: {expected_report} | Generated: {date_str}
-                </div>
+                <img src="{logo_base64}" style="height: 25px; width: auto;" />
+                <span style="font-family: Arial, sans-serif; font-size: 10px; color: #666;">
+                    {expected_report}
+                </span>
             </div>
-            <div style="height: 60px;"></div>
             """
             
             await page.evaluate(f"""() => {{
-                const header = document.createElement('div');
-                header.innerHTML = `{header_html}`;
-                document.body.insertBefore(header.firstElementChild, document.body.firstChild);
-                const spacer = document.createElement('div');
-                spacer.style.height = '60px';
-                document.body.insertBefore(spacer, document.body.children[1]);
+                const watermark = document.createElement('div');
+                watermark.innerHTML = `{watermark_html}`;
+                document.body.appendChild(watermark);
             }}""")
             
+            # Add print styles to ensure watermark appears on all pages
             await page.add_style_tag(content="""
                 @media print {
-                    #tp-header { position: fixed; top: 0; }
-                    body { padding-top: 60px !important; }
+                    #tp-watermark {
+                        position: fixed !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -50%) rotate(-30deg) !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    #tp-header {
+                        position: fixed !important;
+                        top: 5mm !important;
+                        right: 10mm !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
                 }
             """)
         
-        # ── Wait for commodity dropdown to be populated ───────────────────
+        # ── Wait for commodity dropdown ───────────────────────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
         
         try:
-            # Wait for any option to exist
             await page.wait_for_selector(
                 '#commoditySelect option',
                 state="attached",
                 timeout=30_000,
             )
             
-            # Check if Cotton exists
-            cotton_exists = await page.evaluate(f"""() => {{
+            cotton_value = await page.evaluate("""() => {
                 const select = document.getElementById('commoditySelect');
-                if (!select) return false;
+                if (!select) return null;
+                
                 const options = Array.from(select.options);
-                return options.some(o => o.value === "{DEFAULT_COMMODITY}");
-            }}""")
+                
+                let cottonOpt = options.find(o => 
+                    o.getAttribute('data-cn') && 
+                    o.getAttribute('data-cn').toLowerCase().includes('cotton')
+                );
+                
+                if (!cottonOpt) {
+                    cottonOpt = options.find(o => 
+                        o.textContent.toLowerCase().includes('cotton')
+                    );
+                }
+                
+                if (!cottonOpt) {
+                    cottonOpt = options.find(o => 
+                        o.value.toUpperCase().includes('COTTON')
+                    );
+                }
+                
+                return cottonOpt ? cottonOpt.value : null;
+            }""")
             
-            if cotton_exists:
-                selected_value = DEFAULT_COMMODITY
+            if cotton_value:
+                selected_value = cotton_value
                 print(f"[COT PDF] Found Cotton: {selected_value}")
             else:
-                # Get first option with non-empty value
                 first_value = await page.evaluate("""() => {
                     const select = document.getElementById('commoditySelect');
                     if (!select) return null;
@@ -183,17 +213,17 @@ async def generate():
             
         except Exception as e:
             print(f"[COT PDF] ERROR: Commodity list issue - {e}")
-            # Debug: show available options
             try:
                 all_options = await page.evaluate("""() => {
                     const select = document.getElementById('commoditySelect');
                     if (!select) return [];
-                    return Array.from(select.options).slice(0, 10).map(o => ({
+                    return Array.from(select.options).map(o => ({
                         value: o.value,
-                        text: o.textContent.trim()
+                        text: o.textContent.trim(),
+                        dataCn: o.getAttribute('data-cn')
                     }));
                 }""")
-                print(f"[COT PDF] First 10 options: {all_options}")
+                print(f"[COT PDF] All options: {all_options}")
             except:
                 pass
             await browser.close()
@@ -220,7 +250,7 @@ async def generate():
             await browser.close()
             sys.exit(1)
         
-        # ── Wait for loading spinner to disappear (data loaded) ─────────────
+        # ── Wait for loading spinner to disappear ─────────────────────────
         print(f"[COT PDF] Waiting up to {API_WAIT_MS/1000:.0f}s for CFTC API data...")
         
         try:
