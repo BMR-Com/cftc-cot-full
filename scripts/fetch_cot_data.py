@@ -12,7 +12,7 @@ Outputs:
                                 percentiles over 1yr/3yr/5yr/10yr/full
                                 history, historical extremes with dates.
 Run:  python scripts/fetch_cot_data.py
-Deps: pip install requests pandas
+Deps: pip install requests pandas python-dateutil
 """
 
 import json, os, sys, time, re
@@ -21,6 +21,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from pathlib import Path
+from dateutil import tz
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 SCRIPT_DIR  = Path(__file__).parent
@@ -33,7 +34,10 @@ DATA_DIR.mkdir(exist_ok=True)
 # ── CFTC Socrata API ───────────────────────────────────────────────────────
 ENDPOINT = "https://publicreporting.cftc.gov/resource/kh3c-gbw2.json"
 API_LIMIT = 10000
-REQUEST_DELAY = 1.2   # seconds between commodity fetches (be polite to CFTC)
+REQUEST_DELAY = 1.2
+
+# ── Timezone ────────────────────────────────────────────────────────────────
+ET = tz.gettz('US/Eastern')
 
 # ── BCOM 2026 Constituents — exact CFTC API market_and_exchange_names ──────
 BCOM = {
@@ -67,27 +71,26 @@ BCOM = {
 TRADER_CATS = ["managed_money", "swap_dealers", "prod_merc", "other_rept"]
 
 # ── EXACT Socrata field names (confirmed from API foundry) ─────────────────
-# Note: inconsistencies are intentional — hardcoded exactly as CFTC returns them
 FIELDS = {
     "all": {
         "oi":    "open_interest_all",
         "mm_l":  "m_money_positions_long_all",
         "mm_s":  "m_money_positions_short_all",
-        "mm_sp": "m_money_positions_spread",          # no _all suffix
+        "mm_sp": "m_money_positions_spread",
         "mm_tl": "traders_m_money_long_all",
         "mm_ts": "traders_m_money_short_all",
         "sd_l":  "swap_positions_long_all",
-        "sd_s":  "swap__positions_short_all",         # double underscore
-        "sd_sp": "swap__positions_spread_all",        # double underscore
+        "sd_s":  "swap__positions_short_all",
+        "sd_sp": "swap__positions_spread_all",
         "sd_tl": "traders_swap_long_all",
         "sd_ts": "traders_swap_short_all",
-        "pm_l":  "prod_merc_positions_long",          # no _all suffix
-        "pm_s":  "prod_merc_positions_short",         # no _all suffix
+        "pm_l":  "prod_merc_positions_long",
+        "pm_s":  "prod_merc_positions_short",
         "pm_tl": "traders_prod_merc_long_all",
         "pm_ts": "traders_prod_merc_short_all",
-        "or_l":  "other_rept_positions_long",         # no _all suffix
-        "or_s":  "other_rept_positions_short",        # no _all suffix
-        "or_sp": "other_rept_positions_spread",       # no _all suffix
+        "or_l":  "other_rept_positions_long",
+        "or_s":  "other_rept_positions_short",
+        "or_sp": "other_rept_positions_spread",
         "or_tl": "traders_other_rept_long_all",
         "or_ts": "traders_other_rept_short_all",
     },
@@ -95,21 +98,21 @@ FIELDS = {
         "oi":    "open_interest_old",
         "mm_l":  "m_money_positions_long_old",
         "mm_s":  "m_money_positions_short_old",
-        "mm_sp": "m_money_positions_spread_1",        # _1
+        "mm_sp": "m_money_positions_spread_1",
         "mm_tl": "traders_m_money_long_old",
         "mm_ts": "traders_m_money_short_old",
         "sd_l":  "swap_positions_long_old",
-        "sd_s":  "swap__positions_short_old",         # double underscore
-        "sd_sp": "swap__positions_spread_old",        # double underscore
+        "sd_s":  "swap__positions_short_old",
+        "sd_sp": "swap__positions_spread_old",
         "sd_tl": "traders_swap_long_old",
         "sd_ts": "traders_swap_short_old",
-        "pm_l":  "prod_merc_positions_long_1",        # _1
-        "pm_s":  "prod_merc_positions_short_1",       # _1
+        "pm_l":  "prod_merc_positions_long_1",
+        "pm_s":  "prod_merc_positions_short_1",
         "pm_tl": "traders_prod_merc_long_old",
         "pm_ts": "traders_prod_merc_short_old",
-        "or_l":  "other_rept_positions_long_1",       # _1
-        "or_s":  "other_rept_positions_short_1",      # _1
-        "or_sp": "other_rept_positions_spread_1",     # _1
+        "or_l":  "other_rept_positions_long_1",
+        "or_s":  "other_rept_positions_short_1",
+        "or_sp": "other_rept_positions_spread_1",
         "or_tl": "traders_other_rept_long_old",
         "or_ts": "traders_other_rept_short_old",
     },
@@ -117,21 +120,21 @@ FIELDS = {
         "oi":    "open_interest_other",
         "mm_l":  "m_money_positions_long_other",
         "mm_s":  "m_money_positions_short_other",
-        "mm_sp": "m_money_positions_spread_2",        # _2
+        "mm_sp": "m_money_positions_spread_2",
         "mm_tl": "traders_m_money_long_other",
         "mm_ts": "traders_m_money_short_other",
         "sd_l":  "swap_positions_long_other",
-        "sd_s":  "swap__positions_short_other",       # double underscore
-        "sd_sp": "swap__positions_spread_other",      # double underscore
+        "sd_s":  "swap__positions_short_other",
+        "sd_sp": "swap__positions_spread_other",
         "sd_tl": "traders_swap_long_other",
         "sd_ts": "traders_swap_short_other",
-        "pm_l":  "prod_merc_positions_long_2",        # _2
-        "pm_s":  "prod_merc_positions_short_2",       # _2
+        "pm_l":  "prod_merc_positions_long_2",
+        "pm_s":  "prod_merc_positions_short_2",
         "pm_tl": "traders_prod_merc_long_other",
         "pm_ts": "traders_prod_merc_short_other",
-        "or_l":  "other_rept_positions_long_2",       # _2
-        "or_s":  "other_rept_positions_short_2",      # _2
-        "or_sp": "other_rept_positions_spread_2",     # _2
+        "or_l":  "other_rept_positions_long_2",
+        "or_s":  "other_rept_positions_short_2",
+        "or_sp": "other_rept_positions_spread_2",
         "or_tl": "traders_other_rept_long_other",
         "or_ts": "traders_other_rept_short_other",
     }
@@ -165,6 +168,42 @@ def si(val):
 def trim_name(cftc_name):
     """Short display name from CFTC full name."""
     return cftc_name.split(" - ")[0].title()
+
+def get_expected_report_date():
+    """
+    Calculate the expected Tuesday report date for current week.
+    COT reports are based on Tuesday close, published Friday 3:30 PM ET.
+    """
+    today = datetime.now(ET)
+    # Days since Tuesday (0=Monday, 1=Tuesday, ..., 4=Friday)
+    days_since_tuesday = (today.weekday() - 1) % 7
+    tuesday = today - timedelta(days=days_since_tuesday)
+    return tuesday.strftime("%Y-%m-%d")
+
+def validate_fresh_data(df, expected_date=None):
+    """
+    Validate that fetched data contains the expected report date.
+    Returns (is_valid, actual_latest_date, message)
+    """
+    if df.empty:
+        return False, None, "No data fetched"
+    
+    latest_date = df["date"].max()
+    
+    if expected_date:
+        # Check if we have data for expected Tuesday
+        if expected_date not in df["date"].values:
+            # Check if latest date is within last 7 days (acceptable if Friday holiday)
+            latest_dt = pd.to_datetime(latest_date)
+            expected_dt = pd.to_datetime(expected_date)
+            days_diff = (expected_dt - latest_dt).days
+            
+            if days_diff > 7:
+                return False, latest_date, f"Data stale: latest is {latest_date}, expected {expected_date} (diff: {days_diff} days)"
+            else:
+                return True, latest_date, f"Using data from {latest_date} (expected {expected_date}, diff: {days_diff} days - likely holiday delay)"
+    
+    return True, latest_date, f"Latest data: {latest_date}"
 
 # ── Fetch from CFTC API ────────────────────────────────────────────────────
 def fetch_commodity(cftc_name, since_date="2006-01-01"):
@@ -245,7 +284,7 @@ WINDOWS = {
     "3yr":  156,
     "5yr":  260,
     "10yr": 520,
-    "full": None,   # all history
+    "full": None,
 }
 
 PCTILE_COLS = [
@@ -278,7 +317,6 @@ def add_percentiles(df):
                     continue
                 val = row[col]
                 for win_name, win_size in WINDOWS.items():
-                    # Slice: all rows up to and including current
                     hist = grp.loc[:i, col]
                     if win_size and len(hist) > win_size:
                         hist = hist.iloc[-win_size:]
@@ -308,7 +346,6 @@ def extremes(series, dates, windows=(260, 520)):
         result[f"{tag}_min_date"] = str(d[mn_idx])[:10]
         result[f"{tag}_max"] = int(s[mx_idx])
         result[f"{tag}_max_date"] = str(d[mx_idx])[:10]
-    # Full history
     mn_idx = series.idxmin(); mx_idx = series.idxmax()
     result["full_min"] = int(series[mn_idx])
     result["full_min_date"] = str(dates[mn_idx])[:10]
@@ -354,7 +391,6 @@ def build_summary(df):
             if ctd.empty:
                 continue
 
-            # Latest week
             latest = ctd.iloc[-1]
             prev   = ctd.iloc[-2] if len(ctd) > 1 else latest
 
@@ -378,12 +414,10 @@ def build_summary(df):
                 ptl   = float(latest.get(f"{cat}_per_trader_l", 0))
                 pts   = float(latest.get(f"{cat}_per_trader_s", 0))
 
-                # Week-over-week changes
                 chg_net  = net  - int(prev.get(f"{cat}_net", net))
                 chg_long = lng  - int(prev.get(f"{cat}_long", lng))
                 chg_shrt = shrt - int(prev.get(f"{cat}_short", shrt))
 
-                # Percentiles (latest row, full history)
                 def gp(col, win="full"):
                     return float(latest.get(f"pctile_{col}_{win}", -1))
 
@@ -401,7 +435,6 @@ def build_summary(df):
                     "net_pctoi_10yr":gp(f"{cat}_net_pct_oi","10yr"),
                 }
 
-                # Historical extremes (computed from full series)
                 net_series  = ctd[f"{cat}_net"].reset_index(drop=True)
                 lng_series  = ctd[f"{cat}_long"].reset_index(drop=True)
                 shrt_series = ctd[f"{cat}_short"].reset_index(drop=True)
@@ -449,7 +482,6 @@ def main():
     if CSV_PATH.exists():
         existing = pd.read_csv(CSV_PATH, usecols=["date"])
         latest_in_csv = existing["date"].max()
-        # Re-fetch the last 2 weeks to catch any corrections
         since = (
             pd.to_datetime(latest_in_csv) - timedelta(days=14)
         ).strftime("%Y-%m-%d")
@@ -471,14 +503,11 @@ def main():
             time.sleep(REQUEST_DELAY)
             continue
 
-        # Always add "all" crop type
         rows = process_records(raw, comm_name, meta, crop_type="all")
         all_rows.extend(rows)
 
-        # For crop commodities, also extract old/other variants
         if meta["crop"]:
             for ct in ["old", "other"]:
-                # Check if old/other fields exist in first record
                 fmap = FIELDS[ct]
                 if raw and fmap["mm_l"] in raw[-1]:
                     ct_rows = process_records(raw, comm_name, meta, crop_type=ct)
@@ -494,14 +523,21 @@ def main():
     new_df = pd.DataFrame(all_rows)
     new_df["date"] = pd.to_datetime(new_df["date"]).dt.strftime("%Y-%m-%d")
 
+    # ── VALIDATE FRESH DATA ────────────────────────────────────────────────
+    expected_tuesday = get_expected_report_date()
+    is_valid, latest_date, msg = validate_fresh_data(new_df, expected_tuesday)
+    print(f"\n[Validator] {msg}")
+    
+    if not is_valid:
+        print("ERROR: Data validation failed. CFTC may not have released new report yet.")
+        sys.exit(1)  # Triggers retry in GitHub Actions
+
     # Merge with existing CSV
     if CSV_PATH.exists() and not full_rebuild:
         old_df = pd.read_csv(CSV_PATH, dtype=str)
-        # Remove overlapping dates from old data (new data takes precedence)
         cutoff = new_df["date"].min()
         old_df = old_df[old_df["date"] < cutoff]
         df = pd.concat([old_df, new_df], ignore_index=True)
-        # Convert numeric columns back to numeric
         for col in new_df.columns:
             if col not in ["date","commodity","ticker","sector","crop_type","is_crop"]:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
