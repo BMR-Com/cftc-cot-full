@@ -4,15 +4,6 @@ fetch_cot_data.py — BCOM COT Data Fetcher & Analyzer
 ======================================================
 Downloads CFTC Disaggregated COT data for all 23 BCOM constituent commodities
 from 2006 to present (Futures & Options Combined endpoint).
-
-Outputs:
-  data/bcom_cot_master.csv   — Full history, all commodities, all categories,
-                                with derived metrics and percentile columns.
-  data/latest_summary.json   — Latest-week snapshot with pre-calculated
-                                percentiles over 1yr/3yr/5yr/10yr/full
-                                history, historical extremes with dates.
-Run:  python scripts/fetch_cot_data.py
-Deps: pip install requests pandas python-dateutil
 """
 
 import json, os, sys, time, re
@@ -39,7 +30,10 @@ REQUEST_DELAY = 1.2
 # ── Timezone ────────────────────────────────────────────────────────────────
 ET = tz.gettz('US/Eastern')
 
-# ── BCOM 2026 Constituents — exact CFTC API market_and_exchange_names ──────
+# ── Check if manual run (skip strict validation) ───────────────────────────
+SKIP_FRESH_CHECK = os.getenv('SKIP_FRESH_CHECK', 'false').lower() == 'true'
+
+# ── BCOM 2026 Constituents ─────────────────────────────────────────────────
 BCOM = {
     "Brent Crude Oil":    {"ticker":"CO", "sector":"Energy",           "cftc":"BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE", "crop":False},
     "Natural Gas":        {"ticker":"NG", "sector":"Energy",           "cftc":"NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",               "crop":False},
@@ -70,7 +64,7 @@ BCOM = {
 
 TRADER_CATS = ["managed_money", "swap_dealers", "prod_merc", "other_rept"]
 
-# ── EXACT Socrata field names (confirmed from API foundry) ─────────────────
+# ── EXACT Socrata field names ───────────────────────────────────────────────
 FIELDS = {
     "all": {
         "oi":    "open_interest_all",
@@ -149,7 +143,7 @@ CAT_PREFIX = {
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 def pct_of_score(series, score):
-    """Percentile rank of score within series (0-100). No scipy needed."""
+    """Percentile rank of score within series (0-100)."""
     s = pd.Series(series).dropna()
     if len(s) == 0:
         return 50.0
@@ -170,38 +164,29 @@ def trim_name(cftc_name):
     return cftc_name.split(" - ")[0].title()
 
 def get_expected_report_date():
-    """
-    Calculate the expected Tuesday report date for current week.
-    COT reports are based on Tuesday close, published Friday 3:30 PM ET.
-    """
+    """Calculate the expected Tuesday report date for current week."""
     today = datetime.now(ET)
-    # Days since Tuesday (0=Monday, 1=Tuesday, ..., 4=Friday)
     days_since_tuesday = (today.weekday() - 1) % 7
     tuesday = today - timedelta(days=days_since_tuesday)
     return tuesday.strftime("%Y-%m-%d")
 
 def validate_fresh_data(df, expected_date=None):
-    """
-    Validate that fetched data contains the expected report date.
-    Returns (is_valid, actual_latest_date, message)
-    """
+    """Validate that fetched data contains the expected report date."""
     if df.empty:
         return False, None, "No data fetched"
     
     latest_date = df["date"].max()
     
     if expected_date:
-        # Check if we have data for expected Tuesday
         if expected_date not in df["date"].values:
-            # Check if latest date is within last 7 days (acceptable if Friday holiday)
             latest_dt = pd.to_datetime(latest_date)
             expected_dt = pd.to_datetime(expected_date)
             days_diff = (expected_dt - latest_dt).days
             
             if days_diff > 7:
-                return False, latest_date, f"Data stale: latest is {latest_date}, expected {expected_date} (diff: {days_diff} days)"
+                return False, latest_date, f"Data stale: latest is {latest_date}, expected {expected_date}"
             else:
-                return True, latest_date, f"Using data from {latest_date} (expected {expected_date}, diff: {days_diff} days - likely holiday delay)"
+                return True, latest_date, f"Using data from {latest_date} (expected {expected_date}, diff: {days_diff} days)"
     
     return True, latest_date, f"Latest data: {latest_date}"
 
@@ -247,7 +232,6 @@ def process_records(raw, commodity_name, meta, crop_type="all"):
             "open_interest":  oi,
         }
 
-        # All 4 trader categories
         for cat, pfx in CAT_PREFIX.items():
             L  = si(rec.get(fmap[f"{pfx}_l"]))
             S  = si(rec.get(fmap[f"{pfx}_s"]))
@@ -278,7 +262,7 @@ def process_records(raw, commodity_name, meta, crop_type="all"):
         rows.append(row)
     return rows
 
-# ── Percentile calculation across multiple windows ─────────────────────────
+# ── Percentile calculation ─────────────────────────────────────────────────
 WINDOWS = {
     "1yr":  52,
     "3yr":  156,
@@ -301,7 +285,7 @@ PCTILE_COLS = [
 ]
 
 def add_percentiles(df):
-    """Add percentile rank columns for each metric, per commodity+crop_type group."""
+    """Add percentile rank columns for each metric."""
     print("  Calculating percentiles...")
     groups = df.groupby(["commodity", "crop_type"])
     pctile_dfs = []
@@ -331,7 +315,7 @@ def add_percentiles(df):
     df = df.merge(pctile_df, on=["date","commodity","crop_type"], how="left")
     return df
 
-# ── Historical extremes for summary JSON ──────────────────────────────────
+# ── Historical extremes ────────────────────────────────────────────────────
 def extremes(series, dates, windows=(260, 520)):
     """Return min/max values and their dates for different windows."""
     result = {}
@@ -355,7 +339,7 @@ def extremes(series, dates, windows=(260, 520)):
 
 # ── Build summary JSON ─────────────────────────────────────────────────────
 def build_summary(df):
-    """Build compact summary dict for Groq context."""
+    """Build compact summary dict."""
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
     latest_date = df["date"].max()
 
@@ -364,11 +348,7 @@ def build_summary(df):
         "generated":     now,
         "data_from":     df["date"].min(),
         "total_records": len(df),
-        "description":   (
-            "BCOM COT Data — CFTC Disaggregated Futures & Options Combined. "
-            "Percentiles calculated vs full history since 2006 and rolling windows. "
-            "Crop commodities have old/other/all crop-type variants."
-        ),
+        "description":   "BCOM COT Data — CFTC Disaggregated Futures & Options Combined.",
         "commodities": []
     }
 
@@ -476,9 +456,10 @@ def main():
     print("=" * 65)
     print("BCOM COT Data Fetcher")
     print(f"Started: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}")
+    if SKIP_FRESH_CHECK:
+        print("MODE: Manual run - skipping fresh data validation")
     print("=" * 65)
 
-    # Determine start date (incremental update)
     if CSV_PATH.exists():
         existing = pd.read_csv(CSV_PATH, usecols=["date"])
         latest_in_csv = existing["date"].max()
@@ -523,14 +504,17 @@ def main():
     new_df = pd.DataFrame(all_rows)
     new_df["date"] = pd.to_datetime(new_df["date"]).dt.strftime("%Y-%m-%d")
 
-    # ── VALIDATE FRESH DATA ────────────────────────────────────────────────
-    expected_tuesday = get_expected_report_date()
-    is_valid, latest_date, msg = validate_fresh_data(new_df, expected_tuesday)
-    print(f"\n[Validator] {msg}")
-    
-    if not is_valid:
-        print("ERROR: Data validation failed. CFTC may not have released new report yet.")
-        sys.exit(1)  # Triggers retry in GitHub Actions
+    # ── VALIDATE FRESH DATA (skip if manual run) ───────────────────────────
+    if not SKIP_FRESH_CHECK:
+        expected_tuesday = get_expected_report_date()
+        is_valid, latest_date, msg = validate_fresh_data(new_df, expected_tuesday)
+        print(f"\n[Validator] {msg}")
+        
+        if not is_valid:
+            print("ERROR: Data validation failed. CFTC may not have released new report yet.")
+            sys.exit(1)
+    else:
+        print(f"\n[Validator] Skipped - using latest available data: {new_df['date'].max()}")
 
     # Merge with existing CSV
     if CSV_PATH.exists() and not full_rebuild:
@@ -547,16 +531,14 @@ def main():
     df = df.sort_values(["commodity","crop_type","date"]).reset_index(drop=True)
 
     print(f"\nTotal rows before percentile calc: {len(df):,}")
-    print("Calculating percentile columns (this takes a few minutes for full rebuild)...")
+    print("Calculating percentile columns...")
 
     df = add_percentiles(df)
 
-    # Save master CSV
     df.to_csv(CSV_PATH, index=False)
     sz = CSV_PATH.stat().st_size / 1024
     print(f"\nSaved: {CSV_PATH.name} ({sz:.1f} KB, {len(df):,} rows)")
 
-    # Build and save summary JSON
     print("Building latest_summary.json...")
     summary = build_summary(df)
     with open(JSON_PATH, "w") as f:
