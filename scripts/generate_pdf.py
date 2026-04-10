@@ -18,8 +18,7 @@ HTML_FILE = Path(__file__).parent.parent / "index.html"
 OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
-# Default commodity to select (must match the value attribute in dropdown)
-# Based on your screenshot, you want Cotton
+# Cotton CFTC API name (must match the value attribute exactly)
 DEFAULT_COMMODITY = "COTTON NO. 2 - ICE FUTURES U.S."
 
 ET = tz.gettz('US/Eastern')
@@ -148,43 +147,53 @@ async def generate():
         print("[COT PDF] Waiting for commodity list to populate...")
         
         try:
-            # Wait for options with actual values (not empty placeholder)
+            # Wait for any option to exist
             await page.wait_for_selector(
-                '#commoditySelect option[value!=""]',
+                '#commoditySelect option',
                 state="attached",
                 timeout=30_000,
             )
             
-            # First try to find Cotton specifically
-            cotton_option = await page.eval_on_selector(
-                f'#commoditySelect option[value="{DEFAULT_COMMODITY}"]',
-                'el => el ? el.value : null'
-            )
+            # Check if Cotton exists
+            cotton_exists = await page.evaluate(f"""() => {{
+                const select = document.getElementById('commoditySelect');
+                if (!select) return false;
+                const options = Array.from(select.options);
+                return options.some(o => o.value === "{DEFAULT_COMMODITY}");
+            }}""")
             
-            if cotton_option:
-                selected_value = cotton_option
+            if cotton_exists:
+                selected_value = DEFAULT_COMMODITY
                 print(f"[COT PDF] Found Cotton: {selected_value}")
             else:
-                # Fallback: get first non-empty option
-                first_real_option = await page.eval_on_selector(
-                    '#commoditySelect option[value!=""]',
-                    'el => el.value'
-                )
-                selected_value = first_real_option
-                print(f"[COT PDF] Cotton not found, using first available: {selected_value}")
-            
-            if not selected_value:
-                raise Exception("No valid commodity options found")
+                # Get first option with non-empty value
+                first_value = await page.evaluate("""() => {
+                    const select = document.getElementById('commoditySelect');
+                    if (!select) return null;
+                    const options = Array.from(select.options);
+                    const firstReal = options.find(o => o.value && o.value.trim() !== '');
+                    return firstReal ? firstReal.value : null;
+                }""")
                 
+                if not first_value:
+                    raise Exception("No valid commodity options found")
+                    
+                selected_value = first_value
+                print(f"[COT PDF] Cotton not found, using: {selected_value}")
+            
         except Exception as e:
             print(f"[COT PDF] ERROR: Commodity list issue - {e}")
-            # Debug: show all options
+            # Debug: show available options
             try:
-                options = await page.eval_on_selector_all(
-                    '#commoditySelect option[value!=""]',
-                    'options => options.map(o => o.value).slice(0, 5)'
-                )
-                print(f"[COT PDF] Available options (first 5): {options}")
+                all_options = await page.evaluate("""() => {
+                    const select = document.getElementById('commoditySelect');
+                    if (!select) return [];
+                    return Array.from(select.options).slice(0, 10).map(o => ({
+                        value: o.value,
+                        text: o.textContent.trim()
+                    }));
+                }""")
+                print(f"[COT PDF] First 10 options: {all_options}")
             except:
                 pass
             await browser.close()
