@@ -2,7 +2,7 @@ name: Weekly COT Data Update
 
 on:
   schedule:
-    # Run at 22:00 UTC (5:00 PM ET / 6:00 PM EDT) - 1.5 hours after CFTC release
+    # Run at 22:00 UTC (5:00 PM CT / 6:00 PM ET) - 1.5 hours after CFTC release
     - cron: '0 22 * * 5'
   workflow_dispatch:
     inputs:
@@ -67,7 +67,7 @@ jobs:
           else
             REPORT_DATE=$(python3 -c "import json; d=json.load(open('data/latest_summary.json')); print(d['report_date'])")
             git commit -m "Auto: COT data update ${REPORT_DATE} [skip ci]"
-            git.push
+            git push  # <-- FIXED: was git.push
             echo "Changes committed and pushed."
           fi
 
