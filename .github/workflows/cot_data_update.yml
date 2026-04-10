@@ -2,8 +2,8 @@ name: Weekly COT Data Update
 
 on:
   schedule:
-    # Every Friday at 21:30 UTC = ~4:30 PM ET (safe buffer after 3:30 PM ET CFTC release)
-    - cron: '30 21 * * 5'
+    # Run at 22:00 UTC (5:00 PM ET / 6:00 PM EDT) - 1.5 hours after CFTC release
+    - cron: '0 22 * * 5'
   workflow_dispatch:
     inputs:
       full_rebuild:
@@ -16,10 +16,10 @@ on:
 jobs:
   update-cot-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 45   # Full rebuild of 18yrs × 23 commodities takes ~15-20 min
+    timeout-minutes: 45
 
     permissions:
-      contents: write      # Required to commit CSV and JSON back to repo
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -33,7 +33,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests pandas
+        run: pip install requests pandas numpy python-dateutil
 
       - name: Delete CSV for full rebuild (if requested)
         if: ${{ github.event.inputs.full_rebuild == 'true' }}
@@ -62,13 +62,12 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data/bcom_cot_master.csv data/latest_summary.json
-          # Only commit if there are actual changes
           if git diff --staged --quiet; then
             echo "No changes detected — CFTC may not have released new data yet."
           else
             REPORT_DATE=$(python3 -c "import json; d=json.load(open('data/latest_summary.json')); print(d['report_date'])")
             git commit -m "Auto: COT data update ${REPORT_DATE} [skip ci]"
-            git push
+            git.push
             echo "Changes committed and pushed."
           fi
 
