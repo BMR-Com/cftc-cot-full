@@ -19,8 +19,6 @@ OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
 COVER_PAGE_PATH = Path(__file__).parent.parent / "assets" / "cover_page.png"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
-COTTON_DISPLAY_NAME = "Cotton"
-
 ET = tz.gettz('US/Eastern')
 
 API_WAIT_MS = 180_000
@@ -32,10 +30,10 @@ PDF_OPTIONS = {
     "print_background": True,
     "prefer_css_page_size": False,
     "margin": {
-        "top": "10mm",
-        "bottom": "10mm",
-        "left": "10mm",
-        "right": "10mm",
+        "top": "0mm",      # No margin for cover page
+        "bottom": "0mm",
+        "left": "0mm",
+        "right": "0mm",
     },
 }
 
@@ -95,16 +93,48 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page (Full Page Image Only) ───────────────────────
+        # ── Inject Cover Page (Full Page Image with Footer) ────────────────
         if cover_base64:
             print("[COT PDF] Injecting cover page...")
             
             cover_html = f"""
             <style>
                 @media print {{
+                    @page :first {{
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }}
+                    
                     #tp-cover-page {{
                         page-break-after: always !important;
                         break-after: page !important;
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        position: relative !important;
+                        overflow: hidden !important;
+                    }}
+                    
+                    #tp-cover-image {{
+                        width: 100% !important;
+                        height: 100% !important;
+                        object-fit: cover !important;
+                        object-position: center !important;
+                    }}
+                    
+                    #tp-cover-footer {{
+                        position: absolute !important;
+                        bottom: 15mm !important;
+                        right: 15mm !important;
+                        font-family: Arial, sans-serif !important;
+                        font-size: 12px !important;
+                        color: #666 !important;
+                        background: rgba(255,255,255,0.9) !important;
+                        padding: 8px 15px !important;
+                        border-radius: 4px !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }}
                     
                     #tp-watermark {{
@@ -118,34 +148,17 @@ async def generate():
                 }}
             </style>
             
-            <!-- Cover Page - Full Page Image Only -->
-            <div id="tp-cover-page" style="
-                width: 100%;
-                height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                background: white;
-                page-break-after: always;
-                break-after: page;
-                margin: 0;
-                padding: 0;
-                overflow: hidden;
-            ">
-                <img src="{cover_base64}" style="
-                    max-width: 100%;
-                    max-height: 100%;
-                    width: auto;
-                    height: auto;
-                    object-fit: contain;
-                " />
+            <!-- Cover Page - Full Page Image with Footer -->
+            <div id="tp-cover-page">
+                <img id="tp-cover-image" src="{cover_base64}" />
+                <div id="tp-cover-footer">Report Date: {report_date}</div>
             </div>
             """
             
             # Add watermark if logo exists
             if logo_base64:
                 cover_html += f"""
-                <!-- Watermark - All Pages -->
+                <!-- Watermark - All Pages (except cover) -->
                 <div id="tp-watermark" style="
                     position: fixed;
                     top: 50%;
@@ -169,9 +182,41 @@ async def generate():
             
             await page.add_style_tag(content="""
                 @media print {
+                    @page :first {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    
                     #tp-cover-page {
                         page-break-after: always !important;
                         break-after: page !important;
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        position: relative !important;
+                        overflow: hidden !important;
+                    }
+                    
+                    #tp-cover-image {
+                        width: 100% !important;
+                        height: 100% !important;
+                        object-fit: cover !important;
+                        object-position: center !important;
+                    }
+                    
+                    #tp-cover-footer {
+                        position: absolute !important;
+                        bottom: 15mm !important;
+                        right: 15mm !important;
+                        font-family: Arial, sans-serif !important;
+                        font-size: 12px !important;
+                        color: #666 !important;
+                        background: rgba(255,255,255,0.9) !important;
+                        padding: 8px 15px !important;
+                        border-radius: 4px !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                     
                     #tp-watermark {
@@ -182,10 +227,15 @@ async def generate():
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }
+                    
+                    /* Reset margins for other pages */
+                    @page {
+                        margin: 10mm !important;
+                    }
                 }
             """)
         
-        # ── Wait for commodity dropdown and data to load ──────────────────
+        # ── Wait for commodity dropdown and generate charts ───────────────
         print("[COT PDF] Waiting for commodity list to populate...")
         
         try:
@@ -198,7 +248,6 @@ async def generate():
             cotton_value = await page.evaluate("""() => {
                 const select = document.getElementById('commoditySelect');
                 if (!select) return null;
-                
                 const options = Array.from(select.options);
                 
                 let cottonOpt = options.find(o => 
@@ -281,161 +330,9 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Get actual report date from the page ───────────────────────────
-        print("[COT PDF] Getting report date from page...")
-        
-        try:
-            page_report_date = await page.evaluate("""() => {
-                // Try to find report date in various places
-                const dateElement = document.querySelector('.report-date, #reportDate, [data-report-date]');
-                if (dateElement) return dateElement.textContent.trim();
-                
-                // Try to get from chart data
-                const canvas = document.querySelector('canvas');
-                if (canvas) {
-                    const chart = Chart.getChart(canvas);
-                    if (chart && chart.data && chart.data.labels && chart.data.labels.length > 0) {
-                        const lastLabel = chart.data.labels[chart.data.labels.length - 1];
-                        if (lastLabel) return lastLabel;
-                    }
-                }
-                
-                return null;
-            }""")
-            
-            if page_report_date:
-                report_date = page_report_date
-                print(f"[COT PDF] Found report date from page: {report_date}")
-            else:
-                print(f"[COT PDF] Using calculated report date: {report_date}")
-                
-        except Exception as e:
-            print(f"[COT PDF] Could not get date from page, using: {report_date}")
-
-        # ── Inject Executive Summary Header (after data loaded) ────────────
-        print("[COT PDF] Injecting executive summary header...")
-        
-        summary_header = f"""
-        <div id="tp-summary-header" style="
-            background: linear-gradient(135deg, #0072C6 0%, #005a9e 100%);
-            color: white;
-            padding: 15px 25px;
-            margin: 10px 0 20px 0;
-            border-radius: 8px;
-            font-family: Arial, sans-serif;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        ">
-            <div style="font-size: 11px; opacity: 0.9; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 1px;">Report Date: {report_date}</div>
-            <h2 style="margin: 0; font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 10px;">
-                <span>📊</span>
-                <span>BCOM COT Executive Summary</span>
-            </h2>
-            <div style="font-size: 13px; opacity: 0.9; margin-top: 3px;">Managed Money Positioning Extremes</div>
-        </div>
-        """
-        
-        # Insert at the beginning of the main content area
-        await page.evaluate(f"""() => {{
-            const summaryDiv = document.createElement('div');
-            summaryDiv.innerHTML = `{summary_header}`;
-            
-            // Try to find the best place to insert
-            const container = document.querySelector('.container, .main-content, #app, body');
-            if (container) {{
-                // Insert after any existing header but before charts
-                const firstChart = container.querySelector('#chart1, .chart-container, canvas');
-                if (firstChart && firstChart.parentNode) {{
-                    firstChart.parentNode.insertBefore(summaryDiv, firstChart);
-                }} else {{
-                    container.insertBefore(summaryDiv, container.firstChild);
-                }}
-            }}
-        }}""")
-
         # ── Wait for charts to be fully rendered ───────────────────────────
         print(f"[COT PDF] Waiting up to {CHART_RENDER_MS/1000:.0f}s for charts to render...")
         
         try:
             await page.wait_for_function(
-                """() => {
-                    const canvases = document.querySelectorAll('canvas');
-                    if (canvases.length === 0) return false;
-                    
-                    let chartsWithData = 0;
-                    canvases.forEach(canvas => {
-                        const chart = Chart.getChart(canvas);
-                        if (chart && chart.data && chart.data.datasets && chart.data.datasets.length > 0) {
-                            const hasData = chart.data.datasets.some(ds => 
-                                ds.data && ds.data.length > 0 && 
-                                ds.data.some(v => v !== null && v !== undefined)
-                            );
-                            if (hasData) chartsWithData++;
-                        }
-                    });
-                    
-                    return chartsWithData >= 4;
-                }""",
-                timeout=CHART_RENDER_MS,
-            )
-            print("[COT PDF] Charts rendered successfully")
-            
-        except Exception as e:
-            print(f"[COT PDF] WARNING: Chart rendering timeout: {e}")
-
-        # ── Wait for table content ─────────────────────────────────────────
-        print("[COT PDF] Waiting for table content...")
-        
-        try:
-            await page.wait_for_selector(
-                '#weeklyDetail tbody tr, #weeklyDetail table tr',
-                timeout=30_000,
-            )
-            print("[COT PDF] Table content found")
-        except Exception as e:
-            print(f"[COT PDF] WARNING: Table content timeout: {e}")
-
-        # ── Wait for summary sections ───────────────────────────────────────
-        sections = [
-            "#chart1", "#chart2", "#chart3", "#chart4",
-            "#weeklyDetail", "#execSec", "#sumSec",
-        ]
-        
-        print("[COT PDF] Verifying all sections visible...")
-        for section in sections:
-            try:
-                await page.wait_for_selector(section, state="visible", timeout=15_000)
-                print(f"[COT PDF] ✓ {section}")
-            except Exception as e:
-                print(f"[COT PDF] ⚠ {section} not visible: {e}")
-
-        # Extra wait for final rendering
-        print("[COT PDF] Final rendering wait (5 seconds)...")
-        await page.wait_for_timeout(5_000)
-
-        # ── Generate PDF ────────────────────────────────────────────────────
-        print("[COT PDF] Emulating print media...")
-        await page.emulate_media(media="print")
-        await page.wait_for_timeout(3_000)
-        
-        # Force chart redraw
-        await page.evaluate("() => { window.dispatchEvent(new Event('resize')); }")
-        await page.wait_for_timeout(2_000)
-        
-        print("[COT PDF] Generating PDF...")
-        
-        pdf_bytes = await page.pdf(**PDF_OPTIONS)
-        OUTPUT_PDF.write_bytes(pdf_bytes)
-        
-        pdf_size = OUTPUT_PDF.stat().st_size
-        if pdf_size < 10_000:
-            print(f"[COT PDF] ERROR: PDF file too small ({pdf_size} bytes)")
-            await browser.close()
-            sys.exit(1)
-        
-        print(f"[COT PDF] ✓ PDF saved: {OUTPUT_PDF} ({pdf_size/1024:.1f} KB)")
-
-        await browser.close()
-
-
-if __name__ == "__main__":
-    asyncio.run(generate())
+                """() =>
