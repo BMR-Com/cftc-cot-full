@@ -8,7 +8,8 @@ Cover page approach (tested):
   - Black background with cover image centered (object-fit:contain)
   - Report date shown in footer overlay
   - Merged with report pages using pypdf
-  - Watermark logo injected on all report pages via position:fixed
+  - Watermark logo APPENDED (not prepended) to body so it never
+    creates a blank page before report content
 """
 
 import asyncio
@@ -34,7 +35,6 @@ ET = tz.gettz('US/Eastern')
 API_WAIT_MS     = 180_000
 CHART_RENDER_MS = 120_000
 
-# Same custom page size as your original
 REPORT_PDF_OPTIONS = {
     "width": "11.71in",
     "height": "8.28in",
@@ -80,9 +80,9 @@ def build_cover_html(cover_b64: str, logo_b64: str, report_date: str) -> str:
     """
     Cover page HTML:
       - Black background fills the full page
-      - Cover image is centered with object-fit:contain (no cropping)
-      - Report date shown in a semi-transparent footer in the bottom-right
-      - Watermark logo shown faintly behind the cover image
+      - Cover image centered with object-fit:contain (no cropping)
+      - Report date in white text, bottom-right corner
+      - Watermark logo faintly behind the cover image
     Uses string concat to avoid CSS-brace conflicts with Python f-strings.
     """
     watermark = ""
@@ -102,13 +102,13 @@ def build_cover_html(cover_b64: str, logo_b64: str, report_date: str) -> str:
         '* { margin:0; padding:0; box-sizing:border-box; }'
         'html, body {'
         '  width:11.71in; height:8.28in; overflow:hidden;'
-        '  background:#000000;'                   # black background
+        '  background:#000000;'
         '  display:flex; align-items:center; justify-content:center;'
         '  -webkit-print-color-adjust:exact; print-color-adjust:exact;'
         '}'
         'img#cover {'
         '  max-width:100%; max-height:100%;'
-        '  object-fit:contain;'                   # centered, no cropping
+        '  object-fit:contain;'
         '  display:block;'
         '}'
         'div#footer {'
@@ -123,26 +123,6 @@ def build_cover_html(cover_b64: str, logo_b64: str, report_date: str) -> str:
         + '<img id="cover" src="' + cover_b64 + '" />'
         + '<div id="footer">Report Date: ' + report_date + '</div>'
         + '</body></html>'
-    )
-
-
-def build_watermark_snippet(logo_b64: str) -> str:
-    """
-    HTML snippet injected into the main report page.
-    position:fixed means the watermark appears on every printed page.
-    Uses string concat to avoid CSS-brace conflicts with page.evaluate().
-    """
-    return (
-        '<style>'
-        '#tp-watermark {'
-        '  position:fixed; top:50%; left:50%;'
-        '  transform:translate(-50%,-50%) rotate(-30deg);'
-        '  opacity:0.06; width:400px; pointer-events:none; z-index:0;'
-        '  -webkit-print-color-adjust:exact; print-color-adjust:exact;'
-        '}'
-        '#tp-watermark img { width:100%; height:auto; filter:grayscale(100%); }'
-        '</style>'
-        '<div id="tp-watermark"><img src="' + logo_b64 + '" /></div>'
     )
 
 
@@ -203,16 +183,41 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # Inject watermark on every report page
+        # Inject watermark via CSS tag + appendChild (NOT insertBefore).
+        # appendChild means the watermark div goes at the END of body so it
+        # never pushes content down and never creates a blank first page.
         if logo_base64:
             print("[COT PDF] Injecting watermark on report pages...")
+
+            watermark_css = (
+                '#tp-watermark {'
+                '  position:fixed; top:50%; left:50%;'
+                '  transform:translate(-50%,-50%) rotate(-30deg);'
+                '  opacity:0.06; width:400px; pointer-events:none;'
+                '  margin:0; padding:0; border:0; display:block;'
+                '  -webkit-print-color-adjust:exact; print-color-adjust:exact;'
+                '}'
+                '#tp-watermark img {'
+                '  width:100%; height:auto; filter:grayscale(100%); display:block;'
+                '}'
+            )
+            watermark_div = (
+                '<div id="tp-watermark">'
+                '<img src="' + logo_base64 + '" />'
+                '</div>'
+            )
+
+            # Style tag first (safe from CSS-brace conflicts)
+            await page.add_style_tag(content=watermark_css)
+
+            # Append to end of body — zero impact on document flow
             await page.evaluate(
                 """(html) => {
                     const div = document.createElement('div');
                     div.innerHTML = html;
-                    document.body.insertBefore(div, document.body.firstChild);
+                    document.body.appendChild(div);
                 }""",
-                build_watermark_snippet(logo_base64),
+                watermark_div,
             )
 
         # ── Wait for commodity dropdown ────────────────────────────────────
