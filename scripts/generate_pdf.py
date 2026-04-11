@@ -96,81 +96,49 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page (Full Page Image with Footer) ─────────────────
+        # ── Inject Cover Page (Single Page Only) ───────────────────────────
         if cover_base64:
             print("[COT PDF] Injecting cover page...")
             
             cover_html = f"""
-            <style>
-                @media print {{
-                    #tp-cover-page {{
-                        page-break-after: always !important;
-                        break-after: page !important;
-                        width: 100% !important;
-                        height: 100% !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }}
-                    
-                    #tp-watermark {{
-                        position: fixed !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -50%) rotate(-30deg) !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }}
-                    
-                    #tp-cover-footer {{
-                        position: absolute !important;
-                        bottom: 0 !important;
-                        left: 0 !important;
-                        right: 0 !important;
-                        text-align: center !important;
-                        padding: 10px !important;
-                        font-family: Arial, sans-serif !important;
-                        font-size: 12px !important;
-                        color: #666 !important;
-                        background: rgba(255,255,255,0.8) !important;
-                    }}
-                }}
-            </style>
-            
-            <!-- Cover Page - Full Page Image Only -->
-            <div id="tp-cover-page" style="
-                width: 100%;
+            <div id="tp-cover-wrapper" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
                 height: 100vh;
-                position: relative;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                background: white;
-                page-break-after: always;
-                break-after: page;
                 margin: 0;
                 padding: 0;
                 overflow: hidden;
+                background: white;
+                z-index: 999999;
+                page-break-after: always;
+                break-after: page;
+                box-sizing: border-box;
             ">
                 <img src="{cover_base64}" style="
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
                     object-position: center;
+                    display: block;
+                    margin: 0;
+                    padding: 0;
                 " />
                 
                 <!-- Footer with Report Date -->
-                <div id="tp-cover-footer" style="
+                <div style="
                     position: absolute;
-                    bottom: 20px;
+                    bottom: 15px;
                     left: 0;
                     right: 0;
                     text-align: center;
                     font-family: Arial, sans-serif;
-                    font-size: 14px;
+                    font-size: 12px;
                     color: #333;
                     background: rgba(255,255,255,0.9);
-                    padding: 8px 20px;
-                    border-top: 1px solid #ddd;
+                    padding: 5px 15px;
+                    z-index: 10;
                 ">
                     Report Date: {report_date}
                 </div>
@@ -180,7 +148,6 @@ async def generate():
             # Add watermark if logo exists
             if logo_base64:
                 cover_html += f"""
-                <!-- Watermark - All Pages -->
                 <div id="tp-watermark" style="
                     position: fixed;
                     top: 50%;
@@ -188,7 +155,7 @@ async def generate():
                     transform: translate(-50%, -50%) rotate(-30deg);
                     opacity: 0.06;
                     pointer-events: none;
-                    z-index: -1;
+                    z-index: 1;
                     width: 400px;
                     height: auto;
                 ">
@@ -196,15 +163,37 @@ async def generate():
                 </div>
                 """
             
+            # Inject the cover page at the very beginning
             await page.evaluate(f"""() => {{
                 const cover = document.createElement('div');
+                cover.id = 'tp-cover-container';
                 cover.innerHTML = `{cover_html}`;
                 document.body.insertBefore(cover, document.body.firstChild);
+                
+                // Force the cover wrapper to take exactly one page
+                const wrapper = document.getElementById('tp-cover-wrapper');
+                if (wrapper) {{
+                    wrapper.style.pageBreakAfter = 'always';
+                    wrapper.style.breakAfter = 'page';
+                }}
             }}""")
             
+            # Add print-specific styles to ensure single page cover
             await page.add_style_tag(content="""
                 @media print {
-                    #tp-cover-page {
+                    #tp-cover-wrapper {
+                        page-break-after: always !important;
+                        break-after: page !important;
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                        height: 100vh !important;
+                        width: 100vw !important;
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                    }
+                    
+                    #tp-cover-container {
                         page-break-after: always !important;
                         break-after: page !important;
                     }
@@ -218,15 +207,21 @@ async def generate():
                         print-color-adjust: exact !important;
                     }
                     
-                    #tp-cover-footer {
-                        position: absolute !important;
-                        bottom: 0 !important;
-                        left: 0 !important;
-                        right: 0 !important;
-                        text-align: center !important;
+                    /* Force all other content to start on new page */
+                    body > *:not(#tp-cover-container) {
+                        page-break-before: always;
+                        break-before: page;
                     }
                 }
+                
+                /* Ensure body has no extra margin/padding */
+                body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
             """)
+            
+            print("[COT PDF] Cover page injected with strict page break")
         
         # ── Wait for commodity dropdown and data to load ──────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
@@ -329,11 +324,9 @@ async def generate():
         
         try:
             page_report_date = await page.evaluate("""() => {
-                // Try to find report date in various places
                 const dateElement = document.querySelector('.report-date, #reportDate, [data-report-date]');
                 if (dateElement) return dateElement.textContent.trim();
                 
-                // Try to get from chart data
                 const canvas = document.querySelector('canvas');
                 if (canvas) {
                     const chart = Chart.getChart(canvas);
@@ -354,8 +347,6 @@ async def generate():
                 
         except Exception as e:
             print(f"[COT PDF] Could not get date from page, using: {report_date}")
-
-        # REMOVED: Executive Summary Header injection (the blue portion)
 
         # ── Wait for charts to be fully rendered ───────────────────────────
         print(f"[COT PDF] Waiting up to {CHART_RENDER_MS/1000:.0f}s for charts to render...")
