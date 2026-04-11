@@ -26,10 +26,10 @@ ET = tz.gettz('US/Eastern')
 API_WAIT_MS = 180_000
 CHART_RENDER_MS = 120_000
 
-# A4 Portrait: 210mm x 297mm (8.27 x 11.69 inches)
+# Custom page size: 11.71" × 8.28" (landscape, approx A4)
 PDF_OPTIONS = {
-    "format": "A4",
-    "landscape": False,  # Portrait mode
+    "width": "11.71in",
+    "height": "8.28in",
     "print_background": True,
     "prefer_css_page_size": False,
     "margin": {
@@ -69,10 +69,8 @@ def get_report_date():
 
 async def generate():
     report_date = get_report_date()
-    generation_date = datetime.now(ET).strftime("%Y-%m-%d %H:%M %Z")
-    
-    print(f"[COT PDF] Report Date (Tuesday): {report_date}")
-    print(f"[COT PDF] Generated: {generation_date}")
+    print(f"[COT PDF] Report Date: {report_date}")
+    print(f"[COT PDF] Starting PDF generation...")
 
     if not HTML_FILE.exists():
         print(f"ERROR: HTML file not found at {HTML_FILE}")
@@ -86,146 +84,164 @@ async def generate():
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox"],
         )
-        
-        # Portrait viewport
-        page = await browser.new_page(viewport={"width": 1000, "height": 1400})
-        
-        # A4 Portrait: 210mm x 297mm
-        combined_html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>COT Report - {report_date}</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        
-        @page {{
-            size: 210mm 297mm;  /* A4 Portrait: width 210mm, height 297mm */
-            margin: 10mm;
-        }}
-        
-        @page :first {{
-            margin: 0;
-        }}
-        
-        body {{
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }}
-        
-        /* Cover Page - A4 Portrait: 210mm x 297mm */
-        .cover-page {{
-            width: 210mm;
-            height: 297mm;
-            position: relative;
-            page-break-after: always;
-            break-after: page;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-        }}
-        
-        .cover-page img.cover-image {{
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 210mm;
-            height: 297mm;
-            object-fit: cover;
-            object-position: center;
-            display: block;
-        }}
-        
-        .cover-footer {{
-            position: absolute;
-            bottom: 15mm;
-            right: 15mm;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            color: #333;
-            background: rgba(255,255,255,0.95);
-            padding: 8px 15px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 10;
-        }}
-        
-        #reportContainer {{
-            width: 100%;
-            min-height: 277mm;
-        }}
-        
-        #loadingMsg {{
-            text-align: center;
-            padding: 50px;
-            font-family: Arial;
-        }}
-    </style>
-</head>
-<body>
-    <!-- Cover Page -->
-    <div class="cover-page">
-        <img class="cover-image" src="{cover_base64 or ''}" alt="Cover" />
-        <div class="cover-footer">Report Date: {report_date}</div>
-    </div>
-    
-    <!-- Report Content -->
-    <div id="reportContainer">
-        <div id="loadingMsg">Loading COT Report...</div>
-    </div>
-    
-    <script>
-        async function loadReport() {{
-            try {{
-                const response = await fetch('{HTML_FILE.resolve().as_uri()}');
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const bodyContent = doc.body.innerHTML;
-                document.getElementById('reportContainer').innerHTML = bodyContent;
-                
-                const scripts = doc.querySelectorAll('script');
-                scripts.forEach(oldScript => {{
-                    const newScript = document.createElement('script');
-                    if (oldScript.src) {{
-                        newScript.src = oldScript.src;
-                    }} else {{
-                        newScript.textContent = oldScript.textContent;
+        page = await browser.new_page(viewport={"width": 1400, "height": 900})
+
+        file_url = HTML_FILE.resolve().as_uri()
+        print(f"[COT PDF] Loading: {file_url}")
+
+        try:
+            await page.goto(file_url, wait_until="networkidle", timeout=60_000)
+        except Exception as e:
+            print(f"[COT PDF] ERROR: Page load failed: {e}")
+            await browser.close()
+            sys.exit(1)
+
+        # ── Inject Cover Page (Full Page Image with Footer) ─────────────────
+        if cover_base64:
+            print("[COT PDF] Injecting cover page...")
+            
+            cover_html = f"""
+            <style>
+                @media print {{
+                    #tp-cover-page {{
+                        page-break-after: always !important;
+                        break-after: page !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
                     }}
-                    document.body.appendChild(newScript);
-                }});
-                
-                const links = doc.querySelectorAll('link[rel="stylesheet"]');
-                links.forEach(link => {{
-                    if (!document.querySelector(`link[href="${{link.href}}"]`)) {{
-                        const newLink = document.createElement('link');
-                        newLink.rel = 'stylesheet';
-                        newLink.href = link.href;
-                        document.head.appendChild(newLink);
+                    
+                    #tp-watermark {{
+                        position: fixed !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -50%) rotate(-30deg) !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }}
-                }});
-            }} catch (err) {{
-                document.getElementById('loadingMsg').innerHTML = 'Error loading report: ' + err.message;
-            }}
-        }}
-        loadReport();
-    </script>
-</body>
-</html>"""
+                    
+                    #tp-cover-footer {{
+                        position: absolute !important;
+                        bottom: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        text-align: center !important;
+                        padding: 10px !important;
+                        font-family: Arial, sans-serif !important;
+                        font-size: 12px !important;
+                        color: #666 !important;
+                        background: rgba(255,255,255,0.8) !important;
+                    }}
+                }}
+            </style>
+            
+            <!-- Cover Page - Full Page Image Only -->
+            <div id="tp-cover-page" style="
+                width: 100%;
+                height: 100vh;
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: white;
+                page-break-after: always;
+                break-after: page;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            ">
+                <img src="{cover_base64}" style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                " />
+                
+                <!-- Footer with Report Date -->
+                <div id="tp-cover-footer" style="
+                    position: absolute;
+                    bottom: 20px;
+                    left: 0;
+                    right: 0;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                    font-size: 14px;
+                    color: #333;
+                    background: rgba(255,255,255,0.9);
+                    padding: 8px 20px;
+                    border-top: 1px solid #ddd;
+                ">
+                    Report Date: {report_date}
+                </div>
+            </div>
+            """
+            
+            # Add watermark if logo exists
+            if logo_base64:
+                cover_html += f"""
+                <!-- Watermark - All Pages -->
+                <div id="tp-watermark" style="
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(-30deg);
+                    opacity: 0.06;
+                    pointer-events: none;
+                    z-index: -1;
+                    width: 400px;
+                    height: auto;
+                ">
+                    <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
+                </div>
+                """
+            
+            await page.evaluate(f"""() => {{
+                const cover = document.createElement('div');
+                cover.innerHTML = `{cover_html}`;
+                document.body.insertBefore(cover, document.body.firstChild);
+            }}""")
+            
+            await page.add_style_tag(content="""
+                @media print {
+                    #tp-cover-page {
+                        page-break-after: always !important;
+                        break-after: page !important;
+                    }
+                    
+                    #tp-watermark {
+                        position: fixed !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -50%) rotate(-30deg) !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    #tp-cover-footer {
+                        position: absolute !important;
+                        bottom: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        text-align: center !important;
+                    }
+                }
+            """)
         
-        await page.set_content(combined_html)
-        print("[COT PDF] Combined page loaded")
-        
-        print("[COT PDF] Waiting for report content to load...")
-        await page.wait_for_timeout(3_000)
+        # ── Wait for commodity dropdown and data to load ──────────────────
+        print("[COT PDF] Waiting for commodity list to populate...")
         
         try:
-            await page.wait_for_selector('#commoditySelect option', state="attached", timeout=30_000)
+            await page.wait_for_selector(
+                '#commoditySelect option',
+                state="attached",
+                timeout=30_000,
+            )
             
             cotton_value = await page.evaluate("""() => {
                 const select = document.getElementById('commoditySelect');
                 if (!select) return null;
+                
                 const options = Array.from(select.options);
                 
                 let cottonOpt = options.find(o => 
@@ -271,6 +287,7 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
+        # ── Select commodity and generate charts ───────────────────────────
         try:
             await page.select_option("#commoditySelect", selected_value)
             print(f"[COT PDF] Selected commodity: {selected_value}")
@@ -281,7 +298,8 @@ async def generate():
 
         await page.wait_for_timeout(500)
 
-        print("[COT PDF] Clicking Generate Charts...")
+        print(f"[COT PDF] Clicking Generate Charts...")
+        
         try:
             await page.click("#fetchBtn")
         except Exception as e:
@@ -289,7 +307,9 @@ async def generate():
             await browser.close()
             sys.exit(1)
         
+        # ── Wait for data loading ──────────────────────────────────────────
         print(f"[COT PDF] Waiting up to {API_WAIT_MS/1000:.0f}s for CFTC API data...")
+        
         try:
             await page.wait_for_function(
                 """() => {
@@ -304,7 +324,42 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
+        # ── Get actual report date from the page ───────────────────────────
+        print("[COT PDF] Getting report date from page...")
+        
+        try:
+            page_report_date = await page.evaluate("""() => {
+                // Try to find report date in various places
+                const dateElement = document.querySelector('.report-date, #reportDate, [data-report-date]');
+                if (dateElement) return dateElement.textContent.trim();
+                
+                // Try to get from chart data
+                const canvas = document.querySelector('canvas');
+                if (canvas) {
+                    const chart = Chart.getChart(canvas);
+                    if (chart && chart.data && chart.data.labels && chart.data.labels.length > 0) {
+                        const lastLabel = chart.data.labels[chart.data.labels.length - 1];
+                        if (lastLabel) return lastLabel;
+                    }
+                }
+                
+                return null;
+            }""")
+            
+            if page_report_date:
+                report_date = page_report_date
+                print(f"[COT PDF] Found report date from page: {report_date}")
+            else:
+                print(f"[COT PDF] Using calculated report date: {report_date}")
+                
+        except Exception as e:
+            print(f"[COT PDF] Could not get date from page, using: {report_date}")
+
+        # REMOVED: Executive Summary Header injection (the blue portion)
+
+        # ── Wait for charts to be fully rendered ───────────────────────────
         print(f"[COT PDF] Waiting up to {CHART_RENDER_MS/1000:.0f}s for charts to render...")
+        
         try:
             await page.wait_for_function(
                 """() => {
@@ -328,16 +383,28 @@ async def generate():
                 timeout=CHART_RENDER_MS,
             )
             print("[COT PDF] Charts rendered successfully")
+            
         except Exception as e:
             print(f"[COT PDF] WARNING: Chart rendering timeout: {e}")
 
+        # ── Wait for table content ─────────────────────────────────────────
+        print("[COT PDF] Waiting for table content...")
+        
         try:
-            await page.wait_for_selector('#weeklyDetail tbody tr, #weeklyDetail table tr', timeout=30_000)
+            await page.wait_for_selector(
+                '#weeklyDetail tbody tr, #weeklyDetail table tr',
+                timeout=30_000,
+            )
             print("[COT PDF] Table content found")
         except Exception as e:
             print(f"[COT PDF] WARNING: Table content timeout: {e}")
 
-        sections = ["#chart1", "#chart2", "#chart3", "#chart4", "#weeklyDetail", "#execSec", "#sumSec"]
+        # ── Wait for summary sections ───────────────────────────────────────
+        sections = [
+            "#chart1", "#chart2", "#chart3", "#chart4",
+            "#weeklyDetail", "#execSec", "#sumSec",
+        ]
+        
         print("[COT PDF] Verifying all sections visible...")
         for section in sections:
             try:
@@ -346,14 +413,21 @@ async def generate():
             except Exception as e:
                 print(f"[COT PDF] ⚠ {section} not visible: {e}")
 
+        # Extra wait for final rendering
         print("[COT PDF] Final rendering wait (5 seconds)...")
         await page.wait_for_timeout(5_000)
 
+        # ── Generate PDF ────────────────────────────────────────────────────
         print("[COT PDF] Emulating print media...")
         await page.emulate_media(media="print")
         await page.wait_for_timeout(3_000)
         
+        # Force chart redraw
+        await page.evaluate("() => { window.dispatchEvent(new Event('resize')); }")
+        await page.wait_for_timeout(2_000)
+        
         print("[COT PDF] Generating PDF...")
+        
         pdf_bytes = await page.pdf(**PDF_OPTIONS)
         OUTPUT_PDF.write_bytes(pdf_bytes)
         
