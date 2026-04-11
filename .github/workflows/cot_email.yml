@@ -3,7 +3,6 @@ name: COT Report Weekly Email
 on:
   schedule:
     # 3:30 PM ET = 19:30 UTC (EDT/Summer) or 20:30 UTC (EST/Winter)
-    # Run at both times to cover DST transitions
     - cron: '30 19 * * 5'  # 19:30 UTC = 2:30 PM CDT / 3:30 PM EDT (Summer)
     - cron: '30 20 * * 5'  # 20:30 UTC = 2:30 PM CST / 3:30 PM EST (Winter)
     
@@ -46,8 +45,6 @@ jobs:
           echo "Current CT:  $(TZ=America/Chicago date '+%Y-%m-%d %H:%M:%S %Z')"
           echo "Attempt: $ATTEMPT"
           
-          # Manual run: single attempt, use whatever data is available
-          # Scheduled run: up to 3 attempts with 5-min delays for CFTC data
           MAX_ATTEMPTS=3
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             MAX_ATTEMPTS=1
