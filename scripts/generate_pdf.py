@@ -335,4 +335,85 @@ async def generate():
         
         try:
             await page.wait_for_function(
-                """() =>
+                """() => {
+                    const canvases = document.querySelectorAll('canvas');
+                    if (canvases.length === 0) return false;
+                    
+                    let chartsWithData = 0;
+                    canvases.forEach(canvas => {
+                        const chart = Chart.getChart(canvas);
+                        if (chart && chart.data && chart.data.datasets && chart.data.datasets.length > 0) {
+                            const hasData = chart.data.datasets.some(ds => 
+                                ds.data && ds.data.length > 0 && 
+                                ds.data.some(v => v !== null && v !== undefined)
+                            );
+                            if (hasData) chartsWithData++;
+                        }
+                    });
+                    
+                    return chartsWithData >= 4;
+                }""",
+                timeout=CHART_RENDER_MS,
+            )
+            print("[COT PDF] Charts rendered successfully")
+            
+        except Exception as e:
+            print(f"[COT PDF] WARNING: Chart rendering timeout: {e}")
+
+        # ── Wait for table content ─────────────────────────────────────────
+        print("[COT PDF] Waiting for table content...")
+        
+        try:
+            await page.wait_for_selector(
+                '#weeklyDetail tbody tr, #weeklyDetail table tr',
+                timeout=30_000,
+            )
+            print("[COT PDF] Table content found")
+        except Exception as e:
+            print(f"[COT PDF] WARNING: Table content timeout: {e}")
+
+        # ── Wait for summary sections ───────────────────────────────────────
+        sections = [
+            "#chart1", "#chart2", "#chart3", "#chart4",
+            "#weeklyDetail", "#execSec", "#sumSec",
+        ]
+        
+        print("[COT PDF] Verifying all sections visible...")
+        for section in sections:
+            try:
+                await page.wait_for_selector(section, state="visible", timeout=15_000)
+                print(f"[COT PDF] ✓ {section}")
+            except Exception as e:
+                print(f"[COT PDF] ⚠ {section} not visible: {e}")
+
+        # Extra wait for final rendering
+        print("[COT PDF] Final rendering wait (5 seconds)...")
+        await page.wait_for_timeout(5_000)
+
+        # ── Generate PDF ────────────────────────────────────────────────────
+        print("[COT PDF] Emulating print media...")
+        await page.emulate_media(media="print")
+        await page.wait_for_timeout(3_000)
+        
+        # Force chart redraw
+        await page.evaluate("() => { window.dispatchEvent(new Event('resize')); }")
+        await page.wait_for_timeout(2_000)
+        
+        print("[COT PDF] Generating PDF...")
+        
+        pdf_bytes = await page.pdf(**PDF_OPTIONS)
+        OUTPUT_PDF.write_bytes(pdf_bytes)
+        
+        pdf_size = OUTPUT_PDF.stat().st_size
+        if pdf_size < 10_000:
+            print(f"[COT PDF] ERROR: PDF file too small ({pdf_size} bytes)")
+            await browser.close()
+            sys.exit(1)
+        
+        print(f"[COT PDF] ✓ PDF saved: {OUTPUT_PDF} ({pdf_size/1024:.1f} KB)")
+
+        await browser.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(generate())
