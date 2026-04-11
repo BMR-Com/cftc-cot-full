@@ -16,10 +16,11 @@ import base64
 # ── Config ─────────────────────────────────────────────────────────────────
 HTML_FILE = Path(__file__).parent.parent / "index.html"
 OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
+COVER_PAGE_PATH = Path(__file__).parent.parent / "assets" / "cover_page.png"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
 COTTON_DISPLAY_NAME = "Cotton"
-REPORT_TITLE = "BCOM COT Weekly Intelligence Report"
+REPORT_DATE = "April 07, 2026"
 
 ET = tz.gettz('US/Eastern')
 
@@ -40,41 +41,34 @@ PDF_OPTIONS = {
 }
 
 
-def get_report_date():
-    """Get the report date (Tuesday of current week)."""
-    today = datetime.now(ET)
-    days_since_tuesday = (today.weekday() - 1) % 7
-    tuesday = today - __import__('datetime').timedelta(days=days_since_tuesday)
-    return tuesday.strftime("%B %d, %Y")
-
-
-def encode_logo_base64():
-    """Encode logo image to base64 for embedding in HTML."""
-    if not LOGO_PATH.exists():
-        print(f"[COT PDF] Warning: Logo not found at {LOGO_PATH}")
+def encode_image_base64(image_path):
+    """Encode image to base64 for embedding in HTML."""
+    if not image_path.exists():
+        print(f"[COT PDF] Warning: Image not found at {image_path}")
         return None
     
     try:
-        with open(LOGO_PATH, "rb") as img_file:
+        with open(image_path, "rb") as img_file:
             encoded = base64.b64encode(img_file.read()).decode('utf-8')
-            return f"data:image/png;base64,{encoded}"
+            ext = image_path.suffix.lower().replace('.', '')
+            if ext == 'jpg':
+                ext = 'jpeg'
+            return f"data:image/{ext};base64,{encoded}"
     except Exception as e:
-        print(f"[COT PDF] Warning: Could not encode logo: {e}")
+        print(f"[COT PDF] Warning: Could not encode image: {e}")
         return None
 
 
 async def generate():
-    report_date = get_report_date()
-    generation_date = datetime.now(ET).strftime("%Y-%m-%d %H:%M %Z")
-    
-    print(f"[COT PDF] Report Date (Tuesday): {report_date}")
-    print(f"[COT PDF] Generated: {generation_date}")
+    print(f"[COT PDF] Report Date: {REPORT_DATE}")
+    print(f"[COT PDF] Starting PDF generation...")
 
     if not HTML_FILE.exists():
         print(f"ERROR: HTML file not found at {HTML_FILE}")
         sys.exit(1)
 
-    logo_base64 = encode_logo_base64()
+    cover_base64 = encode_image_base64(COVER_PAGE_PATH)
+    logo_base64 = encode_image_base64(LOGO_PATH)
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -93,9 +87,9 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page + Watermark ──────────────────────────────────
-        if logo_base64:
-            print("[COT PDF] Injecting cover page and watermark...")
+        # ── Inject Cover Page (Full Page Image) + Watermark ────────────────
+        if cover_base64:
+            print("[COT PDF] Injecting cover page...")
             
             cover_html = f"""
             <style>
@@ -103,6 +97,10 @@ async def generate():
                     #tp-cover-page {{
                         page-break-after: always !important;
                         break-after: page !important;
+                        width: 100% !important;
+                        height: 100vh !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
                     }}
                     
                     #tp-watermark {{
@@ -116,57 +114,47 @@ async def generate():
                 }}
             </style>
             
-            <!-- Cover Page -->
+            <!-- Cover Page - Full Page Image -->
             <div id="tp-cover-page" style="
                 width: 100%;
                 height: 100vh;
                 display: flex;
-                flex-direction: column;
                 justify-content: center;
                 align-items: center;
                 background: white;
                 page-break-after: always;
                 break-after: page;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
             ">
-                <img src="{logo_base64}" style="width: 300px; height: auto; margin-bottom: 40px;" />
-                <h1 style="
-                    font-family: Arial, sans-serif;
-                    font-size: 28px;
-                    font-weight: bold;
-                    color: #0072C6;
-                    text-align: center;
-                    margin: 0;
-                    padding: 0 40px;
-                ">{REPORT_TITLE}</h1>
-                <p style="
-                    font-family: Arial, sans-serif;
-                    font-size: 16px;
-                    color: #666;
-                    margin-top: 20px;
-                ">Report Date: {report_date}</p>
-                <p style="
-                    font-family: Arial, sans-serif;
-                    font-size: 12px;
-                    color: #999;
-                    margin-top: 10px;
-                ">Generated: {generation_date}</p>
-            </div>
-            
-            <!-- Watermark - All Pages -->
-            <div id="tp-watermark" style="
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) rotate(-30deg);
-                opacity: 0.06;
-                pointer-events: none;
-                z-index: -1;
-                width: 400px;
-                height: auto;
-            ">
-                <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
+                <img src="{cover_base64}" style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    object-position: center;
+                " />
             </div>
             """
+            
+            # Add watermark if logo exists
+            if logo_base64:
+                cover_html += f"""
+                <!-- Watermark - All Pages -->
+                <div id="tp-watermark" style="
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(-30deg);
+                    opacity: 0.06;
+                    pointer-events: none;
+                    z-index: -1;
+                    width: 400px;
+                    height: auto;
+                ">
+                    <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
+                </div>
+                """
             
             await page.evaluate(f"""() => {{
                 const cover = document.createElement('div');
@@ -191,6 +179,34 @@ async def generate():
                     }
                 }
             """)
+        
+        # ── Inject Executive Summary Header ────────────────────────────────
+        summary_header = f"""
+        <div id="tp-summary-header" style="
+            background: linear-gradient(135deg, #0072C6 0%, #005a9e 100%);
+            color: white;
+            padding: 20px 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            page-break-before: always;
+        ">
+            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 5px;">Report Date: {REPORT_DATE}</div>
+            <h2 style="margin: 0; font-size: 24px; font-weight: bold;">📊 BCOM COT Executive Summary</h2>
+            <div style="font-size: 14px; opacity: 0.9; margin-top: 5px;">Managed Money Positioning Extremes</div>
+        </div>
+        """
+        
+        # Insert after cover page, before main content
+        await page.evaluate(f"""() => {{
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = `{summary_header}`;
+            // Insert after the cover page elements
+            const firstContent = document.querySelector('#commoditySelect, #chart1, .main-content, body > *:not([id^="tp-"])');
+            if (firstContent && firstContent.parentNode) {{
+                firstContent.parentNode.insertBefore(summaryDiv, firstContent);
+            }}
+        }}""")
         
         # ── Wait for commodity dropdown ───────────────────────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
