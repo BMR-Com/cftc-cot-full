@@ -20,7 +20,6 @@ COVER_PAGE_PATH = Path(__file__).parent.parent / "assets" / "cover_page.png"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
 COTTON_DISPLAY_NAME = "Cotton"
-REPORT_DATE = "April 07, 2026"
 
 ET = tz.gettz('US/Eastern')
 
@@ -59,8 +58,17 @@ def encode_image_base64(image_path):
         return None
 
 
+def get_report_date():
+    """Get the report date (Tuesday of current week)."""
+    today = datetime.now(ET)
+    days_since_tuesday = (today.weekday() - 1) % 7
+    tuesday = today - __import__('datetime').timedelta(days=days_since_tuesday)
+    return tuesday.strftime("%B %d, %Y")
+
+
 async def generate():
-    print(f"[COT PDF] Report Date: {REPORT_DATE}")
+    report_date = get_report_date()
+    print(f"[COT PDF] Report Date: {report_date}")
     print(f"[COT PDF] Starting PDF generation...")
 
     if not HTML_FILE.exists():
@@ -87,7 +95,7 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page (Full Page Image) + Watermark ────────────────
+        # ── Inject Cover Page (Full Page Image Only) ───────────────────────
         if cover_base64:
             print("[COT PDF] Injecting cover page...")
             
@@ -97,10 +105,6 @@ async def generate():
                     #tp-cover-page {{
                         page-break-after: always !important;
                         break-after: page !important;
-                        width: 100% !important;
-                        height: 100vh !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
                     }}
                     
                     #tp-watermark {{
@@ -114,7 +118,7 @@ async def generate():
                 }}
             </style>
             
-            <!-- Cover Page - Full Page Image -->
+            <!-- Cover Page - Full Page Image Only -->
             <div id="tp-cover-page" style="
                 width: 100%;
                 height: 100vh;
@@ -129,10 +133,11 @@ async def generate():
                 overflow: hidden;
             ">
                 <img src="{cover_base64}" style="
-                    width: 100%;
-                    height: 100%;
+                    max-width: 100%;
+                    max-height: 100%;
+                    width: auto;
+                    height: auto;
                     object-fit: contain;
-                    object-position: center;
                 " />
             </div>
             """
@@ -180,35 +185,7 @@ async def generate():
                 }
             """)
         
-        # ── Inject Executive Summary Header ────────────────────────────────
-        summary_header = f"""
-        <div id="tp-summary-header" style="
-            background: linear-gradient(135deg, #0072C6 0%, #005a9e 100%);
-            color: white;
-            padding: 20px 30px;
-            margin: 20px 0;
-            border-radius: 8px;
-            font-family: Arial, sans-serif;
-            page-break-before: always;
-        ">
-            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 5px;">Report Date: {REPORT_DATE}</div>
-            <h2 style="margin: 0; font-size: 24px; font-weight: bold;">📊 BCOM COT Executive Summary</h2>
-            <div style="font-size: 14px; opacity: 0.9; margin-top: 5px;">Managed Money Positioning Extremes</div>
-        </div>
-        """
-        
-        # Insert after cover page, before main content
-        await page.evaluate(f"""() => {{
-            const summaryDiv = document.createElement('div');
-            summaryDiv.innerHTML = `{summary_header}`;
-            // Insert after the cover page elements
-            const firstContent = document.querySelector('#commoditySelect, #chart1, .main-content, body > *:not([id^="tp-"])');
-            if (firstContent && firstContent.parentNode) {{
-                firstContent.parentNode.insertBefore(summaryDiv, firstContent);
-            }}
-        }}""")
-        
-        # ── Wait for commodity dropdown ───────────────────────────────────
+        # ── Wait for commodity dropdown and data to load ──────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
         
         try:
@@ -264,23 +241,10 @@ async def generate():
             
         except Exception as e:
             print(f"[COT PDF] ERROR: Commodity list issue - {e}")
-            try:
-                all_options = await page.evaluate("""() => {
-                    const select = document.getElementById('commoditySelect');
-                    if (!select) return [];
-                    return Array.from(select.options).map(o => ({
-                        value: o.value,
-                        text: o.textContent.trim(),
-                        dataCn: o.getAttribute('data-cn')
-                    }));
-                }""")
-                print(f"[COT PDF] All options: {all_options}")
-            except:
-                pass
             await browser.close()
             sys.exit(1)
 
-        # ── Select commodity ───────────────────────────────────────────────
+        # ── Select commodity and generate charts ───────────────────────────
         try:
             await page.select_option("#commoditySelect", selected_value)
             print(f"[COT PDF] Selected commodity: {selected_value}")
@@ -291,7 +255,6 @@ async def generate():
 
         await page.wait_for_timeout(500)
 
-        # ── Click Generate Charts ─────────────────────────────────────────
         print(f"[COT PDF] Clicking Generate Charts...")
         
         try:
@@ -301,7 +264,7 @@ async def generate():
             await browser.close()
             sys.exit(1)
         
-        # ── Wait for loading spinner to disappear ─────────────────────────
+        # ── Wait for data loading ──────────────────────────────────────────
         print(f"[COT PDF] Waiting up to {API_WAIT_MS/1000:.0f}s for CFTC API data...")
         
         try:
@@ -317,6 +280,77 @@ async def generate():
             print(f"[COT PDF] ERROR: Loading timeout - {e}")
             await browser.close()
             sys.exit(1)
+
+        # ── Get actual report date from the page ───────────────────────────
+        print("[COT PDF] Getting report date from page...")
+        
+        try:
+            page_report_date = await page.evaluate("""() => {
+                // Try to find report date in various places
+                const dateElement = document.querySelector('.report-date, #reportDate, [data-report-date]');
+                if (dateElement) return dateElement.textContent.trim();
+                
+                // Try to get from chart data
+                const canvas = document.querySelector('canvas');
+                if (canvas) {
+                    const chart = Chart.getChart(canvas);
+                    if (chart && chart.data && chart.data.labels && chart.data.labels.length > 0) {
+                        const lastLabel = chart.data.labels[chart.data.labels.length - 1];
+                        if (lastLabel) return lastLabel;
+                    }
+                }
+                
+                return null;
+            }""")
+            
+            if page_report_date:
+                report_date = page_report_date
+                print(f"[COT PDF] Found report date from page: {report_date}")
+            else:
+                print(f"[COT PDF] Using calculated report date: {report_date}")
+                
+        except Exception as e:
+            print(f"[COT PDF] Could not get date from page, using: {report_date}")
+
+        # ── Inject Executive Summary Header (after data loaded) ────────────
+        print("[COT PDF] Injecting executive summary header...")
+        
+        summary_header = f"""
+        <div id="tp-summary-header" style="
+            background: linear-gradient(135deg, #0072C6 0%, #005a9e 100%);
+            color: white;
+            padding: 15px 25px;
+            margin: 10px 0 20px 0;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        ">
+            <div style="font-size: 11px; opacity: 0.9; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 1px;">Report Date: {report_date}</div>
+            <h2 style="margin: 0; font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+                <span>📊</span>
+                <span>BCOM COT Executive Summary</span>
+            </h2>
+            <div style="font-size: 13px; opacity: 0.9; margin-top: 3px;">Managed Money Positioning Extremes</div>
+        </div>
+        """
+        
+        # Insert at the beginning of the main content area
+        await page.evaluate(f"""() => {{
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = `{summary_header}`;
+            
+            // Try to find the best place to insert
+            const container = document.querySelector('.container, .main-content, #app, body');
+            if (container) {{
+                // Insert after any existing header but before charts
+                const firstChart = container.querySelector('#chart1, .chart-container, canvas');
+                if (firstChart && firstChart.parentNode) {{
+                    firstChart.parentNode.insertBefore(summaryDiv, firstChart);
+                }} else {{
+                    container.insertBefore(summaryDiv, container.firstChild);
+                }}
+            }}
+        }}""")
 
         # ── Wait for charts to be fully rendered ───────────────────────────
         print(f"[COT PDF] Waiting up to {CHART_RENDER_MS/1000:.0f}s for charts to render...")
