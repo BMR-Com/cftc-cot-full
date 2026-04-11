@@ -96,133 +96,6 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page (Single Page Only) ───────────────────────────
-        if cover_base64:
-            print("[COT PDF] Injecting cover page...")
-            
-            cover_html = f"""
-            <div id="tp-cover-wrapper" style="
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                margin: 0;
-                padding: 0;
-                overflow: hidden;
-                background: white;
-                z-index: 999999;
-                page-break-after: always;
-                break-after: page;
-                box-sizing: border-box;
-            ">
-                <img src="{cover_base64}" style="
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    object-position: center;
-                    display: block;
-                    margin: 0;
-                    padding: 0;
-                " />
-                
-                <!-- Footer with Report Date -->
-                <div style="
-                    position: absolute;
-                    bottom: 15px;
-                    left: 0;
-                    right: 0;
-                    text-align: center;
-                    font-family: Arial, sans-serif;
-                    font-size: 12px;
-                    color: #333;
-                    background: rgba(255,255,255,0.9);
-                    padding: 5px 15px;
-                    z-index: 10;
-                ">
-                    Report Date: {report_date}
-                </div>
-            </div>
-            """
-            
-            # Add watermark if logo exists
-            if logo_base64:
-                cover_html += f"""
-                <div id="tp-watermark" style="
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) rotate(-30deg);
-                    opacity: 0.06;
-                    pointer-events: none;
-                    z-index: 1;
-                    width: 400px;
-                    height: auto;
-                ">
-                    <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
-                </div>
-                """
-            
-            # Inject the cover page at the very beginning
-            await page.evaluate(f"""() => {{
-                const cover = document.createElement('div');
-                cover.id = 'tp-cover-container';
-                cover.innerHTML = `{cover_html}`;
-                document.body.insertBefore(cover, document.body.firstChild);
-                
-                // Force the cover wrapper to take exactly one page
-                const wrapper = document.getElementById('tp-cover-wrapper');
-                if (wrapper) {{
-                    wrapper.style.pageBreakAfter = 'always';
-                    wrapper.style.breakAfter = 'page';
-                }}
-            }}""")
-            
-            # Add print-specific styles to ensure single page cover
-            await page.add_style_tag(content="""
-                @media print {
-                    #tp-cover-wrapper {
-                        page-break-after: always !important;
-                        break-after: page !important;
-                        page-break-inside: avoid !important;
-                        break-inside: avoid !important;
-                        height: 100vh !important;
-                        width: 100vw !important;
-                        position: fixed !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                    }
-                    
-                    #tp-cover-container {
-                        page-break-after: always !important;
-                        break-after: page !important;
-                    }
-                    
-                    #tp-watermark {
-                        position: fixed !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -50%) rotate(-30deg) !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                    
-                    /* Force all other content to start on new page */
-                    body > *:not(#tp-cover-container) {
-                        page-break-before: always;
-                        break-before: page;
-                    }
-                }
-                
-                /* Ensure body has no extra margin/padding */
-                body {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                }
-            """)
-            
-            print("[COT PDF] Cover page injected with strict page break")
-        
         # ── Wait for commodity dropdown and data to load ──────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
         
@@ -407,6 +280,135 @@ async def generate():
         # Extra wait for final rendering
         print("[COT PDF] Final rendering wait (5 seconds)...")
         await page.wait_for_timeout(5_000)
+
+        # ── Inject Cover Page AFTER all interactions (Single Page Only) ───
+        # MOVED HERE: Inject cover page only after all UI interactions are complete
+        # This prevents the cover image from blocking clicks on UI elements
+        if cover_base64:
+            print("[COT PDF] Injecting cover page...")
+            
+            cover_html = f"""
+            <div id="tp-cover-wrapper" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background: white;
+                z-index: 999999;
+                page-break-after: always;
+                break-after: page;
+                box-sizing: border-box;
+            ">
+                <img src="{cover_base64}" style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                    display: block;
+                    margin: 0;
+                    padding: 0;
+                " />
+                
+                <!-- Footer with Report Date -->
+                <div style="
+                    position: absolute;
+                    bottom: 15px;
+                    left: 0;
+                    right: 0;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    color: #333;
+                    background: rgba(255,255,255,0.9);
+                    padding: 5px 15px;
+                    z-index: 10;
+                ">
+                    Report Date: {report_date}
+                </div>
+            </div>
+            """
+            
+            # Add watermark if logo exists
+            if logo_base64:
+                cover_html += f"""
+                <div id="tp-watermark" style="
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(-30deg);
+                    opacity: 0.06;
+                    pointer-events: none;
+                    z-index: 1;
+                    width: 400px;
+                    height: auto;
+                ">
+                    <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
+                </div>
+                """
+            
+            # Inject the cover page at the very beginning
+            await page.evaluate(f"""() => {{
+                const cover = document.createElement('div');
+                cover.id = 'tp-cover-container';
+                cover.innerHTML = `{cover_html}`;
+                document.body.insertBefore(cover, document.body.firstChild);
+                
+                // Force the cover wrapper to take exactly one page
+                const wrapper = document.getElementById('tp-cover-wrapper');
+                if (wrapper) {{
+                    wrapper.style.pageBreakAfter = 'always';
+                    wrapper.style.breakAfter = 'page';
+                }}
+            }}""")
+            
+            # Add print-specific styles to ensure single page cover
+            await page.add_style_tag(content="""
+                @media print {
+                    #tp-cover-wrapper {
+                        page-break-after: always !important;
+                        break-after: page !important;
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                        height: 100vh !important;
+                        width: 100vw !important;
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                    }
+                    
+                    #tp-cover-container {
+                        page-break-after: always !important;
+                        break-after: page !important;
+                    }
+                    
+                    #tp-watermark {
+                        position: fixed !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -50%) rotate(-30deg) !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    /* Force all other content to start on new page */
+                    body > *:not(#tp-cover-container) {
+                        page-break-before: always;
+                        break-before: page;
+                    }
+                }
+                
+                /* Ensure body has no extra margin/padding */
+                body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+            """)
+            
+            print("[COT PDF] Cover page injected with strict page break")
 
         # ── Generate PDF ────────────────────────────────────────────────────
         print("[COT PDF] Emulating print media...")
