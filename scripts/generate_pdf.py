@@ -30,7 +30,7 @@ PDF_OPTIONS = {
     "print_background": True,
     "prefer_css_page_size": False,
     "margin": {
-        "top": "0mm",      # No margin for cover page
+        "top": "0mm",
         "bottom": "0mm",
         "left": "0mm",
         "right": "0mm",
@@ -39,7 +39,7 @@ PDF_OPTIONS = {
 
 
 def encode_image_base64(image_path):
-    """Encode image to base64 for embedding in HTML."""
+    """Encode image to base64."""
     if not image_path.exists():
         print(f"[COT PDF] Warning: Image not found at {image_path}")
         return None
@@ -76,6 +76,10 @@ async def generate():
     cover_base64 = encode_image_base64(COVER_PAGE_PATH)
     logo_base64 = encode_image_base64(LOGO_PATH)
 
+    if not cover_base64:
+        print("ERROR: Cover page image not found")
+        sys.exit(1)
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
@@ -93,147 +97,144 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page (Full Page Image with Footer) ────────────────
-        if cover_base64:
-            print("[COT PDF] Injecting cover page...")
-            
-            cover_html = f"""
-            <style>
-                @media print {{
-                    @page :first {{
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }}
-                    
-                    #tp-cover-page {{
-                        page-break-after: always !important;
-                        break-after: page !important;
-                        width: 297mm !important;
-                        height: 210mm !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        position: relative !important;
-                        overflow: hidden !important;
-                    }}
-                    
-                    #tp-cover-image {{
-                        width: 100% !important;
-                        height: 100% !important;
-                        object-fit: cover !important;
-                        object-position: center !important;
-                    }}
-                    
-                    #tp-cover-footer {{
-                        position: absolute !important;
-                        bottom: 15mm !important;
-                        right: 15mm !important;
-                        font-family: Arial, sans-serif !important;
-                        font-size: 12px !important;
-                        color: #666 !important;
-                        background: rgba(255,255,255,0.9) !important;
-                        padding: 8px 15px !important;
-                        border-radius: 4px !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }}
-                    
-                    #tp-watermark {{
-                        position: fixed !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -50%) rotate(-30deg) !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }}
+        # ── Inject Cover Page (Full Page Image) ────────────────────────────
+        print("[COT PDF] Injecting cover page...")
+        
+        cover_html = f"""
+        <style>
+            @media print {{
+                @page :first {{
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    size: A4 landscape;
                 }}
-            </style>
-            
-            <!-- Cover Page - Full Page Image with Footer -->
-            <div id="tp-cover-page">
-                <img id="tp-cover-image" src="{cover_base64}" />
-                <div id="tp-cover-footer">Report Date: {report_date}</div>
+                
+                #tp-cover-page {{
+                    width: 297mm !important;
+                    height: 210mm !important;
+                    page-break-after: always !important;
+                    break-after: page !important;
+                    position: relative !important;
+                    overflow: hidden !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }}
+                
+                #tp-cover-image {{
+                    position: absolute !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 297mm !important;
+                    height: 210mm !important;
+                    object-fit: fill !important;
+                    object-position: center !important;
+                }}
+                
+                #tp-cover-footer {{
+                    position: absolute !important;
+                    bottom: 15mm !important;
+                    right: 15mm !important;
+                    font-family: Arial, sans-serif !important;
+                    font-size: 12px !important;
+                    color: #333 !important;
+                    background: rgba(255,255,255,0.9) !important;
+                    padding: 8px 15px !important;
+                    border-radius: 4px !important;
+                    z-index: 10 !important;
+                }}
+                
+                #tp-watermark {{
+                    position: fixed !important;
+                    top: 50% !important;
+                    left: 50% !important;
+                    transform: translate(-50%, -50%) rotate(-30deg) !important;
+                    opacity: 0.06 !important;
+                    pointer-events: none !important;
+                    z-index: -1 !important;
+                    width: 400px !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }}
+                
+                @page {{
+                    margin: 10mm;
+                }}
+            }}
+        </style>
+        
+        <div id="tp-cover-page">
+            <img id="tp-cover-image" src="{cover_base64}" />
+            <div id="tp-cover-footer">Report Date: {report_date}</div>
+        </div>
+        """
+        
+        # Add watermark if logo exists
+        if logo_base64:
+            cover_html += f"""
+            <div id="tp-watermark">
+                <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
             </div>
             """
-            
-            # Add watermark if logo exists
-            if logo_base64:
-                cover_html += f"""
-                <!-- Watermark - All Pages (except cover) -->
-                <div id="tp-watermark" style="
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) rotate(-30deg);
-                    opacity: 0.06;
-                    pointer-events: none;
-                    z-index: -1;
-                    width: 400px;
-                    height: auto;
-                ">
-                    <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
-                </div>
-                """
-            
-            await page.evaluate(f"""() => {{
-                const cover = document.createElement('div');
-                cover.innerHTML = `{cover_html}`;
-                document.body.insertBefore(cover, document.body.firstChild);
-            }}""")
-            
-            await page.add_style_tag(content="""
-                @media print {
-                    @page :first {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-                    
-                    #tp-cover-page {
-                        page-break-after: always !important;
-                        break-after: page !important;
-                        width: 297mm !important;
-                        height: 210mm !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        position: relative !important;
-                        overflow: hidden !important;
-                    }
-                    
-                    #tp-cover-image {
-                        width: 100% !important;
-                        height: 100% !important;
-                        object-fit: cover !important;
-                        object-position: center !important;
-                    }
-                    
-                    #tp-cover-footer {
-                        position: absolute !important;
-                        bottom: 15mm !important;
-                        right: 15mm !important;
-                        font-family: Arial, sans-serif !important;
-                        font-size: 12px !important;
-                        color: #666 !important;
-                        background: rgba(255,255,255,0.9) !important;
-                        padding: 8px 15px !important;
-                        border-radius: 4px !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                    
-                    #tp-watermark {
-                        position: fixed !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -50%) rotate(-30deg) !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }
-                    
-                    /* Reset margins for other pages */
-                    @page {
-                        margin: 10mm !important;
-                    }
+        
+        await page.evaluate(f"""() => {{
+            const cover = document.createElement('div');
+            cover.innerHTML = `{cover_html}`;
+            document.body.insertBefore(cover, document.body.firstChild);
+        }}""")
+        
+        await page.add_style_tag(content="""
+            @media print {
+                @page :first {
+                    margin: 0 !important;
+                    padding: 0 !important;
                 }
-            """)
+                
+                #tp-cover-page {
+                    width: 297mm !important;
+                    height: 210mm !important;
+                    page-break-after: always !important;
+                    break-after: page !important;
+                    position: relative !important;
+                    overflow: hidden !important;
+                }
+                
+                #tp-cover-image {
+                    position: absolute !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 297mm !important;
+                    height: 210mm !important;
+                    object-fit: fill !important;
+                }
+                
+                #tp-cover-footer {
+                    position: absolute !important;
+                    bottom: 15mm !important;
+                    right: 15mm !important;
+                    font-family: Arial, sans-serif !important;
+                    font-size: 12px !important;
+                    color: #333 !important;
+                    background: rgba(255,255,255,0.9) !important;
+                    padding: 8px 15px !important;
+                    border-radius: 4px !important;
+                }
+                
+                #tp-watermark {
+                    position: fixed !important;
+                    top: 50% !important;
+                    left: 50% !important;
+                    transform: translate(-50%, -50%) rotate(-30deg) !important;
+                    opacity: 0.06 !important;
+                    pointer-events: none !important;
+                    z-index: -1 !important;
+                    width: 400px !important;
+                }
+                
+                @page {
+                    margin: 10mm;
+                }
+            }
+        """)
         
         # ── Wait for commodity dropdown and generate charts ───────────────
         print("[COT PDF] Waiting for commodity list to populate...")
