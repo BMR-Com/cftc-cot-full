@@ -100,15 +100,18 @@ async def generate():
             cover_html = f"""
             <style>
                 @media print {{
-                    /* Cover page - page 1 */
                     #tp-cover-page {{
                         page-break-after: always !important;
                         break-after: page !important;
                     }}
                     
-                    /* Ensure cover is only on first page */
-                    @page :first {{
-                        margin: 0;
+                    #tp-watermark {{
+                        position: fixed !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -50%) rotate(-30deg) !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }}
                 }}
             </style>
@@ -171,7 +174,6 @@ async def generate():
                 document.body.insertBefore(cover, document.body.firstChild);
             }}""")
             
-            # Add print styles
             await page.add_style_tag(content="""
                 @media print {
                     #tp-cover-page {
