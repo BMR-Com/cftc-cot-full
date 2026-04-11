@@ -85,6 +85,89 @@ async def generate():
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox"],
         )
+
+        # ── Generate Cover Page as a Separate PDF ──────────────────────────
+        # This avoids the @page :first margin conflict with the main document.
+        # The cover is rendered in its own page with zero margins so the image
+        # bleeds edge-to-edge, then merged with pypdf at the end.
+        cover_pdf_bytes = None
+        if cover_base64:
+            print("[COT PDF] Generating cover page as separate PDF...")
+
+            cover_page = await browser.new_page(viewport={"width": 1587, "height": 1123})
+
+            watermark_html = ""
+            if logo_base64:
+                watermark_html = f"""
+                <img src="{logo_base64}"
+                     style="position:fixed;top:50%;left:50%;
+                            transform:translate(-50%,-50%) rotate(-30deg);
+                            width:400px;opacity:0.06;filter:grayscale(100%);
+                            pointer-events:none;z-index:0;" />
+                """
+
+            cover_full_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  html, body {{
+    width: 297mm;
+    height: 210mm;
+    overflow: hidden;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }}
+  #cover-img {{
+    display: block;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    z-index: 1;
+  }}
+  #cover-footer {{
+    position: fixed;
+    bottom: 12mm;
+    right: 14mm;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #333;
+    background: rgba(255,255,255,0.92);
+    padding: 6px 12px;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    z-index: 10;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }}
+</style>
+</head>
+<body>
+  <img id="cover-img" src="{cover_base64}" alt="Cover" />
+  {watermark_html}
+  <div id="cover-footer">Report Date: {report_date}</div>
+</body>
+</html>"""
+
+            await cover_page.set_content(cover_full_html, wait_until="load")
+            await cover_page.wait_for_timeout(500)
+
+            cover_pdf_bytes = await cover_page.pdf(
+                format="A4",
+                landscape=True,
+                print_background=True,
+                prefer_css_page_size=False,
+                # Zero margins so image bleeds fully to all edges
+                margin={"top": "0", "bottom": "0", "left": "0", "right": "0"},
+            )
+            await cover_page.close()
+            print("[COT PDF] Cover page PDF generated")
+
+        # ── Main report page ───────────────────────────────────────────────
         page = await browser.new_page(viewport={"width": 1400, "height": 900})
 
         file_url = HTML_FILE.resolve().as_uri()
@@ -97,162 +180,6 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page (Full Page Image with Footer) ────────────────
-        if cover_base64:
-            print("[COT PDF] Injecting cover page...")
-            
-            # Create cover page with exact A4 landscape dimensions
-            cover_html = f"""
-            <style>
-                @media print {{
-                    @page :first {{
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        size: 297mm 210mm;
-                    }}
-                    
-                    #tp-cover-page {{
-                        width: 297mm !important;
-                        height: 210mm !important;
-                        page-break-after: always !important;
-                        break-after: page !important;
-                        position: relative !important;
-                        overflow: hidden !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        box-sizing: border-box !important;
-                    }}
-                    
-                    #tp-cover-image {{
-                        position: absolute !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        width: 297mm !important;
-                        height: 210mm !important;
-                        min-width: 297mm !important;
-                        min-height: 210mm !important;
-                        max-width: 297mm !important;
-                        max-height: 210mm !important;
-                        object-fit: fill !important;
-                        object-position: center !important;
-                        display: block !important;
-                    }}
-                    
-                    #tp-cover-footer {{
-                        position: absolute !important;
-                        bottom: 15mm !important;
-                        right: 15mm !important;
-                        font-family: Arial, sans-serif !important;
-                        font-size: 12px !important;
-                        color: #333 !important;
-                        background: rgba(255,255,255,0.95) !important;
-                        padding: 8px 15px !important;
-                        border-radius: 4px !important;
-                        z-index: 100 !important;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-                    }}
-                    
-                    #tp-watermark {{
-                        position: fixed !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -50%) rotate(-30deg) !important;
-                        opacity: 0.06 !important;
-                        pointer-events: none !important;
-                        z-index: -1 !important;
-                        width: 400px !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                    }}
-                    
-                    @page {{
-                        margin: 10mm;
-                    }}
-                }}
-            </style>
-            
-            <div id="tp-cover-page">
-                <img id="tp-cover-image" src="{cover_base64}" alt="Cover" />
-                <div id="tp-cover-footer">Report Date: {report_date}</div>
-            </div>
-            """
-            
-            # Add watermark if logo exists
-            if logo_base64:
-                cover_html += f"""
-                <div id="tp-watermark">
-                    <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
-                </div>
-                """
-            
-            await page.evaluate(f"""() => {{
-                const cover = document.createElement('div');
-                cover.innerHTML = `{cover_html}`;
-                document.body.insertBefore(cover, document.body.firstChild);
-            }}""")
-            
-            # Add print styles
-            await page.add_style_tag(content="""
-                @media print {
-                    @page :first {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        size: 297mm 210mm;
-                    }
-                    
-                    #tp-cover-page {
-                        width: 297mm !important;
-                        height: 210mm !important;
-                        page-break-after: always !important;
-                        break-after: page !important;
-                        position: relative !important;
-                        overflow: hidden !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-                    
-                    #tp-cover-image {
-                        position: absolute !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        width: 297mm !important;
-                        height: 210mm !important;
-                        min-width: 297mm !important;
-                        min-height: 210mm !important;
-                        max-width: 297mm !important;
-                        max-height: 210mm !important;
-                        object-fit: fill !important;
-                    }
-                    
-                    #tp-cover-footer {
-                        position: absolute !important;
-                        bottom: 15mm !important;
-                        right: 15mm !important;
-                        font-family: Arial, sans-serif !important;
-                        font-size: 12px !important;
-                        color: #333 !important;
-                        background: rgba(255,255,255,0.95) !important;
-                        padding: 8px 15px !important;
-                        border-radius: 4px !important;
-                    }
-                    
-                    #tp-watermark {
-                        position: fixed !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -50%) rotate(-30deg) !important;
-                        opacity: 0.06 !important;
-                        pointer-events: none !important;
-                        z-index: -1 !important;
-                        width: 400px !important;
-                    }
-                    
-                    @page {
-                        margin: 10mm;
-                    }
-                }
-            """)
-        
         # ── Wait for commodity dropdown to be populated ───────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
         
@@ -423,7 +350,7 @@ async def generate():
         print("[COT PDF] Final rendering wait (5 seconds)...")
         await page.wait_for_timeout(5_000)
 
-        # ── Generate PDF ────────────────────────────────────────────────────
+        # ── Generate main report PDF ────────────────────────────────────────
         print("[COT PDF] Emulating print media...")
         await page.emulate_media(media="print")
         await page.wait_for_timeout(3_000)
@@ -432,20 +359,48 @@ async def generate():
         await page.evaluate("() => { window.dispatchEvent(new Event('resize')); }")
         await page.wait_for_timeout(2_000)
         
-        print("[COT PDF] Generating PDF...")
-        
-        pdf_bytes = await page.pdf(**PDF_OPTIONS)
-        OUTPUT_PDF.write_bytes(pdf_bytes)
-        
+        print("[COT PDF] Generating main report PDF...")
+        report_pdf_bytes = await page.pdf(**PDF_OPTIONS)
+
+        await browser.close()
+
+        # ── Merge cover + report PDFs ──────────────────────────────────────
+        if cover_pdf_bytes:
+            print("[COT PDF] Merging cover page with report...")
+            try:
+                from pypdf import PdfWriter, PdfReader
+                import io
+
+                writer = PdfWriter()
+
+                # Page 1: cover (full-bleed, no margins)
+                cover_reader = PdfReader(io.BytesIO(cover_pdf_bytes))
+                for cp in cover_reader.pages:
+                    writer.add_page(cp)
+
+                # Remaining pages: main report
+                report_reader = PdfReader(io.BytesIO(report_pdf_bytes))
+                for rp in report_reader.pages:
+                    writer.add_page(rp)
+
+                with open(OUTPUT_PDF, "wb") as f:
+                    writer.write(f)
+
+                print("[COT PDF] PDFs merged successfully")
+
+            except ImportError:
+                print("[COT PDF] WARNING: pypdf not installed — saving report without cover page.")
+                print("[COT PDF]          Install with: pip install pypdf")
+                OUTPUT_PDF.write_bytes(report_pdf_bytes)
+        else:
+            OUTPUT_PDF.write_bytes(report_pdf_bytes)
+
         pdf_size = OUTPUT_PDF.stat().st_size
         if pdf_size < 10_000:
             print(f"[COT PDF] ERROR: PDF file too small ({pdf_size} bytes)")
-            await browser.close()
             sys.exit(1)
         
         print(f"[COT PDF] ✓ PDF saved: {OUTPUT_PDF} ({pdf_size/1024:.1f} KB)")
-
-        await browser.close()
 
 
 if __name__ == "__main__":
