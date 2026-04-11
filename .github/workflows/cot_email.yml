@@ -1,5 +1,4 @@
 name: COT Report Weekly Email
-
 on:
   schedule:
     # 3:30 PM ET = 19:30 UTC (EDT/Summer) or 20:30 UTC (EST/Winter)
@@ -12,7 +11,6 @@ on:
         description: 'Retry attempt number (0=initial, 1=next-day)'
         required: false
         default: '0'
-
 jobs:
   send-cot-report:
     runs-on: ubuntu-latest
@@ -21,17 +19,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install dependencies
         run: |
-          pip install requests playwright pandas numpy python-dateutil pillow
+          pip install requests playwright pandas numpy python-dateutil pillow pypdf
           playwright install chromium --with-deps
-
       - name: Fetch COT data and generate PDF
         id: fetch_pdf
         env:
@@ -70,7 +65,6 @@ jobs:
           
           echo "pdf_status=failed" >> $GITHUB_OUTPUT
           echo "FAILED: CFTC data not available after $MAX_ATTEMPTS attempts"
-
       - name: Send email with PDF
         if: steps.fetch_pdf.outputs.pdf_status == 'success'
         env:
@@ -83,7 +77,6 @@ jobs:
         run: |
           python scripts/send_email.py
           echo "Email sent at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-
       - name: Trigger next-day retry if failed (scheduled only)
         if: steps.fetch_pdf.outputs.pdf_status == 'failed' && github.event_name == 'schedule' && (github.event.inputs.retry_attempt || '0') == '0'
         uses: actions/github-script@v7
