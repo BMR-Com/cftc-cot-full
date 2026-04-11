@@ -19,6 +19,8 @@ OUTPUT_PDF = Path(__file__).parent.parent / "cot_report.pdf"
 COVER_PAGE_PATH = Path(__file__).parent.parent / "assets" / "cover_page.png"
 LOGO_PATH = Path(__file__).parent.parent / "assets" / "tullett_prebon_logo.png"
 
+COTTON_DISPLAY_NAME = "Cotton"
+
 ET = tz.gettz('US/Eastern')
 
 API_WAIT_MS = 180_000
@@ -30,16 +32,16 @@ PDF_OPTIONS = {
     "print_background": True,
     "prefer_css_page_size": False,
     "margin": {
-        "top": "0mm",
-        "bottom": "0mm",
-        "left": "0mm",
-        "right": "0mm",
+        "top": "10mm",
+        "bottom": "10mm",
+        "left": "10mm",
+        "right": "10mm",
     },
 }
 
 
 def encode_image_base64(image_path):
-    """Encode image to base64."""
+    """Encode image to base64 for embedding in HTML."""
     if not image_path.exists():
         print(f"[COT PDF] Warning: Image not found at {image_path}")
         return None
@@ -66,8 +68,10 @@ def get_report_date():
 
 async def generate():
     report_date = get_report_date()
-    print(f"[COT PDF] Report Date: {report_date}")
-    print(f"[COT PDF] Starting PDF generation...")
+    generation_date = datetime.now(ET).strftime("%Y-%m-%d %H:%M %Z")
+    
+    print(f"[COT PDF] Report Date (Tuesday): {report_date}")
+    print(f"[COT PDF] Generated: {generation_date}")
 
     if not HTML_FILE.exists():
         print(f"ERROR: HTML file not found at {HTML_FILE}")
@@ -75,10 +79,6 @@ async def generate():
 
     cover_base64 = encode_image_base64(COVER_PAGE_PATH)
     logo_base64 = encode_image_base64(LOGO_PATH)
-
-    if not cover_base64:
-        print("ERROR: Cover page image not found")
-        sys.exit(1)
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -97,146 +97,163 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Inject Cover Page (Full Page Image) ────────────────────────────
-        print("[COT PDF] Injecting cover page...")
-        
-        cover_html = f"""
-        <style>
-            @media print {{
-                @page :first {{
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    size: A4 landscape;
+        # ── Inject Cover Page (Full Page Image with Footer) ────────────────
+        if cover_base64:
+            print("[COT PDF] Injecting cover page...")
+            
+            # Create cover page with exact A4 landscape dimensions
+            cover_html = f"""
+            <style>
+                @media print {{
+                    @page :first {{
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        size: 297mm 210mm;
+                    }}
+                    
+                    #tp-cover-page {{
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        page-break-after: always !important;
+                        break-after: page !important;
+                        position: relative !important;
+                        overflow: hidden !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                    }}
+                    
+                    #tp-cover-image {{
+                        position: absolute !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        min-width: 297mm !important;
+                        min-height: 210mm !important;
+                        max-width: 297mm !important;
+                        max-height: 210mm !important;
+                        object-fit: fill !important;
+                        object-position: center !important;
+                        display: block !important;
+                    }}
+                    
+                    #tp-cover-footer {{
+                        position: absolute !important;
+                        bottom: 15mm !important;
+                        right: 15mm !important;
+                        font-family: Arial, sans-serif !important;
+                        font-size: 12px !important;
+                        color: #333 !important;
+                        background: rgba(255,255,255,0.95) !important;
+                        padding: 8px 15px !important;
+                        border-radius: 4px !important;
+                        z-index: 100 !important;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+                    }}
+                    
+                    #tp-watermark {{
+                        position: fixed !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -50%) rotate(-30deg) !important;
+                        opacity: 0.06 !important;
+                        pointer-events: none !important;
+                        z-index: -1 !important;
+                        width: 400px !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }}
+                    
+                    @page {{
+                        margin: 10mm;
+                    }}
                 }}
-                
-                #tp-cover-page {{
-                    width: 297mm !important;
-                    height: 210mm !important;
-                    page-break-after: always !important;
-                    break-after: page !important;
-                    position: relative !important;
-                    overflow: hidden !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                }}
-                
-                #tp-cover-image {{
-                    position: absolute !important;
-                    top: 0 !important;
-                    left: 0 !important;
-                    width: 297mm !important;
-                    height: 210mm !important;
-                    object-fit: fill !important;
-                    object-position: center !important;
-                }}
-                
-                #tp-cover-footer {{
-                    position: absolute !important;
-                    bottom: 15mm !important;
-                    right: 15mm !important;
-                    font-family: Arial, sans-serif !important;
-                    font-size: 12px !important;
-                    color: #333 !important;
-                    background: rgba(255,255,255,0.9) !important;
-                    padding: 8px 15px !important;
-                    border-radius: 4px !important;
-                    z-index: 10 !important;
-                }}
-                
-                #tp-watermark {{
-                    position: fixed !important;
-                    top: 50% !important;
-                    left: 50% !important;
-                    transform: translate(-50%, -50%) rotate(-30deg) !important;
-                    opacity: 0.06 !important;
-                    pointer-events: none !important;
-                    z-index: -1 !important;
-                    width: 400px !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }}
-                
-                @page {{
-                    margin: 10mm;
-                }}
-            }}
-        </style>
-        
-        <div id="tp-cover-page">
-            <img id="tp-cover-image" src="{cover_base64}" />
-            <div id="tp-cover-footer">Report Date: {report_date}</div>
-        </div>
-        """
-        
-        # Add watermark if logo exists
-        if logo_base64:
-            cover_html += f"""
-            <div id="tp-watermark">
-                <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
+            </style>
+            
+            <div id="tp-cover-page">
+                <img id="tp-cover-image" src="{cover_base64}" alt="Cover" />
+                <div id="tp-cover-footer">Report Date: {report_date}</div>
             </div>
             """
+            
+            # Add watermark if logo exists
+            if logo_base64:
+                cover_html += f"""
+                <div id="tp-watermark">
+                    <img src="{logo_base64}" style="width: 100%; height: auto; filter: grayscale(100%);" />
+                </div>
+                """
+            
+            await page.evaluate(f"""() => {{
+                const cover = document.createElement('div');
+                cover.innerHTML = `{cover_html}`;
+                document.body.insertBefore(cover, document.body.firstChild);
+            }}""")
+            
+            # Add print styles
+            await page.add_style_tag(content="""
+                @media print {
+                    @page :first {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        size: 297mm 210mm;
+                    }
+                    
+                    #tp-cover-page {
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        page-break-after: always !important;
+                        break-after: page !important;
+                        position: relative !important;
+                        overflow: hidden !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    
+                    #tp-cover-image {
+                        position: absolute !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        width: 297mm !important;
+                        height: 210mm !important;
+                        min-width: 297mm !important;
+                        min-height: 210mm !important;
+                        max-width: 297mm !important;
+                        max-height: 210mm !important;
+                        object-fit: fill !important;
+                    }
+                    
+                    #tp-cover-footer {
+                        position: absolute !important;
+                        bottom: 15mm !important;
+                        right: 15mm !important;
+                        font-family: Arial, sans-serif !important;
+                        font-size: 12px !important;
+                        color: #333 !important;
+                        background: rgba(255,255,255,0.95) !important;
+                        padding: 8px 15px !important;
+                        border-radius: 4px !important;
+                    }
+                    
+                    #tp-watermark {
+                        position: fixed !important;
+                        top: 50% !important;
+                        left: 50% !important;
+                        transform: translate(-50%, -50%) rotate(-30deg) !important;
+                        opacity: 0.06 !important;
+                        pointer-events: none !important;
+                        z-index: -1 !important;
+                        width: 400px !important;
+                    }
+                    
+                    @page {
+                        margin: 10mm;
+                    }
+                }
+            """)
         
-        await page.evaluate(f"""() => {{
-            const cover = document.createElement('div');
-            cover.innerHTML = `{cover_html}`;
-            document.body.insertBefore(cover, document.body.firstChild);
-        }}""")
-        
-        await page.add_style_tag(content="""
-            @media print {
-                @page :first {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                }
-                
-                #tp-cover-page {
-                    width: 297mm !important;
-                    height: 210mm !important;
-                    page-break-after: always !important;
-                    break-after: page !important;
-                    position: relative !important;
-                    overflow: hidden !important;
-                }
-                
-                #tp-cover-image {
-                    position: absolute !important;
-                    top: 0 !important;
-                    left: 0 !important;
-                    width: 297mm !important;
-                    height: 210mm !important;
-                    object-fit: fill !important;
-                }
-                
-                #tp-cover-footer {
-                    position: absolute !important;
-                    bottom: 15mm !important;
-                    right: 15mm !important;
-                    font-family: Arial, sans-serif !important;
-                    font-size: 12px !important;
-                    color: #333 !important;
-                    background: rgba(255,255,255,0.9) !important;
-                    padding: 8px 15px !important;
-                    border-radius: 4px !important;
-                }
-                
-                #tp-watermark {
-                    position: fixed !important;
-                    top: 50% !important;
-                    left: 50% !important;
-                    transform: translate(-50%, -50%) rotate(-30deg) !important;
-                    opacity: 0.06 !important;
-                    pointer-events: none !important;
-                    z-index: -1 !important;
-                    width: 400px !important;
-                }
-                
-                @page {
-                    margin: 10mm;
-                }
-            }
-        """)
-        
-        # ── Wait for commodity dropdown and generate charts ───────────────
+        # ── Wait for commodity dropdown to be populated ───────────────────
         print("[COT PDF] Waiting for commodity list to populate...")
         
         try:
@@ -249,6 +266,7 @@ async def generate():
             cotton_value = await page.evaluate("""() => {
                 const select = document.getElementById('commoditySelect');
                 if (!select) return null;
+                
                 const options = Array.from(select.options);
                 
                 let cottonOpt = options.find(o => 
@@ -291,10 +309,23 @@ async def generate():
             
         except Exception as e:
             print(f"[COT PDF] ERROR: Commodity list issue - {e}")
+            try:
+                all_options = await page.evaluate("""() => {
+                    const select = document.getElementById('commoditySelect');
+                    if (!select) return [];
+                    return Array.from(select.options).map(o => ({
+                        value: o.value,
+                        text: o.textContent.trim(),
+                        dataCn: o.getAttribute('data-cn')
+                    }));
+                }""")
+                print(f"[COT PDF] First 5 options: {all_options[:5]}")
+            except:
+                pass
             await browser.close()
             sys.exit(1)
 
-        # ── Select commodity and generate charts ───────────────────────────
+        # ── Select commodity ───────────────────────────────────────────────
         try:
             await page.select_option("#commoditySelect", selected_value)
             print(f"[COT PDF] Selected commodity: {selected_value}")
@@ -305,6 +336,7 @@ async def generate():
 
         await page.wait_for_timeout(500)
 
+        # ── Click Generate Charts ─────────────────────────────────────────
         print(f"[COT PDF] Clicking Generate Charts...")
         
         try:
@@ -314,7 +346,7 @@ async def generate():
             await browser.close()
             sys.exit(1)
         
-        # ── Wait for data loading ──────────────────────────────────────────
+        # ── Wait for loading spinner to disappear (data loaded) ─────────────
         print(f"[COT PDF] Waiting up to {API_WAIT_MS/1000:.0f}s for CFTC API data...")
         
         try:
