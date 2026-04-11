@@ -4,9 +4,16 @@ fetch_cot_data.py — BCOM COT Data Fetcher & Analyzer
 ======================================================
 Downloads CFTC Disaggregated COT data for all 23 BCOM constituent commodities
 from 2006 to present (Futures & Options Combined endpoint).
+
+Outputs:
+  data/bcom_cot_master.csv   — Full history, all commodities, all categories,
+                                with derived metrics and percentile columns.
+  data/latest_summary.json   — Latest-week snapshot with pre-calculated
+                                percentiles over 1yr/3yr/5yr/10yr/full
+                                history, historical extremes with dates.
 """
 
-import json, os, sys, time, re
+import json, os, sys, time
 import requests
 import pandas as pd
 import numpy as np
@@ -158,10 +165,6 @@ def si(val):
         return 0 if pd.isna(v) else v
     except (TypeError, ValueError):
         return 0
-
-def trim_name(cftc_name):
-    """Short display name from CFTC full name."""
-    return cftc_name.split(" - ")[0].title()
 
 def get_expected_report_date():
     """Calculate the expected Tuesday report date for current week."""
@@ -460,13 +463,15 @@ def main():
         print("MODE: Manual run - skipping fresh data validation")
     print("=" * 65)
 
+    # Determine start date (incremental update)
     if CSV_PATH.exists():
         existing = pd.read_csv(CSV_PATH, usecols=["date"])
         latest_in_csv = existing["date"].max()
         since = (
             pd.to_datetime(latest_in_csv) - timedelta(days=14)
         ).strftime("%Y-%m-%d")
-        print(f"Existing CSV found. Fetching from {since} (2-week overlap).")
+        print(f"Existing CSV found. Latest date: {latest_in_csv}")
+        print(f"Fetching from {since} (2-week overlap).")
         full_rebuild = False
     else:
         since = "2006-01-01"
@@ -504,17 +509,21 @@ def main():
     new_df = pd.DataFrame(all_rows)
     new_df["date"] = pd.to_datetime(new_df["date"]).dt.strftime("%Y-%m-%d")
 
-    # ── VALIDATE FRESH DATA (skip if manual run) ───────────────────────────
-    if not SKIP_FRESH_CHECK:
-        expected_tuesday = get_expected_report_date()
-        is_valid, latest_date, msg = validate_fresh_data(new_df, expected_tuesday)
-        print(f"\n[Validator] {msg}")
+    # Check if we actually got new data
+    if not full_rebuild and CSV_PATH.exists():
+        existing_dates = set(pd.read_csv(CSV_PATH, usecols=["date"])["date"].unique())
+        new_dates = set(new_df["date"].unique())
+        actually_new = new_dates - existing_dates
         
-        if not is_valid:
-            print("ERROR: Data validation failed. CFTC may not have released new report yet.")
-            sys.exit(1)
-    else:
-        print(f"\n[Validator] Skipped - using latest available data: {new_df['date'].max()}")
+        if not actually_new:
+            print("\nNo new data found - using existing data for summary.")
+            old_df = pd.read_csv(CSV_PATH)
+            summary = build_summary(old_df)
+            with open(JSON_PATH, "w") as f:
+                json.dump(summary, f, separators=(",",":"))
+            print(f"Updated {JSON_PATH} with existing data")
+            print(f"Latest report date: {summary['report_date']}")
+            sys.exit(0)
 
     # Merge with existing CSV
     if CSV_PATH.exists() and not full_rebuild:
@@ -530,15 +539,43 @@ def main():
 
     df = df.sort_values(["commodity","crop_type","date"]).reset_index(drop=True)
 
-    print(f"\nTotal rows before percentile calc: {len(df):,}")
-    print("Calculating percentile columns...")
+    # ── VALIDATE FRESH DATA (skip if manual run) ───────────────────────────
+    if not SKIP_FRESH_CHECK:
+        expected_tuesday = get_expected_report_date()
+        is_valid, latest_date, msg = validate_fresh_data(df, expected_tuesday)
+        print(f"\n[Validator] {msg}")
+        
+        if not is_valid:
+            print("ERROR: Data validation failed. CFTC may not have released new report yet.")
+            sys.exit(1)
+    else:
+        print(f"\n[Validator] Skipped - using latest available data: {df['date'].max()}")
 
-    df = add_percentiles(df)
+    print(f"\nTotal rows: {len(df):,}")
+    
+    # Only calculate percentiles for new data if doing incremental update
+    if not full_rebuild and CSV_PATH.exists():
+        print("Calculating percentiles for new data only...")
+        old_df = df[df["date"] < new_df["date"].min()].copy()
+        new_only_df = df[df["date"] >= new_df["date"].min()].copy()
+        
+        if not old_df.empty:
+            print(f"  Skipping percentiles for {len(old_df):,} existing rows")
+        if not new_only_df.empty:
+            print(f"  Calculating percentiles for {len(new_only_df):,} new rows...")
+            new_only_df = add_percentiles(new_only_df)
+            
+        df = pd.concat([old_df, new_only_df], ignore_index=True)
+    else:
+        print("Calculating percentiles for all data (this takes a few minutes)...")
+        df = add_percentiles(df)
 
+    # Save master CSV
     df.to_csv(CSV_PATH, index=False)
     sz = CSV_PATH.stat().st_size / 1024
     print(f"\nSaved: {CSV_PATH.name} ({sz:.1f} KB, {len(df):,} rows)")
 
+    # Build and save summary JSON
     print("Building latest_summary.json...")
     summary = build_summary(df)
     with open(JSON_PATH, "w") as f:
