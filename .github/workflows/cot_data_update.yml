@@ -3,7 +3,7 @@ name: Weekly COT Data Update
 on:
   schedule:
     # Run at 23:00 UTC (6:00 PM CT / 7:00 PM ET) - 3.5 hours after CFTC release
-    - cron: '0 23 * * 5'
+    - cron: '30 19 * * 5'
   workflow_dispatch:
     inputs:
       full_rebuild:
