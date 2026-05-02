@@ -11,14 +11,13 @@ function initScatterTab() {
 
     if(cached && cacheDate === today) {
         var data = JSON.parse(cached);
-        scData = data.scData;
-        spData = data.spData;
-        // Re-render from cache
-        if(scData && scData.length) {
+        scData = data.scData || [];
+        spData = data.spData || [];
+        if(scData.length) {
             var combos=[{c:'sc1',x:'pSP',y:'mSP',xl:'Prod Short',yl:'MM Short'},{c:'sc2',x:'pSP',y:'mLP',xl:'Prod Short',yl:'MM Long'},{c:'sc3',x:'pLP',y:'mSP',xl:'Prod Long',yl:'MM Short'},{c:'sc4',x:'pLP',y:'mLP',xl:'Prod Long',yl:'MM Long'},{c:'sc5',x:'pNP',y:'mNP',xl:'Prod Net',yl:'MM Net'},{c:'sc6',x:'pNP',y:'mNP',xl:'Prod Net',yl:'MM Net'}];
             drawScatter('sc',scData,combos);drawLeg('scLeg',scData);popExec(scData);
         }
-        if(spData && spData.length) {
+        if(spData.length) {
             var combos=[{c:'sp1',x:'pSP',y:'mSP',xl:'Prod S%',yl:'MM S%'},{c:'sp2',x:'pSP',y:'mLP',xl:'Prod S%',yl:'MM L%'},{c:'sp3',x:'pLP',y:'mSP',xl:'Prod L%',yl:'MM S%'},{c:'sp4',x:'pLP',y:'mLP',xl:'Prod L%',yl:'MM L%'},{c:'sp5',x:'pNP',y:'mNP',xl:'Prod N%',yl:'MM N%'},{c:'sp6',x:'pNP',y:'mNP',xl:'Prod N%',yl:'MM N%'}];
             drawScatter('sp',spData,combos);drawLeg('spLeg',spData);
         }
@@ -26,19 +25,19 @@ function initScatterTab() {
         return;
     }
 
-    doScatter();
-    doScatterPct();
-    console.log('[Scatter Tab] Generating fresh data');
+    if(!scData || !scData.length) {
+        doScatter();
+        doScatterPct();
+    }
+    console.log('[Scatter Tab] Initialized');
 }
 
 function cacheScatterData() {
-    var cache = {
-        scData: scData,
-        spData: spData,
-        timestamp: new Date().toISOString()
-    };
-    sessionStorage.setItem('cot_scatter_cache', JSON.stringify(cache));
-    sessionStorage.setItem('cot_scatter_cache_date', new Date().toISOString().split('T')[0]);
+    try {
+        var cache = { scData: scData, spData: spData };
+        sessionStorage.setItem('cot_scatter_cache', JSON.stringify(cache));
+        sessionStorage.setItem('cot_scatter_cache_date', new Date().toISOString().split('T')[0]);
+    } catch(e) { console.warn('Failed to cache scatter:', e); }
 }
 
 /* ===========================================================

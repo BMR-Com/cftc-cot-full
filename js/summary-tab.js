@@ -4,36 +4,34 @@
    =========================================================== */
 
 function initSummaryTab() {
-    // Check if we have cached data and it's from this week
+    // Check if we have cached data from today
     var cached = sessionStorage.getItem('cot_summary_cache');
     var cacheDate = sessionStorage.getItem('cot_summary_cache_date');
     var today = new Date().toISOString().split('T')[0];
 
     if(cached && cacheDate === today) {
-        // Use cached data
         var data = JSON.parse(cached);
-        sumData = data.sumData;
-        scData = data.scData;
-        renderSum('sumBody', sumData);
-        popExec(scData);
+        sumData = data.sumData || [];
+        scData = data.scData || [];
+        if(sumData.length) renderSum('sumBody', sumData);
+        if(scData.length) popExec(scData);
         console.log('[Summary Tab] Loaded from cache');
         return;
     }
 
     // Generate fresh data
-    generateSummary();
-    console.log('[Summary Tab] Generating fresh data');
+    if(!sumData || !sumData.length) {
+        generateSummary();
+    }
+    console.log('[Summary Tab] Initialized');
 }
 
 function cacheSummaryData() {
-    // Call this after generateSummary completes
-    var cache = {
-        sumData: sumData,
-        scData: scData,
-        timestamp: new Date().toISOString()
-    };
-    sessionStorage.setItem('cot_summary_cache', JSON.stringify(cache));
-    sessionStorage.setItem('cot_summary_cache_date', new Date().toISOString().split('T')[0]);
+    try {
+        var cache = { sumData: sumData, scData: scData };
+        sessionStorage.setItem('cot_summary_cache', JSON.stringify(cache));
+        sessionStorage.setItem('cot_summary_cache_date', new Date().toISOString().split('T')[0]);
+    } catch(e) { console.warn('Failed to cache summary:', e); }
 }
 
 /* ===========================================================
