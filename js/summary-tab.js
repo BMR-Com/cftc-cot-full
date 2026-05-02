@@ -4,11 +4,36 @@
    =========================================================== */
 
 function initSummaryTab() {
-    // Generate summary data when tab is first opened
-    if(!sumData || !sumData.length) {
-        generateSummary();
+    // Check if we have cached data and it's from this week
+    var cached = sessionStorage.getItem('cot_summary_cache');
+    var cacheDate = sessionStorage.getItem('cot_summary_cache_date');
+    var today = new Date().toISOString().split('T')[0];
+
+    if(cached && cacheDate === today) {
+        // Use cached data
+        var data = JSON.parse(cached);
+        sumData = data.sumData;
+        scData = data.scData;
+        renderSum('sumBody', sumData);
+        popExec(scData);
+        console.log('[Summary Tab] Loaded from cache');
+        return;
     }
-    console.log('[Summary Tab] Initialized');
+
+    // Generate fresh data
+    generateSummary();
+    console.log('[Summary Tab] Generating fresh data');
+}
+
+function cacheSummaryData() {
+    // Call this after generateSummary completes
+    var cache = {
+        sumData: sumData,
+        scData: scData,
+        timestamp: new Date().toISOString()
+    };
+    sessionStorage.setItem('cot_summary_cache', JSON.stringify(cache));
+    sessionStorage.setItem('cot_summary_cache_date', new Date().toISOString().split('T')[0]);
 }
 
 /* ===========================================================
@@ -52,7 +77,7 @@ function generateSummary(){
     .then(function(r){return r.json();}).then(function(data){
       if(!data.length)return;var p=procData(data,cat);if(!p)return;var l=p.net.length-1;
       sumData.push({comm:it.name,cat:CAT_LBL[cat],catKey:cat,sec:it.sector,net:p.net[l],netMn:Math.min.apply(null,p.net),netMx:Math.max.apply(null,p.net),nPct:p.nPct[l],nPctMn:Math.min.apply(null,p.nPct),nPctMx:Math.max.apply(null,p.nPct),lon:p.long[l],lonMn:Math.min.apply(null,p.long),lonMx:Math.max.apply(null,p.long),lPct:p.lPct[l],lPctMn:Math.min.apply(null,p.lPct),lPctMx:Math.max.apply(null,p.lPct),sho:p.short[l],shoMn:Math.min.apply(null,p.short),shoMx:Math.max.apply(null,p.short),sPct:p.sPct[l],sPctMn:Math.min.apply(null,p.sPct),sPctMx:Math.max.apply(null,p.sPct)});
-    }).catch(function(){}).finally(function(){done++;if(done>=tot){renderSum('sumBody',sumData);showL(false);}});
+    }).catch(function(){}).finally(function(){done++;if(done>=tot){renderSum('sumBody',sumData);popExec(scData);cacheSummaryData();showL(false);}});
   });});
 }
 

@@ -12,31 +12,24 @@ function switchTab(tab){
 
   // Load tab content on demand
   if(tab==='cot' && !_tabLoaded['cot']){
-    loadTab('cot', 'tabs/cot-tab.html', 'js/cot-tab.js').then(function(){ initCotTab(); });
+    loadTab('cot', 'tabs/cot-tab.html', 'js/cot-tab.js', initCotTab);
   }
   if(tab==='summary' && !_tabLoaded['summary']){
-    loadTab('summary', 'tabs/summary-tab.html', 'js/summary-tab.js').then(function(){ initSummaryTab(); });
+    loadTab('summary', 'tabs/summary-tab.html', 'js/summary-tab.js', initSummaryTab);
   }
   if(tab==='scatter' && !_tabLoaded['scatter']){
-    loadTab('scatter', 'tabs/scatter-tab.html', 'js/scatter-tab.js').then(function(){ initScatterTab(); });
+    loadTab('scatter', 'tabs/scatter-tab.html', 'js/scatter-tab.js', initScatterTab);
   }
   if(tab==='seasonality' && !_tabLoaded['seasonality']){
-    loadTab('seasonality', 'tabs/seasonality-tab.html', 'js/seasonality-tab.js').then(function(){ initSeasonalityTab(); });
+    loadTab('seasonality', 'tabs/seasonality-tab.html', 'js/seasonality-tab.js', initSeasonalityTab);
   }
   if(tab==='formula' && !_tabLoaded['formula']){
-    loadTab('formula', 'tabs/formula-tab.html', 'js/formula-tab.js').then(function(){ initFormulaTab(); });
+    loadTab('formula', 'tabs/formula-tab.html', 'js/formula-tab.js', initFormulaTab);
   }
   if(tab==='ai' && !_tabLoaded['ai']){
-    loadTab('ai', 'tabs/ai-tab.html', 'js/ai-tab.js').then(function(){ initAiTab(); });
+    loadTab('ai', 'tabs/ai-tab.html', 'js/ai-tab.js', initAiTab);
   }
 
-  // Call init functions for already-loaded tabs
-  if(tab==='ai' && _tabLoaded['ai']) initAiTab();
-  if(tab==='formula' && _tabLoaded['formula']) initFormulaTab();
+  // Init is called by loadTab when tab is first loaded, or by the cached path above
 }
-
-/* ===========================================================
-   AI TAB — Groq integration + pre-computed data
-   =========================================================== */
-var _aiInited = false;
 

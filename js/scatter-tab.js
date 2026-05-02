@@ -4,11 +4,41 @@
    =========================================================== */
 
 function initScatterTab() {
-    if(!scData || !scData.length) {
-        doScatter();
-        doScatterPct();
+    // Check cache
+    var cached = sessionStorage.getItem('cot_scatter_cache');
+    var cacheDate = sessionStorage.getItem('cot_scatter_cache_date');
+    var today = new Date().toISOString().split('T')[0];
+
+    if(cached && cacheDate === today) {
+        var data = JSON.parse(cached);
+        scData = data.scData;
+        spData = data.spData;
+        // Re-render from cache
+        if(scData && scData.length) {
+            var combos=[{c:'sc1',x:'pSP',y:'mSP',xl:'Prod Short',yl:'MM Short'},{c:'sc2',x:'pSP',y:'mLP',xl:'Prod Short',yl:'MM Long'},{c:'sc3',x:'pLP',y:'mSP',xl:'Prod Long',yl:'MM Short'},{c:'sc4',x:'pLP',y:'mLP',xl:'Prod Long',yl:'MM Long'},{c:'sc5',x:'pNP',y:'mNP',xl:'Prod Net',yl:'MM Net'},{c:'sc6',x:'pNP',y:'mNP',xl:'Prod Net',yl:'MM Net'}];
+            drawScatter('sc',scData,combos);drawLeg('scLeg',scData);popExec(scData);
+        }
+        if(spData && spData.length) {
+            var combos=[{c:'sp1',x:'pSP',y:'mSP',xl:'Prod S%',yl:'MM S%'},{c:'sp2',x:'pSP',y:'mLP',xl:'Prod S%',yl:'MM L%'},{c:'sp3',x:'pLP',y:'mSP',xl:'Prod L%',yl:'MM S%'},{c:'sp4',x:'pLP',y:'mLP',xl:'Prod L%',yl:'MM L%'},{c:'sp5',x:'pNP',y:'mNP',xl:'Prod N%',yl:'MM N%'},{c:'sp6',x:'pNP',y:'mNP',xl:'Prod N%',yl:'MM N%'}];
+            drawScatter('sp',spData,combos);drawLeg('spLeg',spData);
+        }
+        console.log('[Scatter Tab] Loaded from cache');
+        return;
     }
-    console.log('[Scatter Tab] Initialized');
+
+    doScatter();
+    doScatterPct();
+    console.log('[Scatter Tab] Generating fresh data');
+}
+
+function cacheScatterData() {
+    var cache = {
+        scData: scData,
+        spData: spData,
+        timestamp: new Date().toISOString()
+    };
+    sessionStorage.setItem('cot_scatter_cache', JSON.stringify(cache));
+    sessionStorage.setItem('cot_scatter_cache_date', new Date().toISOString().split('T')[0]);
 }
 
 /* ===========================================================
@@ -26,7 +56,7 @@ function doScatter(){
       scData.push({comm:it.name,idx:idx,pSP:pct(pr.short,pr.short[l]),mSP:pct(mm.short,mm.short[l]),mLP:pct(mm.long,mm.long[l]),pLP:pct(pr.long,pr.long[l]),pNP:pct(pr.net,pr.net[l]),mNP:pct(mm.net,mm.net[l]),pS:pr.short[l],mS:mm.short[l],pL:pr.long[l],mL:mm.long[l],pN:pr.net[l],mN:mm.net[l],mSPoi:pct(mm.sPct,mm.sPct[l]),mLPoi:pct(mm.lPct,mm.lPct[l]),mNPoi:pct(mm.nPct,mm.nPct[l])});
     }).catch(function(){}).finally(function(){done++;if(done>=tot){
       var combos=[{c:'sc1',x:'pSP',y:'mSP',xl:'Prod Short',yl:'MM Short'},{c:'sc2',x:'pSP',y:'mLP',xl:'Prod Short',yl:'MM Long'},{c:'sc3',x:'pLP',y:'mSP',xl:'Prod Long',yl:'MM Short'},{c:'sc4',x:'pLP',y:'mLP',xl:'Prod Long',yl:'MM Long'},{c:'sc5',x:'pNP',y:'mNP',xl:'Prod Net',yl:'MM Net'},{c:'sc6',x:'pNP',y:'mNP',xl:'Prod Net',yl:'MM Net'}];
-      drawScatter('sc',scData,combos);drawLeg('scLeg',scData);popExec(scData);showL(false);
+      drawScatter('sc',scData,combos);drawLeg('scLeg',scData);popExec(scData);cacheScatterData();showL(false);
     }});
   });
 }
@@ -41,7 +71,7 @@ function doScatterPct(){
       spData.push({comm:it.name,idx:idx,pSP:pct(pr.sPct,pr.sPct[l]),mSP:pct(mm.sPct,mm.sPct[l]),mLP:pct(mm.lPct,mm.lPct[l]),pLP:pct(pr.lPct,pr.lPct[l]),pNP:pct(pr.nPct,pr.nPct[l]),mNP:pct(mm.nPct,mm.nPct[l]),pS:pr.sPct[l],mS:mm.sPct[l],pL:pr.lPct[l],mL:mm.lPct[l],pN:pr.nPct[l],mN:mm.nPct[l]});
     }).catch(function(){}).finally(function(){done++;if(done>=tot){
       var combos=[{c:'sp1',x:'pSP',y:'mSP',xl:'Prod S%',yl:'MM S%'},{c:'sp2',x:'pSP',y:'mLP',xl:'Prod S%',yl:'MM L%'},{c:'sp3',x:'pLP',y:'mSP',xl:'Prod L%',yl:'MM S%'},{c:'sp4',x:'pLP',y:'mLP',xl:'Prod L%',yl:'MM L%'},{c:'sp5',x:'pNP',y:'mNP',xl:'Prod N%',yl:'MM N%'},{c:'sp6',x:'pNP',y:'mNP',xl:'Prod N%',yl:'MM N%'}];
-      drawScatter('sp',spData,combos);drawLeg('spLeg',spData);showL(false);
+      drawScatter('sp',spData,combos);drawLeg('spLeg',spData);cacheScatterData();showL(false);
     }});
   });
 }
