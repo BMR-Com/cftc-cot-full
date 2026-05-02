@@ -1,4 +1,15 @@
 /* ===========================================================
+   DOM SAFETY WRAPPER
+   =========================================================== */
+function safeStyle(id, prop, val) {
+    var el = document.getElementById(id);
+    if(el && el.style) { el.style[prop] = val; return true; }
+    return false;
+}
+function safeShow(id) { return safeStyle(id, 'display', 'block'); }
+function safeHide(id) { return safeStyle(id, 'display', 'none'); }
+
+/* ===========================================================
    CONSTANTS
    =========================================================== */
 var EP={futures:'https://publicreporting.cftc.gov/resource/72hh-3qpy.json',combined:'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'};
@@ -142,13 +153,13 @@ function fetchT(url,ms){
   });
 }
 function showL(on,txt){
-  document.getElementById('loading').style.display=on?'block':'none';
+  var el_$1 = document.getElementById('$1'); if(el_$1) el_$1.style.display =on?'block':'none';
   if(txt)document.getElementById('loadingText').textContent=txt;
   /* Only disable the main action buttons, not AI or utility buttons */
   var btn=document.getElementById('fetchBtn');if(btn)btn.disabled=on;
 }
 function showE(m){var e=document.getElementById('errDiv');e.textContent=m;e.style.display='block';setTimeout(function(){e.style.display='none';},12000);}
-function hideE(){document.getElementById('errDiv').style.display='none';}
+function hideE(){var el_$1 = document.getElementById('$1'); if(el_$1) el_$1.style.display ='none';}
 function wk(d){var u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var dn=u.getUTCDay()||7;u.setUTCDate(u.getUTCDate()+4-dn);var y=new Date(Date.UTC(u.getUTCFullYear(),0,1));return Math.ceil((((u-y)/86400000)+1)/7);}
 function pct(arr,v){var s=arr.slice().sort(function(a,b){return a-b;});var i=s.indexOf(v);return s.length>1?(i/(s.length-1))*100:50;}
 function pts(dates,vals){return dates.map(function(d,i){return{x:d,y:vals[i]};});}
@@ -283,8 +294,8 @@ function onCommChange(){
   var cn=opt?opt.getAttribute('data-cn'):'';
   cropInfo=cn&&CROP_COMM[cn]?{name:cn}:null;
   var has=!!cropInfo;
-  document.getElementById('cropYearGroup').style.display=has?'':'none';
-  document.getElementById('cropNotes').style.display=has?'':'none';
+  var el_$1 = document.getElementById('$1'); if(el_$1) el_$1.style.display =has?'':'none';
+  var el_$1 = document.getElementById('$1'); if(el_$1) el_$1.style.display =has?'':'none';
   if(!has)document.getElementById('cropYear').value='all';
   if(has)document.getElementById('cropBadge').textContent='('+cn+')';
 }
@@ -325,7 +336,7 @@ function fetchData(){
     doScatterPct();
     if(isCrop(comm))doAgriCrop();
     /* Show AI section if key is present */
-    if(sessionStorage.getItem('groqKey'))document.getElementById('aiSec').style.display='block';
+    if(sessionStorage.getItem('groqKey'))var el_$1 = document.getElementById('$1'); if(el_$1) el_$1.style.display ='block';
     showL(false);
   }).catch(function(e){dbgInfo.err=e.message;showE('Error: '+e.message);showL(false);});
 }

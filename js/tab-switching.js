@@ -6,30 +6,29 @@ function switchTab(tab){
   allTabs.forEach(function(t){
     var pane = document.getElementById('pane_'+t);
     var btn = document.getElementById('tb_'+t);
-    if(pane) pane.style.display = t===tab ? 'block' : 'none';
-    if(btn) btn.classList.toggle('active', t===tab);
+    if(pane) {
+      try { pane.style.display = t===tab ? 'block' : 'none'; } 
+      catch(e) { console.warn('Cannot set style on pane_'+t, e); }
+    }
+    if(btn) {
+      try { btn.classList.toggle('active', t===tab); } 
+      catch(e) { console.warn('Cannot toggle class on tb_'+t, e); }
+    }
   });
 
   // Load tab content on demand
-  if(tab==='cot' && !_tabLoaded['cot']){
-    loadTab('cot', 'tabs/cot-tab.html', 'js/cot-tab.js', initCotTab);
-  }
-  if(tab==='summary' && !_tabLoaded['summary']){
-    loadTab('summary', 'tabs/summary-tab.html', 'js/summary-tab.js', initSummaryTab);
-  }
-  if(tab==='scatter' && !_tabLoaded['scatter']){
-    loadTab('scatter', 'tabs/scatter-tab.html', 'js/scatter-tab.js', initScatterTab);
-  }
-  if(tab==='seasonality' && !_tabLoaded['seasonality']){
-    loadTab('seasonality', 'tabs/seasonality-tab.html', 'js/seasonality-tab.js', initSeasonalityTab);
-  }
-  if(tab==='formula' && !_tabLoaded['formula']){
-    loadTab('formula', 'tabs/formula-tab.html', 'js/formula-tab.js', initFormulaTab);
-  }
-  if(tab==='ai' && !_tabLoaded['ai']){
-    loadTab('ai', 'tabs/ai-tab.html', 'js/ai-tab.js', initAiTab);
-  }
+  var tabConfigs = {
+    'cot': {html: 'tabs/cot-tab.html', js: 'js/cot-tab.js', init: initCotTab},
+    'summary': {html: 'tabs/summary-tab.html', js: 'js/summary-tab.js', init: initSummaryTab},
+    'scatter': {html: 'tabs/scatter-tab.html', js: 'js/scatter-tab.js', init: initScatterTab},
+    'seasonality': {html: 'tabs/seasonality-tab.html', js: 'js/seasonality-tab.js', init: initSeasonalityTab},
+    'formula': {html: 'tabs/formula-tab.html', js: 'js/formula-tab.js', init: initFormulaTab},
+    'ai': {html: 'tabs/ai-tab.html', js: 'js/ai-tab.js', init: initAiTab}
+  };
 
-  // Init is called by loadTab when tab is first loaded, or by the cached path above
+  var config = tabConfigs[tab];
+  if(config && !_tabLoaded[tab]){
+    loadTab(tab, config.html, config.js, config.init);
+  }
 }
 
