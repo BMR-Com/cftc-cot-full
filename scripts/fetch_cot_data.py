@@ -563,6 +563,11 @@ def main():
             print(f"  Skipping percentiles for {len(old_df):,} existing rows")
         if not new_only_df.empty:
             print(f"  Calculating percentiles for {len(new_only_df):,} new rows...")
+            # CRITICAL FIX: Drop any existing percentile columns to avoid merge suffix collision
+            pctile_cols_existing = [c for c in new_only_df.columns if c.startswith('pctile_')]
+            if pctile_cols_existing:
+                print(f"    Dropping {len(pctile_cols_existing)} existing percentile columns from new data before recalculation")
+                new_only_df = new_only_df.drop(columns=pctile_cols_existing)
             new_only_df = add_percentiles(new_only_df)
             
         df = pd.concat([old_df, new_only_df], ignore_index=True)
