@@ -313,24 +313,17 @@ var _tabJSLoaded = {};
 
 function loadTab(tabId, htmlUrl, jsUrl, initFn) {
     return new Promise(function(resolve, reject) {
-        if (_tabLoaded[tabId]) {
-            // Tab already loaded, just call init if provided
-            if (initFn && typeof initFn === 'function') initFn();
-            resolve();
-            return;
+        if (_tabLoaded[tabId]) { 
+            if(initFn) initFn();
+            resolve(); 
+            return; 
         }
 
         var pane = document.getElementById('pane_' + tabId);
-        if (!pane) { reject('Pane not found: ' + tabId); return; }
-
-        // Show loading indicator
-        pane.innerHTML = '<div style="padding:40px;text-align:center;color:#2a5298;"><div class="spinner" style="border:4px solid rgba(42,82,152,0.3);border-top:4px solid #2a5298;width:36px;height:36px;animation:spin 1s linear infinite;margin:0 auto 15px;border-radius:50%;"></div>Loading...</div>';
+        if (!pane) { reject('Pane not found'); return; }
 
         fetch(htmlUrl)
-            .then(function(r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.text();
-            })
+            .then(function(r) { return r.text(); })
             .then(function(html) {
                 pane.innerHTML = html;
                 _tabLoaded[tabId] = true;
@@ -341,27 +334,22 @@ function loadTab(tabId, htmlUrl, jsUrl, initFn) {
                     script.src = jsUrl;
                     script.onload = function() {
                         _tabJSLoaded[jsUrl] = true;
-                        // Call init function after JS is fully loaded
-                        if (initFn && typeof initFn === 'function') {
-                            // Small delay to ensure JS is parsed
-                            setTimeout(function() { initFn(); }, 50);
-                        }
+                        if(initFn) initFn();  // CALL INIT AFTER JS LOADS
                         resolve();
                     };
                     script.onerror = function() {
                         console.warn('Failed to load ' + jsUrl);
-                        if (initFn && typeof initFn === 'function') initFn();
+                        if(initFn) initFn();
                         resolve();
                     };
                     document.body.appendChild(script);
                 } else {
-                    // JS already loaded, just call init
-                    if (initFn && typeof initFn === 'function') initFn();
+                    if(initFn) initFn();
                     resolve();
                 }
             })
             .catch(function(e) {
-                pane.innerHTML = '<div style="padding:40px;text-align:center;color:#c0392b;"><strong>Error loading tab</strong><br>' + e.message + '<br><a href="' + htmlUrl + '" target="_blank">Try direct link</a></div>';
+                pane.innerHTML = '<div style="padding:40px;text-align:center;color:#c0392b;">Failed to load tab content. <a href="' + htmlUrl + '">Try direct link</a></div>';
                 reject(e);
             });
     });
@@ -369,8 +357,7 @@ function loadTab(tabId, htmlUrl, jsUrl, initFn) {
 
 // Pre-load COT tab (default)
 document.addEventListener('DOMContentLoaded', function() {
-    loadTab('cot', 'tabs/cot-tab.html', 'js/cot-tab.js', function() {
-        // Initialize COT tab after JS is loaded
+    loadTab('cot', 'tabs/cot-tab.html', 'js/cot-tab.js', function(){
         document.getElementById('endDate').valueAsDate = new Date();
         loadList();
     }).catch(function(e) { console.error('Failed to load COT tab:', e); });
@@ -399,10 +386,7 @@ function enterPrintMode() {
                     // Force all panes visible for print
                     tabs.forEach(function(t) {
                         var pane = document.getElementById('pane_' + t.id);
-                        if(pane) {
-                            try { pane.style.display = 'block'; }
-                            catch(e) { console.warn('Print mode: cannot show pane_' + t.id); }
-                        }
+                        if(pane) pane.style.display = 'block';
                     });
                     resolve();
                 }
