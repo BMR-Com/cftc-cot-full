@@ -399,7 +399,10 @@ function enterPrintMode() {
                     // Force all panes visible for print
                     tabs.forEach(function(t) {
                         var pane = document.getElementById('pane_' + t.id);
-                        if(pane) pane.style.display = 'block';
+                        if(pane) {
+                            try { pane.style.display = 'block'; }
+                            catch(e) { console.warn('Print mode: cannot show pane_' + t.id); }
+                        }
                     });
                     resolve();
                 }
