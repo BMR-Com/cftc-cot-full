@@ -173,7 +173,7 @@ function updateFormulaCharts(){
         renderAllFormulaCharts(window._formulaRawCache[commApi], terms);
     } else {
         showL(true, 'Fetching formula data...');
-        var ep = EP[document.getElementById('reportType').value] || EP.combined;
+        var ep = EP.combined;  // Formula tab always uses combined reports
         fetchT(ep + "?$where=market_and_exchange_names='" + commApi.replace(/'/g,"''") + "' AND report_date_as_yyyy_mm_dd >= '2006-01-01'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000", 20000)
         .then(function(r){ return r.json(); })
         .then(function(data){
