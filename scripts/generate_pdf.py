@@ -3,13 +3,7 @@ generate_pdf.py
 Loads the BCOM COT Analyzer HTML page in a headless Chromium browser,
 waits for all charts to render, then exports to PDF with cover page.
 
-Cover page approach (tested):
-  - Rendered in a SEPARATE browser page with margin=0
-  - Black background with cover image centered (object-fit:contain)
-  - Report date shown in footer overlay
-  - Merged with report pages using pypdf
-  - Watermark logo APPENDED (not prepended) to body so it never
-    creates a blank page before report content
+Updated for multi-tab architecture: loads index.html with ?print=1 to force all tabs.
 """
 
 import asyncio
@@ -34,6 +28,7 @@ ET = tz.gettz('US/Eastern')
 
 API_WAIT_MS     = 180_000
 CHART_RENDER_MS = 120_000
+PRINT_MODE_WAIT_MS = 30_000  # Time to wait for all tabs to load in print mode
 
 REPORT_PDF_OPTIONS = {
     "width": "11.71in",
@@ -49,10 +44,7 @@ REPORT_PDF_OPTIONS = {
 }
 
 
-# ── Helpers ─────────────────────────────────────────────────────────────────
-
 def encode_image_base64(image_path: Path):
-    """Encode image to base64 data-URI for embedding in HTML."""
     if not image_path.exists():
         print(f"[COT PDF] Warning: Image not found at {image_path}")
         return None
@@ -67,8 +59,7 @@ def encode_image_base64(image_path: Path):
         return None
 
 
-def get_report_date() -> str:
-    """Return the Tuesday of the current week (formatted)."""
+def get_report_date():
     import datetime as dt
     today = datetime.now(ET)
     days_since_tuesday = (today.weekday() - 1) % 7
@@ -76,15 +67,7 @@ def get_report_date() -> str:
     return tuesday.strftime("%B %d, %Y")
 
 
-def build_cover_html(cover_b64: str, logo_b64: str, report_date: str) -> str:
-    """
-    Cover page HTML:
-      - Black background fills the full page
-      - Cover image centered with object-fit:contain (no cropping)
-      - Report date in white text, bottom-right corner
-      - Watermark logo faintly behind the cover image
-    Uses string concat to avoid CSS-brace conflicts with Python f-strings.
-    """
+def build_cover_html(cover_b64, logo_b64, report_date):
     watermark = ""
     if logo_b64:
         watermark = (
@@ -126,21 +109,19 @@ def build_cover_html(cover_b64: str, logo_b64: str, report_date: str) -> str:
     )
 
 
-# ── Main ────────────────────────────────────────────────────────────────────
-
 async def generate():
-    report_date     = get_report_date()
+    report_date = get_report_date()
     generation_date = datetime.now(ET).strftime("%Y-%m-%d %H:%M %Z")
 
     print(f"[COT PDF] Report Date (Tuesday): {report_date}")
-    print(f"[COT PDF] Generated:             {generation_date}")
+    print(f"[COT PDF] Generated: {generation_date}")
 
     if not HTML_FILE.exists():
         print(f"ERROR: HTML file not found at {HTML_FILE}")
         sys.exit(1)
 
     cover_base64 = encode_image_base64(COVER_PAGE_PATH)
-    logo_base64  = encode_image_base64(LOGO_PATH)
+    logo_base64 = encode_image_base64(LOGO_PATH)
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -148,7 +129,7 @@ async def generate():
             args=["--no-sandbox", "--disable-setuid-sandbox"],
         )
 
-        # ── STEP 1: Cover page — own browser page, zero margins ────────────
+        # ── STEP 1: Cover page ────────────────────────────────────────────
         cover_pdf_bytes = None
         if cover_base64:
             print("[COT PDF] Generating cover page...")
@@ -166,15 +147,14 @@ async def generate():
                 margin={"top": "0", "bottom": "0", "left": "0", "right": "0"},
             )
             await cp.close()
-            print("[COT PDF] ✓ Cover page generated")
-        else:
-            print("[COT PDF] Skipping cover page (image not found)")
+            print("[COT PDF] Cover page generated")
 
-        # ── STEP 2: Main report page ───────────────────────────────────────
+        # ── STEP 2: Main report page (print mode) ─────────────────────────
         page = await browser.new_page(viewport={"width": 1400, "height": 900})
 
-        file_url = HTML_FILE.resolve().as_uri()
-        print(f"[COT PDF] Loading report: {file_url}")
+        # Load with print=1 to force all tabs to load
+        file_url = HTML_FILE.resolve().as_uri() + "?print=1"
+        print(f"[COT PDF] Loading report (print mode): {file_url}")
 
         try:
             await page.goto(file_url, wait_until="networkidle", timeout=60_000)
@@ -183,12 +163,23 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # Inject watermark via CSS tag + appendChild (NOT insertBefore).
-        # appendChild means the watermark div goes at the END of body so it
-        # never pushes content down and never creates a blank first page.
-        if logo_base64:
-            print("[COT PDF] Injecting watermark on report pages...")
+        # Wait for all tabs to load
+        print(f"[COT PDF] Waiting for all tabs to load...")
+        try:
+            await page.wait_for_function(
+                """() => {
+                    return window._tabLoaded && 
+                           Object.keys(window._tabLoaded).length >= 6;
+                }""",
+                timeout=PRINT_MODE_WAIT_MS,
+            )
+            print("[COT PDF] All tabs loaded")
+        except Exception as e:
+            print(f"[COT PDF] WARNING: Tab loading timeout: {e}")
 
+        # Inject watermark
+        if logo_base64:
+            print("[COT PDF] Injecting watermark...")
             watermark_css = (
                 '#tp-watermark {'
                 '  position:fixed; top:50%; left:50%;'
@@ -201,16 +192,8 @@ async def generate():
                 '  width:100%; height:auto; filter:grayscale(100%); display:block;'
                 '}'
             )
-            watermark_div = (
-                '<div id="tp-watermark">'
-                '<img src="' + logo_base64 + '" />'
-                '</div>'
-            )
-
-            # Style tag first (safe from CSS-brace conflicts)
+            watermark_div = '<div id="tp-watermark"><img src="' + logo_base64 + '" /></div>'
             await page.add_style_tag(content=watermark_css)
-
-            # Append to end of body — zero impact on document flow
             await page.evaluate(
                 """(html) => {
                     const div = document.createElement('div');
@@ -220,7 +203,7 @@ async def generate():
                 watermark_div,
             )
 
-        # ── Wait for commodity dropdown ────────────────────────────────────
+        # Wait for commodity dropdown
         print("[COT PDF] Waiting for commodity list...")
         try:
             await page.wait_for_selector(
@@ -260,22 +243,10 @@ async def generate():
 
         except Exception as e:
             print(f"[COT PDF] ERROR: Commodity list issue — {e}")
-            try:
-                opts = await page.evaluate("""() => {
-                    const s = document.getElementById('commoditySelect');
-                    if (!s) return [];
-                    return Array.from(s.options).map(o => ({
-                        value: o.value, text: o.textContent.trim(),
-                        dataCn: o.getAttribute('data-cn')
-                    }));
-                }""")
-                print(f"[COT PDF] First 5 options: {opts[:5]}")
-            except Exception:
-                pass
             await browser.close()
             sys.exit(1)
 
-        # ── Select commodity ───────────────────────────────────────────────
+        # Select commodity
         try:
             await page.select_option("#commoditySelect", selected_value)
             print(f"[COT PDF] Selected commodity: {selected_value}")
@@ -286,7 +257,7 @@ async def generate():
 
         await page.wait_for_timeout(500)
 
-        # ── Click Generate Charts ──────────────────────────────────────────
+        # Click Generate Charts
         print("[COT PDF] Clicking Generate Charts...")
         try:
             await page.click("#fetchBtn")
@@ -295,7 +266,7 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Wait for loading spinner ───────────────────────────────────────
+        # Wait for loading
         print(f"[COT PDF] Waiting up to {API_WAIT_MS/1000:.0f}s for CFTC API data...")
         try:
             await page.wait_for_function(
@@ -312,30 +283,7 @@ async def generate():
             await browser.close()
             sys.exit(1)
 
-        # ── Get report date from page if available ─────────────────────────
-        try:
-            page_report_date = await page.evaluate("""() => {
-                const dateElement = document.querySelector('.report-date, #reportDate, [data-report-date]');
-                if (dateElement) return dateElement.textContent.trim();
-                const canvas = document.querySelector('canvas');
-                if (canvas) {
-                    const chart = Chart.getChart(canvas);
-                    if (chart && chart.data && chart.data.labels && chart.data.labels.length > 0) {
-                        const lastLabel = chart.data.labels[chart.data.labels.length - 1];
-                        if (lastLabel) return lastLabel;
-                    }
-                }
-                return null;
-            }""")
-            if page_report_date:
-                report_date = page_report_date
-                print(f"[COT PDF] Report date from page: {report_date}")
-            else:
-                print(f"[COT PDF] Using calculated report date: {report_date}")
-        except Exception:
-            print(f"[COT PDF] Using calculated report date: {report_date}")
-
-        # ── Wait for charts ────────────────────────────────────────────────
+        # Wait for charts
         print(f"[COT PDF] Waiting up to {CHART_RENDER_MS/1000:.0f}s for charts...")
         try:
             await page.wait_for_function(
@@ -362,7 +310,7 @@ async def generate():
         except Exception as e:
             print(f"[COT PDF] WARNING: Chart rendering timeout: {e}")
 
-        # ── Wait for table ─────────────────────────────────────────────────
+        # Wait for table
         print("[COT PDF] Waiting for table content...")
         try:
             await page.wait_for_selector(
@@ -373,21 +321,23 @@ async def generate():
         except Exception as e:
             print(f"[COT PDF] WARNING: Table content timeout: {e}")
 
-        # ── Verify sections ────────────────────────────────────────────────
+        # Verify all sections (now across multiple tabs)
         sections = ["#chart1", "#chart2", "#chart3", "#chart4",
-                    "#weeklyDetail", "#execSec", "#sumSec"]
+                    "#weeklyDetail", "#execSec", "#sumSec",
+                    "#chart6", "#chart7", "#chart5",
+                    "#agriExecSec", "#agriSumSec", "#agriSeaSec"]
         print("[COT PDF] Verifying all sections visible...")
         for section in sections:
             try:
                 await page.wait_for_selector(section, state="visible", timeout=15_000)
-                print(f"[COT PDF] ✓ {section}")
+                print(f"[COT PDF] {section}")
             except Exception as e:
-                print(f"[COT PDF] ⚠ {section} not visible: {e}")
+                print(f"[COT PDF] {section} not visible: {e}")
 
         print("[COT PDF] Final rendering wait (5 seconds)...")
         await page.wait_for_timeout(5_000)
 
-        # ── Generate report PDF ────────────────────────────────────────────
+        # Generate report PDF
         print("[COT PDF] Emulating print media...")
         await page.emulate_media(media="print")
         await page.wait_for_timeout(3_000)
@@ -400,7 +350,7 @@ async def generate():
 
         await browser.close()
 
-        # ── STEP 3: Merge cover (page 1) + report pages ────────────────────
+        # Merge cover + report
         if cover_pdf_bytes:
             print("[COT PDF] Merging cover + report pages...")
             writer = PdfWriter()
@@ -410,7 +360,7 @@ async def generate():
                 writer.add_page(pg)
             with open(OUTPUT_PDF, "wb") as f:
                 writer.write(f)
-            print("[COT PDF] ✓ PDFs merged")
+            print("[COT PDF] PDFs merged")
         else:
             OUTPUT_PDF.write_bytes(report_pdf_bytes)
 
@@ -419,7 +369,7 @@ async def generate():
             print(f"[COT PDF] ERROR: PDF too small ({pdf_size} bytes)")
             sys.exit(1)
 
-        print(f"[COT PDF] ✓ PDF saved: {OUTPUT_PDF} ({pdf_size / 1024:.1f} KB)")
+        print(f"[COT PDF] PDF saved: {OUTPUT_PDF} ({pdf_size / 1024:.1f} KB)")
 
 
 if __name__ == "__main__":
