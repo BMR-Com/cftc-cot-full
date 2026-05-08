@@ -2,7 +2,7 @@
    CONSTANTS
    =========================================================== */
 var EP={futures:'https://publicreporting.cftc.gov/resource/72hh-3qpy.json',combined:'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'};
-var BCOM={'Energy (29.44%)':[{name:'Brent Crude Oil',ticker:'CO',cftc:'BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE'},{name:'Natural Gas',ticker:'NG',cftc:'NATURAL GAS NYME - NEW YORK MERCANTILE EXCHANGE'},{name:'WTI Crude Oil',ticker:'CL',cftc:'WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE'},{name:'Low Sulphur Gas Oil',ticker:'QS',cftc:'GAS OIL LOW SULPHUR - ICE FUTURES EUROPE'},{name:'ULS Diesel',ticker:'HO',cftc:'NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE'},{name:'RBOB Gasoline',ticker:'XB',cftc:'GASOLINE, RBOB - NEW YORK MERCANTILE EXCHANGE'}],'Grains (21.15%)':[{name:'Corn',ticker:'C',cftc:'CORN - CHICAGO BOARD OF TRADE'},{name:'Soybeans',ticker:'S',cftc:'SOYBEANS - CHICAGO BOARD OF TRADE'},{name:'Soybean Meal',ticker:'SM',cftc:'SOYBEAN MEAL - CHICAGO BOARD OF TRADE'},{name:'Soybean Oil',ticker:'BO',cftc:'SOYBEAN OIL - CHICAGO BOARD OF TRADE'},{name:'Wheat',ticker:'W',cftc:'WHEAT-SRW - CHICAGO BOARD OF TRADE'},{name:'HRW Wheat',ticker:'KW',cftc:'WHEAT-HRW - CHICAGO BOARD OF TRADE'}],'Industrial Metals (15.76%)':[{name:'Copper',ticker:'HG',cftc:'COPPER- #1 - COMMODITY EXCHANGE INC.'},{name:'Aluminum',ticker:'LA',cftc:'ALUMINUM - COMMODITY EXCHANGE INC.'},{name:'Zinc',ticker:'LX',cftc:'ZINC - COMMODITY EXCHANGE INC.'},{name:'Nickel',ticker:'LN',cftc:'NICKEL - COMMODITY EXCHANGE INC.'},{name:'Lead',ticker:'LL',cftc:'LEAD - COMMODITY EXCHANGE INC.'}],'Precious Metals (18.84%)':[{name:'Gold',ticker:'GC',cftc:'GOLD - COMMODITY EXCHANGE INC.'},{name:'Silver',ticker:'SI',cftc:'SILVER - COMMODITY EXCHANGE INC.'}],'Softs (9.12%)':[{name:'Sugar',ticker:'SB',cftc:'SUGAR NO. 11 - ICE FUTURES U.S.'},{name:'Coffee',ticker:'KC',cftc:'COFFEE C - ICE FUTURES U.S.'},{name:'Cocoa',ticker:'CC',cftc:'COCOA - ICE FUTURES U.S.'},{name:'Cotton',ticker:'CT',cftc:'COTTON NO. 2 - ICE FUTURES U.S.'}],'Livestock (5.64%)':[{name:'Live Cattle',ticker:'LC',cftc:'LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE'},{name:'Lean Hogs',ticker:'LH',cftc:'LEAN HOGS - CHICAGO MERCANTILE EXCHANGE'}]};
+var BCOM={'Energy (29.44%)':[{name:'Brent Crude Oil',ticker:'CO',cftc:'BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE'},{name:'Natural Gas',ticker:'NG',cftc:'NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE'},{name:'WTI Crude Oil',ticker:'CL',cftc:'WTI CRUDE OIL - NEW YORK MERCANTILE EXCHANGE'},{name:'Low Sulfur Gas Oil',ticker:'QS',cftc:'GASOIL LOW SULFUR - ICE FUTURES EUROPE'},{name:'ULS Diesel',ticker:'HO',cftc:'NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE'},{name:'RBOB Gasoline',ticker:'XB',cftc:'GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE'}],'Grains (21.15%)':[{name:'Corn',ticker:'C',cftc:'CORN - CHICAGO BOARD OF TRADE'},{name:'Soybeans',ticker:'S',cftc:'SOYBEANS - CHICAGO BOARD OF TRADE'},{name:'Soybean Meal',ticker:'SM',cftc:'SOYBEAN MEAL - CHICAGO BOARD OF TRADE'},{name:'Soybean Oil',ticker:'BO',cftc:'SOYBEAN OIL - CHICAGO BOARD OF TRADE'},{name:'Wheat',ticker:'W',cftc:'WHEAT-SRW - CHICAGO BOARD OF TRADE'},{name:'HRW Wheat',ticker:'KW',cftc:'WHEAT-HRW - CHICAGO BOARD OF TRADE'}],'Industrial Metals (15.76%)':[{name:'Copper',ticker:'HG',cftc:'COPPER- #1 - COMMODITY EXCHANGE INC.'},{name:'Aluminum',ticker:'LA',cftc:'ALUMINUM - COMMODITY EXCHANGE INC.'},{name:'Zinc',ticker:'LX',cftc:'ZINC - COMMODITY EXCHANGE INC.'},{name:'Nickel',ticker:'LN',cftc:'NICKEL - COMMODITY EXCHANGE INC.'},{name:'Lead',ticker:'LL',cftc:'LEAD - COMMODITY EXCHANGE INC.'}],'Precious Metals (18.84%)':[{name:'Gold',ticker:'GC',cftc:'GOLD - COMMODITY EXCHANGE INC.'},{name:'Silver',ticker:'SI',cftc:'SILVER - COMMODITY EXCHANGE INC.'}],'Softs (9.12%)':[{name:'Sugar',ticker:'SB',cftc:'SUGAR NO. 11 - ICE FUTURES U.S.'},{name:'Coffee',ticker:'KC',cftc:'COFFEE C - ICE FUTURES U.S.'},{name:'Cocoa',ticker:'CC',cftc:'COCOA - ICE FUTURES U.S.'},{name:'Cotton',ticker:'CT',cftc:'COTTON NO. 2 - ICE FUTURES U.S.'}],'Livestock (5.64%)':[{name:'Live Cattle',ticker:'LC',cftc:'LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE'},{name:'Lean Hogs',ticker:'LH',cftc:'LEAN HOGS - CHICAGO MERCANTILE EXCHANGE'}]};
 var CROP_COMM={Corn:1,Soybeans:1,'Soybean Meal':1,'Soybean Oil':1,Wheat:1,'HRW Wheat':1,Coffee:1,Cocoa:1,Cotton:1,'Lean Hogs':1};
 var CATS=['managed_money','swap_dealers','prod_merc','other_rept'];
 var CROP_KW_LIST=['CORN','SOYBEAN','WHEAT','COTTON','COFFEE','COCOA','HOG'];
@@ -142,13 +142,15 @@ function fetchT(url,ms){
   });
 }
 function showL(on,txt){
-  document.getElementById('loading').style.display=on?'block':'none';
-  if(txt)document.getElementById('loadingText').textContent=txt;
+  var loading=document.getElementById('loading');
+  var loadingText=document.getElementById('loadingText');
+  if(loading)loading.style.display=on?'block':'none';
+  if(txt&&loadingText)loadingText.textContent=txt;
   /* Only disable the main action buttons, not AI or utility buttons */
   var btn=document.getElementById('fetchBtn');if(btn)btn.disabled=on;
 }
 function showE(m){var e=document.getElementById('errDiv');e.textContent=m;e.style.display='block';setTimeout(function(){e.style.display='none';},12000);}
-function hideE(){document.getElementById('errDiv').style.display='none';}
+function hideE(){var e=document.getElementById('errDiv');if(e)e.style.display='none';}
 function wk(d){var u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var dn=u.getUTCDay()||7;u.setUTCDate(u.getUTCDate()+4-dn);var y=new Date(Date.UTC(u.getUTCFullYear(),0,1));return Math.ceil((((u-y)/86400000)+1)/7);}
 function pct(arr,v){var s=arr.slice().sort(function(a,b){return a-b;});var i=s.indexOf(v);return s.length>1?(i/(s.length-1))*100:50;}
 function pts(dates,vals){return dates.map(function(d,i){return{x:d,y:vals[i]};});}
@@ -279,19 +281,24 @@ function buildFallback(){
 }
 
 function onCommChange(){
-  var sel=document.getElementById('commoditySelect'),opt=sel.options[sel.selectedIndex];
+  var sel=document.getElementById('commoditySelect');
+  if(!sel)return;
+  var opt=sel.options[sel.selectedIndex];
   var cn=opt?opt.getAttribute('data-cn'):'';
   cropInfo=cn&&CROP_COMM[cn]?{name:cn}:null;
   var has=!!cropInfo;
-  document.getElementById('cropYearGroup').style.display=has?'':'none';
-  document.getElementById('cropNotes').style.display=has?'':'none';
-  if(!has)document.getElementById('cropYear').value='all';
-  if(has)document.getElementById('cropBadge').textContent='('+cn+')';
+  var cyg=document.getElementById('cropYearGroup');if(cyg)cyg.style.display=has?'':'none';
+  var cnEl=document.getElementById('cropNotes');if(cnEl)cnEl.style.display=has?'':'none';
+  var cy=document.getElementById('cropYear');if(cy&&!has)cy.value='all';
+  var cb=document.getElementById('cropBadge');if(cb&&has)cb.textContent='('+cn+')';
 }
-function toggleCropNotes(){var b=document.getElementById('cropBody'),t=document.getElementById('cropToggle'),o=b.style.display==='block';b.style.display=o?'none':'block';t.textContent=o?'▼':'▲';}
+function toggleCropNotes(){var b=document.getElementById('cropBody'),t=document.getElementById('cropToggle');if(!b||!t)return;var o=b.style.display==='block';b.style.display=o?'none':'block';t.textContent=o?'▼':'▲';}
 function onCropYearChange(){
   if(!rawCache)return;
-  var tc=document.getElementById('traderCategory').value,crop=document.getElementById('cropYear').value||'all';
+  var tcEl=document.getElementById('traderCategory');
+  var cyEl=document.getElementById('cropYear');
+  if(!tcEl||!cyEl)return;
+  var tc=tcEl.value,crop=cyEl.value||'all';
   CD=procData(rawCache,tc,crop);if(!CD)return;
   ATD={};CATS.forEach(function(c){ATD[c]=procData(rawCache,c,crop);});
   updateAll();
@@ -301,7 +308,13 @@ function onCropYearChange(){
    FETCH DATA
    =========================================================== */
 function fetchData(){
-  var comm=document.getElementById('commoditySelect').value,rt=document.getElementById('reportType').value,tc=document.getElementById('traderCategory').value,sd=document.getElementById('startDate').value,ed=document.getElementById('endDate').value;
+  var sel=document.getElementById('commoditySelect');
+  var rtEl=document.getElementById('reportType');
+  var tcEl=document.getElementById('traderCategory');
+  var sdEl=document.getElementById('startDate');
+  var edEl=document.getElementById('endDate');
+  if(!sel||!rtEl||!tcEl||!sdEl||!edEl){showE('Page not fully loaded. Please wait.');return;}
+  var comm=sel.value,rt=rtEl.value,tc=tcEl.value,sd=sdEl.value,ed=edEl.value;
   if(!comm){showE('Select a commodity first');return;}
   var crop=document.getElementById('cropYear').value||'all';
   showL(true,'Fetching '+comm.split(' - ')[0]+'...');hideE();
@@ -317,7 +330,7 @@ function fetchData(){
     seaCache[comm]=CD;
     /* Reset zooms */
     ['pos','cmp','trd','sz'].forEach(function(k){zPct[k]=100;var s=document.getElementById('zs_'+k);if(s)s.value=100;var l=document.getElementById('zl_'+k);if(l)l.textContent='All data';});
-    ['chart1','chart2','chart3','chart4','chart5','weeklyDetail'].forEach(function(id){document.getElementById(id).style.display='block';});
+    ['chart1','chart2','chart3','chart4','chart5','weeklyDetail'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='block';});
     popYears();buildSeaCommSel();updateAll();buildWeeklyDetail();
     /* Auto-trigger all other sections */
     generateSummary();
@@ -325,7 +338,7 @@ function fetchData(){
     doScatterPct();
     if(isCrop(comm))doAgriCrop();
     /* Show AI section if key is present */
-    if(sessionStorage.getItem('groqKey'))document.getElementById('aiSec').style.display='block';
+    if(sessionStorage.getItem('groqKey')){var aiSec=document.getElementById('aiSec');if(aiSec)aiSec.style.display='block';}
     showL(false);
   }).catch(function(e){dbgInfo.err=e.message;showE('Error: '+e.message);showL(false);});
 }
@@ -335,6 +348,7 @@ function fetchData(){
    =========================================================== */
 function onZoom(key,val){
   zPct[key]=parseInt(val);
+  var s=document.getElementById('zs_'+key);if(s)s.value=val;
   var ch=charts[key];if(!ch||!CD)return;
   applyZoom(ch,key);updateZoomLbl(key);
 }
