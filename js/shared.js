@@ -2,7 +2,7 @@
    CONSTANTS
    =========================================================== */
 var EP={futures:'https://publicreporting.cftc.gov/resource/72hh-3qpy.json',combined:'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'};
-var BCOM={'Energy (29.44%)':[{name:'Brent Crude Oil',ticker:'CO',cftc:'BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE'},{name:'Natural Gas',ticker:'NG',cftc:'NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE'},{name:'WTI Crude Oil',ticker:'CL',cftc:'WTI CRUDE OIL - NEW YORK MERCANTILE EXCHANGE'},{name:'Low Sulfur Gas Oil',ticker:'QS',cftc:'GASOIL LOW SULFUR - ICE FUTURES EUROPE'},{name:'ULS Diesel',ticker:'HO',cftc:'NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE'},{name:'RBOB Gasoline',ticker:'XB',cftc:'GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE'}],'Grains (21.15%)':[{name:'Corn',ticker:'C',cftc:'CORN - CHICAGO BOARD OF TRADE'},{name:'Soybeans',ticker:'S',cftc:'SOYBEANS - CHICAGO BOARD OF TRADE'},{name:'Soybean Meal',ticker:'SM',cftc:'SOYBEAN MEAL - CHICAGO BOARD OF TRADE'},{name:'Soybean Oil',ticker:'BO',cftc:'SOYBEAN OIL - CHICAGO BOARD OF TRADE'},{name:'Wheat',ticker:'W',cftc:'WHEAT-SRW - CHICAGO BOARD OF TRADE'},{name:'HRW Wheat',ticker:'KW',cftc:'WHEAT-HRW - CHICAGO BOARD OF TRADE'}],'Industrial Metals (15.76%)':[{name:'Copper',ticker:'HG',cftc:'COPPER- #1 - COMMODITY EXCHANGE INC.'},{name:'Aluminum',ticker:'LA',cftc:'ALUMINUM - COMMODITY EXCHANGE INC.'},{name:'Zinc',ticker:'LX',cftc:'ZINC - COMMODITY EXCHANGE INC.'},{name:'Nickel',ticker:'LN',cftc:'NICKEL - COMMODITY EXCHANGE INC.'},{name:'Lead',ticker:'LL',cftc:'LEAD - COMMODITY EXCHANGE INC.'}],'Precious Metals (18.84%)':[{name:'Gold',ticker:'GC',cftc:'GOLD - COMMODITY EXCHANGE INC.'},{name:'Silver',ticker:'SI',cftc:'SILVER - COMMODITY EXCHANGE INC.'}],'Softs (9.12%)':[{name:'Sugar',ticker:'SB',cftc:'SUGAR NO. 11 - ICE FUTURES U.S.'},{name:'Coffee',ticker:'KC',cftc:'COFFEE C - ICE FUTURES U.S.'},{name:'Cocoa',ticker:'CC',cftc:'COCOA - ICE FUTURES U.S.'},{name:'Cotton',ticker:'CT',cftc:'COTTON NO. 2 - ICE FUTURES U.S.'}],'Livestock (5.64%)':[{name:'Live Cattle',ticker:'LC',cftc:'LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE'},{name:'Lean Hogs',ticker:'LH',cftc:'LEAN HOGS - CHICAGO MERCANTILE EXCHANGE'}]};
+var BCOM={'Energy (29.44%)':[{name:'Brent Crude Oil',ticker:'CO',cftc:'BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE'},{name:'Natural Gas',ticker:'NG',cftc:'NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE'},{name:'WTI Crude Oil',ticker:'CL',cftc:'WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE'},{name:'Low Sulfur Gas Oil',ticker:'QS',cftc:'GASOIL LOW SULFUR - ICE FUTURES EUROPE'},{name:'ULS Diesel',ticker:'HO',cftc:'NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE'},{name:'RBOB Gasoline',ticker:'XB',cftc:'GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE'}],'Grains (21.15%)':[{name:'Corn',ticker:'C',cftc:'CORN - CHICAGO BOARD OF TRADE'},{name:'Soybeans',ticker:'S',cftc:'SOYBEANS - CHICAGO BOARD OF TRADE'},{name:'Soybean Meal',ticker:'SM',cftc:'SOYBEAN MEAL - CHICAGO BOARD OF TRADE'},{name:'Soybean Oil',ticker:'BO',cftc:'SOYBEAN OIL - CHICAGO BOARD OF TRADE'},{name:'Wheat',ticker:'W',cftc:'WHEAT-SRW - CHICAGO BOARD OF TRADE'},{name:'HRW Wheat',ticker:'KW',cftc:'WHEAT-HRW - CHICAGO BOARD OF TRADE'}],'Industrial Metals (15.76%)':[{name:'Copper',ticker:'HG',cftc:'COPPER- #1 - COMMODITY EXCHANGE INC.'},{name:'Aluminum',ticker:'LA',cftc:'ALUMINUM - COMMODITY EXCHANGE INC.'},{name:'Zinc',ticker:'LX',cftc:'ZINC - COMMODITY EXCHANGE INC.'},{name:'Nickel',ticker:'LN',cftc:'NICKEL - COMMODITY EXCHANGE INC.'},{name:'Lead',ticker:'LL',cftc:'LEAD - COMMODITY EXCHANGE INC.'}],'Precious Metals (18.84%)':[{name:'Gold',ticker:'GC',cftc:'GOLD - COMMODITY EXCHANGE INC.'},{name:'Silver',ticker:'SI',cftc:'SILVER - COMMODITY EXCHANGE INC.'}],'Softs (9.12%)':[{name:'Sugar',ticker:'SB',cftc:'SUGAR NO. 11 - ICE FUTURES U.S.'},{name:'Coffee',ticker:'KC',cftc:'COFFEE C - ICE FUTURES U.S.'},{name:'Cocoa',ticker:'CC',cftc:'COCOA - ICE FUTURES U.S.'},{name:'Cotton',ticker:'CT',cftc:'COTTON NO. 2 - ICE FUTURES U.S.'}],'Livestock (5.64%)':[{name:'Live Cattle',ticker:'LC',cftc:'LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE'},{name:'Lean Hogs',ticker:'LH',cftc:'LEAN HOGS - CHICAGO MERCANTILE EXCHANGE'}]};
 var CROP_COMM={Corn:1,Soybeans:1,'Soybean Meal':1,'Soybean Oil':1,Wheat:1,'HRW Wheat':1,Coffee:1,Cocoa:1,Cotton:1,'Lean Hogs':1};
 var CATS=['managed_money','swap_dealers','prod_merc','other_rept'];
 var CROP_KW_LIST=['CORN','SOYBEAN','WHEAT','COTTON','COFFEE','COCOA','HOG'];
@@ -258,7 +258,7 @@ function loadList(){
     apiList.sort();
     /* Re-build dropdown with exact API names for accurate fetching */
     buildSel(apiList);
-    buildSeaCommSel();
+    if(typeof buildSeaCommSel==='function')buildSeaCommSel();
   })
   .catch(function(e){
     /* API unreachable — hardcoded fallback already loaded, just log */
@@ -331,12 +331,12 @@ function fetchData(){
     /* Reset zooms */
     ['pos','cmp','trd','sz'].forEach(function(k){zPct[k]=100;var s=document.getElementById('zs_'+k);if(s)s.value=100;var l=document.getElementById('zl_'+k);if(l)l.textContent='All data';});
     ['chart1','chart2','chart3','chart4','chart5','weeklyDetail'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='block';});
-    popYears();buildSeaCommSel();updateAll();buildWeeklyDetail();
+    if(typeof popYears==='function')popYears();if(typeof buildSeaCommSel==='function')buildSeaCommSel();updateAll();if(typeof buildWeeklyDetail==='function')buildWeeklyDetail();
     /* Auto-trigger all other sections */
-    generateSummary();
-    doScatter();
-    doScatterPct();
-    if(isCrop(comm))doAgriCrop();
+    if(typeof generateSummary==='function')generateSummary();
+    if(typeof doScatter==='function')doScatter();
+    if(typeof doScatterPct==='function')doScatterPct();
+    if(isCrop(comm))if(typeof doAgriCrop==='function')doAgriCrop();
     /* Show AI section if key is present */
     if(sessionStorage.getItem('groqKey')){var aiSec=document.getElementById('aiSec');if(aiSec)aiSec.style.display='block';}
     showL(false);
