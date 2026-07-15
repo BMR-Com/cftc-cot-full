@@ -8,6 +8,9 @@ from 2006 to present (Futures & Options Combined endpoint).
 Outputs:
   data/bcom_cot_master.csv   — Full history, all commodities, all categories,
                                 with derived metrics and percentile columns.
+  data/cotton_cot.csv        — Cotton-only extract of the master (all crop_types,
+                                all columns). Lightweight (~5 MB vs 60+ MB) for client-side
+                                dashboards that only need cotton.
   data/latest_summary.json   — Latest-week snapshot with pre-calculated
                                 percentiles over 1yr/3yr/5yr/10yr/full
                                 history, historical extremes with dates.
@@ -26,6 +29,7 @@ SCRIPT_DIR  = Path(__file__).parent
 ROOT_DIR    = SCRIPT_DIR.parent
 DATA_DIR    = ROOT_DIR / "data"
 CSV_PATH    = DATA_DIR / "bcom_cot_master.csv"
+COTTON_PATH = DATA_DIR / "cotton_cot.csv"
 JSON_PATH   = DATA_DIR / "latest_summary.json"
 DATA_DIR.mkdir(exist_ok=True)
 
@@ -455,6 +459,22 @@ def build_summary(df):
 
 
 # ── Main ───────────────────────────────────────────────────────────────────
+def save_cotton_extract(df: "pd.DataFrame") -> None:
+    """Write the cotton-only extract of the master dataframe.
+
+    Keeps every column and every crop_type row so downstream dashboards can use
+    it as a drop-in replacement for the 60+ MB master when they only need cotton.
+    """
+    cotton = df[df["commodity"] == "Cotton"]
+    if cotton.empty:
+        print("WARNING: no Cotton rows found - cotton_cot.csv not written")
+        return
+    cotton = cotton.sort_values(["crop_type", "date"]).reset_index(drop=True)
+    cotton.to_csv(COTTON_PATH, index=False)
+    sz = COTTON_PATH.stat().st_size / 1024
+    print(f"Saved: {COTTON_PATH.name} ({sz:.1f} KB, {len(cotton):,} rows)")
+
+
 def main():
     print("=" * 65)
     print("BCOM COT Data Fetcher")
@@ -522,6 +542,8 @@ def main():
             with open(JSON_PATH, "w") as f:
                 json.dump(summary, f, separators=(",",":"))
             print(f"Updated {JSON_PATH} with existing data")
+            # keep the cotton extract in sync (creates it on first run after this change)
+            save_cotton_extract(old_df)
             print(f"Latest report date: {summary['report_date']}")
             sys.exit(0)
 
@@ -579,6 +601,9 @@ def main():
     df.to_csv(CSV_PATH, index=False)
     sz = CSV_PATH.stat().st_size / 1024
     print(f"\nSaved: {CSV_PATH.name} ({sz:.1f} KB, {len(df):,} rows)")
+
+    # Save cotton-only extract
+    save_cotton_extract(df)
 
     # Build and save summary JSON
     print("Building latest_summary.json...")
