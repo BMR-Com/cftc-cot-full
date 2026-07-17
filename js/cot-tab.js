@@ -12,7 +12,7 @@ function initCotTab() {
 /* ===========================================================
    MAIN CHARTS
    =========================================================== */
-function updateAll(){drawPos();drawCmp();drawTrd();drawSz();drawSea();}
+function updateAll(){drawPos();drawCmp();drawTrd();drawSz();if(typeof drawSea==='function')drawSea();}
 
 function getCommShort(){return CD?(CD.comm||'').split(' - ')[0]:'';}
 function getCatLabel(){return CAT_LBL[document.getElementById('traderCategory').value]||'Managed Money';}
