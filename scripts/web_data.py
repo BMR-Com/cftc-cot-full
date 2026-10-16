@@ -148,6 +148,67 @@ def cat_metrics(g, cat):
     }
 
 
+# ── prices & technicals ─────────────────────────────────────────────────────
+PRICE_CSV = DATA_DIR / "prices" / "daily.csv"
+PRICE_REPORT = DATA_DIR / "prices" / "report.json"
+SEASONAL_CURVE = {"NG", "LC", "LH"}   # Fama-French: carry unreliable on seasonal curves
+
+
+def load_prices():
+    if not PRICE_CSV.exists():
+        return {}, {}
+    p = pd.read_csv(PRICE_CSV, parse_dates=["date"])
+    rep = json.loads(PRICE_REPORT.read_text()) if PRICE_REPORT.exists() else {}
+    return {tk: g.set_index("date").sort_index() for tk, g in p.groupby("ticker")}, rep
+
+
+def rsi(c, n=14):
+    d = c.diff()
+    up = d.clip(lower=0).ewm(alpha=1 / n, adjust=False).mean()
+    dn = (-d.clip(upper=0)).ewm(alpha=1 / n, adjust=False).mean()
+    return 100 - 100 / (1 + up / dn.replace(0, np.nan))
+
+
+def px_metrics(g, carry=None, ticker=None):
+    """Technicals from daily OHLC (front-month continuous)."""
+    g = g.dropna(subset=["close"])
+    if len(g) < 60:
+        return None
+    c, h, l = g["close"], g["high"].fillna(g["close"]), g["low"].fillna(g["close"])
+    def ret(n):
+        return float(c.iloc[-1] / c.iloc[-1 - n] - 1) if len(c) > n and c.iloc[-1 - n] > 0 else None
+    tr = pd.concat([h - l, (h - c.shift()).abs(), (l - c.shift()).abs()], axis=1).max(axis=1)
+    atr = tr.ewm(alpha=1 / 14, adjust=False).mean()
+    lr = np.log(c / c.shift()).replace([np.inf, -np.inf], np.nan)
+    sma = {n: (float(c.rolling(n).mean().iloc[-1]) if len(c) >= n else None) for n in (20, 50, 200)}
+    r12, r6 = ret(252), ret(126)
+    # Time-series momentum (Moskowitz-Ooi-Pedersen): sign of 12m return,
+    # confirmed by the 6m return and by price vs the 200-day average.
+    trend = 0.0
+    if r12 is not None and r12 != 0:
+        s = 1 if r12 > 0 else -1
+        conf = int(r6 is not None and np.sign(r6) == s) + int(sma[200] is not None and np.sign(c.iloc[-1] - sma[200]) == s)
+        trend = s * {2: 1.0, 1: 0.5, 0: 0.0}[conf]
+    hi52, lo52 = float(h.iloc[-252:].max()), float(l.iloc[-252:].min())
+    last = float(c.iloc[-1])
+    cy = None
+    if carry and carry.get("carry_ann") is not None:
+        cy = {"ann": carry["carry_ann"], "front": carry.get("front"), "deferred": carry.get("deferred"),
+              "seasonal": ticker in SEASONAL_CURVE}
+    return {
+        "date": g.index[-1].strftime("%Y-%m-%d"), "close": _num(last, 4),
+        "r1w": _num(ret(5), 4), "r4w": _num(ret(20), 4), "r13w": _num(ret(63), 4),
+        "r26w": _num(r6, 4), "r52w": _num(r12, 4),
+        "sma20": _num(sma[20], 4), "sma50": _num(sma[50], 4), "sma200": _num(sma[200], 4),
+        "rsi": _num(rsi(c).iloc[-1], 1), "atr": _num(atr.iloc[-1], 4),
+        "rv20": _num(lr.iloc[-20:].std() * np.sqrt(252), 4), "rv60": _num(lr.iloc[-60:].std() * np.sqrt(252), 4),
+        "hi52": _num(hi52, 4), "lo52": _num(lo52, 4),
+        "hi20": _num(float(h.iloc[-20:].max()), 4), "lo20": _num(float(l.iloc[-20:].min()), 4),
+        "trend": trend, "carry": cy,
+        "spark": [_num(x, 4) for x in c.iloc[-260::5]],
+    }
+
+
 # ── builders ───────────────────────────────────────────────────────────────
 def build(df, bcom_meta=None):
     """df: master dataframe (raw columns are enough; percentile cols ignored)."""
@@ -165,6 +226,11 @@ def build(df, bcom_meta=None):
     manifest = {"report_date": report_date, "generated": now,
                 "data_from": df["date"].min(), "commodities": []}
     snapshot = {"report_date": report_date, "generated": now, "commodities": []}
+    prices, prep = load_prices()
+    if prep:
+        snapshot["regime"] = prep.get("regime")
+        snapshot["prices_fetched"] = prep.get("fetched_at")
+        manifest["prices_fetched"] = prep.get("fetched_at")
 
     for name in order:
         cd = df[df["commodity"] == name]
@@ -191,6 +257,17 @@ def build(df, bcom_meta=None):
                "dates": all_dates, "ct": {}}
         snap = {"name": name, "ticker": ticker, "sector": sector, "is_crop": is_crop,
                 "date": last, "stale": stale, "v": {}}
+        pg = prices.get(ticker)
+        if pg is not None and len(pg):
+            snap["px"] = px_metrics(pg, (prep.get("carry") or {}).get(ticker), ticker)
+            note = ((prep.get("markets") or {}).get(ticker) or {}).get("note")
+            if snap["px"] and note:
+                snap["px"]["note"] = note
+            # weekly close aligned to each COT report date (last close on/before Tuesday)
+            cs = pg["close"].dropna()
+            idx = cs.index.searchsorted(pd.to_datetime(all_dates), side="right") - 1
+            ser["px"] = [(_num(cs.iloc[i], 4) if i >= 0 and (pd.to_datetime(d) - cs.index[i]).days <= 7 else None)
+                         for i, d in zip(idx, all_dates)]
         for ct in crop_types:
             g = (cd[cd["crop_type"] == ct].drop_duplicates("date", keep="last")
                  .set_index("date").reindex(all_dates))

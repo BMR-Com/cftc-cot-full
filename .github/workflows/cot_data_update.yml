@@ -41,13 +41,19 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests pandas numpy python-dateutil
+        run: pip install requests pandas numpy python-dateutil yfinance
 
       - name: Delete CSV for full rebuild (if requested)
         if: ${{ github.event.inputs.full_rebuild == 'true' }}
         run: |
           rm -f data/bcom_cot_master.csv
           echo "Full rebuild requested — existing CSV deleted."
+
+      - name: Fetch weekly prices (Yahoo Finance)
+        continue-on-error: true   # prices are optional; COT update must not fail because of Yahoo
+        run: python scripts/prices.py
+        env:
+          PYTHONUNBUFFERED: '1'
 
       - name: Run COT data fetcher
         run: |
@@ -72,7 +78,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add data/bcom_cot_master.csv data/latest_summary.json data/cotton_cot.csv data/web
+          git add data/bcom_cot_master.csv data/latest_summary.json data/cotton_cot.csv data/web data/prices
           if git diff --staged --quiet; then
             echo "No changes detected — CFTC may not have released new data yet."
           else

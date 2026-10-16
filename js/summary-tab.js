@@ -74,6 +74,7 @@ function renderDesk() {
     card('&#x1F525; Short-squeeze fuel', 'warn', a.squeeze, function (r) { return 'shorts ' + COTInsights.ord(r.mm.p.S[a.win]) + ' pct'; }) +
     card('&#x26A0;&#xFE0F; Long-liquidation risk', 'warn', a.liqRisk, function (r) { return 'longs ' + COTInsights.ord(r.mm.p.L[a.win]) + ' pct'; });
 
+  try { renderIdeas(); } catch (e) { console.error('[Ideas]', e); }
   renderSectors();
   renderMonitor();
   renderLeagueAndRanges();
@@ -103,7 +104,9 @@ function spark(arr, w, h) {
 function renderMonitor() {
   var tb = document.getElementById('monBody'); if (!tb || !_deskA) return;
   var k = _deskSort.k, d = _deskSort.dir;
+  var pxBy = {}; (_snap.commodities || []).forEach(function (c) { pxBy[c.ticker] = c.px; });
   var val = function (r) {
+    if (k === 'px4w') { var p0 = pxBy[r.ticker]; return p0 && p0.r4w != null ? p0.r4w : -1e9; }
     switch (k) {
       case 'name': return r.name; case 'drv': return r.drv.main; case 'N': return r.mm.N; case 'dN': return r.mm.dN;
       default: return r[k] == null ? -1e9 : r[k];
@@ -118,6 +121,7 @@ function renderMonitor() {
     var sw = Math.abs(r.score) / 2, sl = r.score >= 0 ? 50 : 50 - sw, scol = r.score >= 0 ? '#1a8c4e' : '#c0392b';
     return '<tr>' +
       '<td><span class="mk" onclick="openInCot(\'' + r.ticker + '\')">' + r.name + '</span><span class="tk">' + r.ticker + (r.crop !== 'all' ? ' · ' + r.crop : '') + '</span> ' + f + '</td>' +
+      (function () { var p0 = pxBy[r.ticker]; if (!p0 || p0.r4w == null) return '<td class="num">–</td>'; return '<td class="num ' + (p0.r4w >= 0 ? 'pos' : 'neg') + '" title="last ' + COTInsights.pxf(p0.close) + ' · 12m ' + COTInsights.pctf(p0.r52w) + '">' + COTInsights.pctf(p0.r4w) + '</td>'; })() +
       '<td><span class="badge b-' + r.reg.tone + '">' + r.reg.lbl + '</span></td>' +
       '<td class="num ' + (r.mm.N >= 0 ? 'pos' : 'neg') + '">' + K(r.mm.N) + '</td>' +
       '<td class="num ' + (r.mm.dN >= 0 ? 'pos' : 'neg') + '">' + SK(r.mm.dN) + '</td>' +
@@ -186,6 +190,7 @@ function copyBrief() {
   COTInsights.brief(a).forEach(function (l) { txt += l.h.toUpperCase() + ': ' + l.t + '\n\n'; });
   txt += 'MARKET READS\n';
   a.rows.slice().sort(function (x, y) { return y.score - x.score; }).forEach(function (r) { txt += '• ' + r.name + ' [' + (r.score > 0 ? '+' : '') + r.score + ']: ' + r.read + '\n'; });
+  if (_ideas && _ideas.ideas.length) { txt += '\nTRADE IDEAS\n'; _ideas.ideas.forEach(function (i) { txt += '• ' + i.side + ' ' + i.row.name + ' [' + i.conv + ', ' + i.kind + '] ref ' + COTInsights.pxf(i.lv.entry) + ', stop ' + COTInsights.pxf(i.lv.stop) + ', target ' + COTInsights.pxf(i.lv.target) + ' — ' + i.why[1] + '\n'; }); }
   txt += '\nSource: CFTC Disaggregated COT, futures & options combined. Positioning read, not a price forecast.';
   var done = function () { var b = document.getElementById('copyBriefBtn'); if (b) { var t = b.innerHTML; b.innerHTML = '✓ Copied'; setTimeout(function () { b.innerHTML = t; }, 1500); } };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt); done(); });
@@ -212,4 +217,47 @@ function legacyGenerateSummary() {
         });
       }).catch(function () { }).finally(function () { done++; if (done >= list.length) { renderSum('sumBody', sumData); showL(false); } });
   });
+}
+
+
+/* ===========================================================
+   TRADE IDEAS (trend × carry × positioning × technicals)
+   =========================================================== */
+var _ideas = null;
+function renderIdeas() {
+  var sec = document.getElementById('ideasSec'); if (!sec || !_snap || !_deskA) return;
+  var hasPx = (_snap.commodities || []).some(function (c) { return c.px; });
+  if (!hasPx) {
+    document.getElementById('ideasSub').textContent = 'Price data not loaded yet — it is downloaded by the Weekly COT Data Update workflow.';
+    return;
+  }
+  var I = _ideas = COTInsights.ideas(_snap, _deskA), P = COTInsights.pctf, X = COTInsights.pxf;
+  document.getElementById('ideasSub').innerHTML = 'Prices updated ' + (I.pricesAt || '?') + ' · COT as of <b>' + fmtDate(_snap.report_date) + '</b> · ' + I.ideas.length + ' active ideas, ' + I.watch.length + ' on watch, ' + I.flat.length + ' flat';
+  var g = I.regime || {};
+  document.getElementById('regimeBar').innerHTML = g.spx ?
+    '<span class="' + (I.riskOff ? 'off' : 'on') + '">' + (I.riskOff ? 'RISK-OFF: sizes halved' : 'Risk regime: normal') + '</span>' +
+    '<span>S&amp;P 500 ' + g.spx.toLocaleString() + ' (' + (g.spx_above_200d ? 'above' : 'below') + ' 200d ' + Math.round(g.spx_200d).toLocaleString() + ')</span><span>VIX ' + g.vix + '</span>' : '';
+
+  function card(i) {
+    var r = i.row, l = i.lv, cls = i.dir > 0 ? 'long' : 'short';
+    return '<div class="idea ' + cls + '"><div class="idea-h"><div><span class="idea-t" onclick="openInCot(\'' + r.ticker + '\')"><span class="idea-side">' + i.side + '</span>' + r.name + ' <small style="color:#888;font-weight:400">' + r.ticker + '</small></span><div class="idea-k">' + i.kind + (i.riskShare != null && i.conv !== 'Watch' ? ' · ' + Math.round(i.riskShare * 100) + '% of risk budget' : '') + '</div></div><span class="conv conv-' + i.conv + '">' + i.conv + '</span></div>' +
+      '<div class="lvls"><div><span>Ref</span><b>' + X(l.entry) + '</b></div><div><span>Stop (2×ATR)</span><b>' + X(l.stop) + '</b><span>' + P(l.stopPct) + '</span></div><div><span>Target (2R)</span><b>' + X(l.target) + '</b><span>' + P(l.tgtPct) + '</span></div><div><span>Size</span><b>' + (r.size >= 1 ? 'Full' : r.size >= 0.5 ? 'Half' : r.size > 0 ? Math.round(r.size * 100) + '%' : '—') + '</b><span>vol ' + (r.vol ? Math.round(r.vol * 100) + '%' : '–') + '</span></div></div>' +
+      '<ul>' + i.why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul><div class="tm">' + i.timing + '</div>' +
+      (r.px.note ? '<div class="mon-note" style="margin-top:6px">Note: ' + r.px.note + '</div>' : '') + '</div>';
+  }
+  document.getElementById('ideaCards').innerHTML = I.ideas.length ? I.ideas.map(card).join('') : '<div class="empty">No market currently passes the rules.</div>';
+  document.getElementById('watchCards').innerHTML = I.watch.length ? I.watch.map(card).join('') : '<div class="empty">None this week.</div>';
+
+  var tr = function (t) { return t === 1 ? '<span class="pos">▲ up</span>' : t === 0.5 ? '<span class="pos">△ up (partial)</span>' : t === -1 ? '<span class="neg">▼ down</span>' : t === -0.5 ? '<span class="neg">▽ down (partial)</span>' : '<span style="color:#888">— none</span>'; };
+  var cl = function (x) { return x == null ? '' : x >= 0 ? 'pos' : 'neg'; };
+  document.getElementById('boardBody').innerHTML = I.board.slice().sort(function (a, b) { return b.size * b.dir - a.size * a.dir || b.trend - a.trend; }).map(function (r) {
+    var p = r.px, v200 = p.sma200 ? p.close / p.sma200 - 1 : null, rng = (p.hi52 > p.lo52) ? (p.close - p.lo52) / (p.hi52 - p.lo52) * 100 : null;
+    return '<tr><td><span class="mk" onclick="openInCot(\'' + r.ticker + '\')">' + r.name + '</span><span class="tk">' + r.ticker + '</span></td>' +
+      '<td class="num">' + X(p.close) + '</td><td class="num ' + cl(p.r1w) + '">' + P(p.r1w) + '</td><td class="num ' + cl(p.r4w) + '">' + P(p.r4w) + '</td><td class="num ' + cl(p.r26w) + '">' + P(p.r26w) + '</td><td class="num ' + cl(p.r52w) + '">' + P(p.r52w) + '</td>' +
+      '<td class="num ' + cl(v200) + '">' + P(v200) + '</td><td class="num">' + (p.rsi == null ? '–' : p.rsi.toFixed(0)) + '</td><td>' + tr(r.trend) + '</td>' +
+      '<td class="num ' + (r.px.carry && r.px.carry.seasonal ? '' : cl(r.carry)) + '" title="' + r.cTxt + '">' + (r.carry == null ? '–' : P(r.carry)) + (r.px.carry && r.px.carry.seasonal ? '*' : '') + '</td>' +
+      '<td>' + r.rule + '</td><td class="num">' + Math.round(r.cot) + '</td><td class="num">' + (r.vol ? Math.round(r.vol * 100) + '%' : '–') + '</td>' +
+      '<td class="num">' + (r.size > 0 ? (r.dir > 0 ? '<span class="pos">L ' : '<span class="neg">S ') + Math.round(r.size * 100) + '%</span>' : '–') + '</td>' +
+      '<td class="num" title="position in 52-week range">' + (rng == null ? '–' : '<span class="cotbar" style="background:linear-gradient(90deg,#e9ecef,#cfd8e6)"><i style="left:' + rng.toFixed(0) + '%"></i></span>' + rng.toFixed(0) + '%') + '</td></tr>';
+  }).join('');
 }

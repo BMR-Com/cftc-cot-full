@@ -205,5 +205,104 @@ var COTInsights = (function () {
     return out;
   }
 
-  return { analyze: analyze, brief: brief, scatterRows: scatterRows, k: k, sk: sk, ord: ord, WIN_LBL: WIN_LBL, cotIdx: cotIdx };
+  /* ===========================================================
+     TRADE IDEAS — research rules first, positioning & technicals second
+     -----------------------------------------------------------
+     1. Trend (time-series momentum; Moskowitz–Ooi–Pedersen, Baltas): sign of the
+        12m return, confirmed by the 6m return and price vs 200-day. Partial
+        confirmation = half weight.
+     2. Carry (Gorton–Hayashi–Rouwenhorst, Erb–Harvey): front vs same month next
+        year, annualised. Ignored on seasonal curves (NG, cattle, hogs; Fama–French).
+        Trend+carry agree → full size; trend alone → half; conflict → flat.
+     3. Size: inverse volatility (60d realised), 10% vol target per full position,
+        capped (half-Kelly spirit); halved in an equity risk-off regime
+        (S&P < 200d and VIX > 25; Daniel–Moskowitz crash risk).
+     4. COT overlay: trend trades into crowded positioning are cut in half;
+        contrarian COT setups become tactical ideas only once price confirms
+        (close > 20d SMA and 4w return turning in the setup's direction).
+     5. Levels: stop 2×ATR(14), target 2R; RSI flags stretched entries.
+     Ideas are a systematic read of positioning + price, not advice.
+     =========================================================== */
+  var CARRY_MIN = 0.02, VOL_TARGET = 0.10, MAX_W = 2.0;
+  function pctf(x, d) { return x == null ? '–' : (x >= 0 ? '+' : '−') + Math.abs(x * 100).toFixed(d == null ? 1 : d) + '%'; }
+  function pxf(v) { if (v == null) return '–'; var a = Math.abs(v); return a >= 1000 ? v.toFixed(0) : a >= 100 ? v.toFixed(1) : a >= 10 ? v.toFixed(2) : v.toFixed(3); }
+
+  function ideas(snap, a) {
+    var reg = snap.regime || {}, riskOff = !!reg.risk_off, out = [], flat = [], watch = [], board = [];
+    var byTk = {}; a.rows.forEach(function (r) { byTk[r.ticker] = r; });
+    (snap.commodities || []).forEach(function (cm) {
+      var r = byTk[cm.ticker], px = cm.px; if (!r || !px || px.close == null) return;
+      var t = px.trend || 0, dir = t > 0 ? 1 : t < 0 ? -1 : 0;
+      var cy = px.carry, cAnn = cy && cy.ann != null ? cy.ann : null;
+      var cSig = (cAnn == null || cy.seasonal || Math.abs(cAnn) < CARRY_MIN) ? 0 : (cAnn > 0 ? 1 : -1);
+      var cTxt = cAnn == null ? 'carry n/a' : (cy.seasonal ? 'carry ignored (seasonal curve)' : (cAnn > 0 ? 'backwardation ' : 'contango ') + pctf(cAnn) + '/yr (' + cy.front + ' vs ' + cy.deferred + ')');
+      var base = 0, rule;
+      if (!dir) rule = 'no trend';
+      else if (cSig === dir) { base = 1; rule = 'trend + carry agree'; }
+      else if (cSig === 0) { base = 0.5; rule = 'trend only'; }
+      else rule = 'trend and carry conflict';
+      var size = base * Math.abs(t);
+      var notes = [], crowdAgainst = false;
+      if (size > 0) {
+        if (dir > 0 && r.cot >= 85) { size *= 0.5; crowdAgainst = true; notes.push('funds already crowded long (COT idx ' + Math.round(r.cot) + ') — size halved'); }
+        if (dir < 0 && r.cot <= 15) { size *= 0.5; crowdAgainst = true; notes.push('funds already crowded short (COT idx ' + Math.round(r.cot) + ') — size halved'); }
+        if (dir > 0 && r.cot <= 35) notes.push('room for funds to buy: positioning light (COT idx ' + Math.round(r.cot) + ')');
+        if (dir < 0 && r.cot >= 65) notes.push('liquidation fuel: funds still long (COT idx ' + Math.round(r.cot) + ')');
+        if (riskOff) { size *= 0.5; notes.push('risk-off regime (S&P < 200d, VIX ' + reg.vix + ') — size halved'); }
+      }
+      var vol = px.rv60 || px.rv20 || null;
+      var w = vol ? Math.min(MAX_W, VOL_TARGET / vol) * size : 0;
+      var row = { name: cm.name, ticker: cm.ticker, sector: cm.sector, px: px, trend: t, dir: dir, carry: cAnn, cTxt: cTxt, rule: rule, size: size, vol: vol, w: w, cot: r.cot, r: r };
+      board.push(row);
+
+      var lv = function (d, mult) {
+        var atr = px.atr || 0, stop = px.close - d * 2 * atr, tgt = px.close + d * 4 * atr;
+        return { entry: px.close, stop: stop, target: tgt, stopPct: (stop / px.close - 1), tgtPct: (tgt / px.close - 1) };
+      };
+      var tech = [];
+      if (px.rsi != null) {
+        if (px.rsi >= 70) tech.push('RSI ' + px.rsi.toFixed(0) + ' overbought');
+        else if (px.rsi <= 30) tech.push('RSI ' + px.rsi.toFixed(0) + ' oversold');
+        else tech.push('RSI ' + px.rsi.toFixed(0));
+      }
+      if (px.hi52 && px.close >= px.hi52 * 0.97) tech.push('within 3% of 52-wk high');
+      if (px.lo52 && px.close <= px.lo52 * 1.03) tech.push('within 3% of 52-wk low');
+      if (px.sma20 && px.sma50) tech.push(px.close > px.sma20 ? 'above 20d SMA' : 'below 20d SMA');
+
+      if (size > 0) {
+        var stretched = (dir > 0 && px.rsi >= 70) || (dir < 0 && px.rsi <= 30);
+        var conv = size >= 0.75 && !crowdAgainst ? 'High' : size >= 0.4 ? 'Medium' : 'Low';
+        out.push({
+          kind: 'Systematic', side: dir > 0 ? 'LONG' : 'SHORT', dir: dir, row: row, conv: conv, lv: lv(dir),
+          why: [
+            'Trend: 12m ' + pctf(px.r52w) + ', 6m ' + pctf(px.r26w) + ', price ' + (px.close > px.sma200 ? 'above' : 'below') + ' 200d (' + pxf(px.sma200) + ')' + (Math.abs(t) < 1 ? ' — partial confirmation' : ''),
+            'Carry: ' + cTxt + ' → ' + rule,
+            'COT: ' + r.reg.lbl.toLowerCase() + ', ' + (r.mm.dN >= 0 ? 'net bought ' : 'net sold ') + COTInsights.k(Math.abs(r.mm.dN)) + ' w/w (' + r.drv.main + ')',
+            'Technicals: ' + tech.join(', ')
+          ].concat(notes),
+          timing: stretched ? 'Stretched (RSI ' + px.rsi.toFixed(0) + ') — better entry on a pullback toward the 20d SMA ' + pxf(px.sma20) + '.' : 'Entry at market is consistent with the rules.'
+        });
+      } else {
+        var cs = r.score;
+        var confirmUp = px.close > px.sma20 && (px.r4w || 0) > 0, confirmDn = px.close < px.sma20 && (px.r4w || 0) < 0;
+        if (cs >= 45 || cs <= -45) {
+          var d2 = cs > 0 ? 1 : -1, ok = d2 > 0 ? confirmUp : confirmDn;
+          var item = {
+            kind: 'Tactical (COT contrarian)', side: d2 > 0 ? 'LONG' : 'SHORT', dir: d2, row: row, conv: ok ? 'Low' : 'Watch', lv: lv(d2),
+            why: ['COT: ' + r.read, 'Price: 4w ' + pctf(px.r4w) + ', ' + (px.close > px.sma20 ? 'above' : 'below') + ' 20d SMA (' + pxf(px.sma20) + '); trend rule says ' + rule + (dir ? ' (' + (dir > 0 ? 'up' : 'down') + ')' : ''), 'Technicals: ' + tech.join(', ')],
+            timing: ok ? 'Price has started to confirm the positioning turn — small tactical size only; the 12m trend is not on side.' : 'Not yet confirmed by price — wait for a close ' + (d2 > 0 ? 'above' : 'below') + ' the 20d SMA (' + pxf(px.sma20) + ') with the 4-week return turning ' + (d2 > 0 ? 'positive' : 'negative') + '.'
+          };
+          if (ok) { item.row = Object.assign({}, row, { size: 0.25, w: vol ? Math.min(MAX_W, VOL_TARGET / vol) * 0.25 : 0 }); out.push(item); }
+          else watch.push(item);
+        } else flat.push(row);
+      }
+    });
+    var totW = out.reduce(function (s, i) { return s + (i.row.w || 0); }, 0) || 1;
+    out.forEach(function (i) { i.riskShare = (i.row.w || 0) / totW; });
+    var rank = { High: 3, Medium: 2, Low: 1, Watch: 0 };
+    out.sort(function (x, y) { return (rank[y.conv] - rank[x.conv]) || (y.riskShare - x.riskShare); });
+    return { ideas: out, watch: watch, flat: flat, board: board, regime: reg, riskOff: riskOff, pricesAt: snap.prices_fetched };
+  }
+
+  return { analyze: analyze, brief: brief, scatterRows: scatterRows, ideas: ideas, pctf: pctf, pxf: pxf, k: k, sk: sk, ord: ord, WIN_LBL: WIN_LBL, cotIdx: cotIdx };
 })();
