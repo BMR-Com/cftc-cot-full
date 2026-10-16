@@ -1,0 +1,23 @@
+name: CFTC Market Check
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install requests pandas numpy python-dateutil
+      - run: python scripts/check_markets.py
+      - name: Push results to diagnostics branch
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git checkout -B diagnostics
+          git add -f data/diagnostics/market_check.json
+          git commit -m "CFTC market check $(date -u +%F)"
+          git push -f origin diagnostics
