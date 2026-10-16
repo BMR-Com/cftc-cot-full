@@ -265,9 +265,9 @@ var COTInsights = (function () {
         else if (px.rsi <= 30) tech.push('RSI ' + px.rsi.toFixed(0) + ' oversold');
         else tech.push('RSI ' + px.rsi.toFixed(0));
       }
-      if (px.hi52 && px.close >= px.hi52 * 0.97) tech.push('within 3% of 52-wk high');
-      if (px.lo52 && px.close <= px.lo52 * 1.03) tech.push('within 3% of 52-wk low');
-      if (px.sma20 && px.sma50) tech.push(px.close > px.sma20 ? 'above 20d SMA' : 'below 20d SMA');
+      if (px.rng52 != null && px.rng52 >= 95) tech.push('at top of 52-wk range');
+      if (px.rng52 != null && px.rng52 <= 5) tech.push('at bottom of 52-wk range');
+      if (px.sma20) tech.push(px.close > px.sma20 ? 'above 20d SMA' : 'below 20d SMA');
 
       if (size > 0) {
         var stretched = (dir > 0 && px.rsi >= 70) || (dir < 0 && px.rsi <= 30);
@@ -275,7 +275,7 @@ var COTInsights = (function () {
         out.push({
           kind: 'Systematic', side: dir > 0 ? 'LONG' : 'SHORT', dir: dir, row: row, conv: conv, lv: lv(dir),
           why: [
-            'Trend: 12m ' + pctf(px.r52w) + ', 6m ' + pctf(px.r26w) + ', price ' + (px.close > px.sma200 ? 'above' : 'below') + ' 200d (' + pxf(px.sma200) + ')' + (Math.abs(t) < 1 ? ' — partial confirmation' : ''),
+            'Trend (roll-adjusted): 12m ' + pctf(px.r52w) + ', 6m ' + pctf(px.r26w) + ', ' + pctf(px.vs200) + ' vs 200d' + (Math.abs(t) < 1 ? ' — partial confirmation' : ''),
             'Carry: ' + cTxt + ' → ' + rule,
             'COT: ' + r.reg.lbl.toLowerCase() + ', ' + (r.mm.dN >= 0 ? 'net bought ' : 'net sold ') + COTInsights.k(Math.abs(r.mm.dN)) + ' w/w (' + r.drv.main + ')',
             'Technicals: ' + tech.join(', ')

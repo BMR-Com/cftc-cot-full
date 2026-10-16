@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PDIR = ROOT / "data" / "prices"
 DAILY = PDIR / "daily.csv"
 REPORT = PDIR / "report.json"
+FRONT = PDIR / "front_contract.csv"   # ~1y daily history of the current tradable contract per market
 
 # our ticker -> Yahoo continuous symbol, contract root, exchange suffix, listed months
 YAHOO = {
@@ -148,10 +149,24 @@ def main():
     except Exception as e:
         report["regime"] = {"error": str(e)}
 
-    # ── carry: front vs same month next year ──
+    # ── carry: front vs same month next year (+ front contract's own history) ──
     pairs = {tk: contract_pair(tk, today) for tk in YAHOO}
     csyms = sorted({s for p in pairs.values() if p for s in p[:2]})
-    cd = _dl(csyms, period="10d", interval="1d")
+    cd = _dl(csyms, period="1y", interval="1d")
+    fr = []
+    for tk, p in pairs.items():
+        if not p:
+            continue
+        f = _frame(cd, p[0])
+        if len(f):
+            f = f.reset_index(); f.columns = ["date"] + list(f.columns[1:]); f["ticker"] = tk; f["contract"] = p[2]; fr.append(f)
+    if fr:
+        fc = pd.concat(fr, ignore_index=True)
+        for c in ["open", "high", "low", "close"]:
+            fc[c] = fc[c].astype(float).round(5)
+        fc["volume"] = fc["volume"].fillna(0).astype("int64")
+        fc[["date", "ticker", "contract", "open", "high", "low", "close", "volume"]].to_csv(FRONT, index=False, date_format="%Y-%m-%d")
+        print(f"Saved {FRONT.name}: {len(fc):,} rows for {fc.ticker.nunique()} contracts")
     for tk, p in pairs.items():
         if not p:
             continue

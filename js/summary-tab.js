@@ -241,7 +241,7 @@ function renderIdeas() {
   function card(i) {
     var r = i.row, l = i.lv, cls = i.dir > 0 ? 'long' : 'short';
     return '<div class="idea ' + cls + '"><div class="idea-h"><div><span class="idea-t" onclick="openInCot(\'' + r.ticker + '\')"><span class="idea-side">' + i.side + '</span>' + r.name + ' <small style="color:#888;font-weight:400">' + r.ticker + '</small></span><div class="idea-k">' + i.kind + (i.riskShare != null && i.conv !== 'Watch' ? ' · ' + Math.round(i.riskShare * 100) + '% of risk budget' : '') + '</div></div><span class="conv conv-' + i.conv + '">' + i.conv + '</span></div>' +
-      '<div class="lvls"><div><span>Ref</span><b>' + X(l.entry) + '</b></div><div><span>Stop (2×ATR)</span><b>' + X(l.stop) + '</b><span>' + P(l.stopPct) + '</span></div><div><span>Target (2R)</span><b>' + X(l.target) + '</b><span>' + P(l.tgtPct) + '</span></div><div><span>Size</span><b>' + (r.size >= 1 ? 'Full' : r.size >= 0.5 ? 'Half' : r.size > 0 ? Math.round(r.size * 100) + '%' : '—') + '</b><span>vol ' + (r.vol ? Math.round(r.vol * 100) + '%' : '–') + '</span></div></div>' +
+      '<div class="lvls"><div><span>Ref' + (r.px.contract ? ' ' + r.ticker + r.px.contract : '') + '</span><b>' + X(l.entry) + '</b></div><div><span>Stop (2×ATR)</span><b>' + X(l.stop) + '</b><span>' + P(l.stopPct) + '</span></div><div><span>Target (2R)</span><b>' + X(l.target) + '</b><span>' + P(l.tgtPct) + '</span></div><div><span>Size</span><b>' + (r.size >= 1 ? 'Full' : r.size >= 0.5 ? 'Half' : r.size > 0 ? Math.round(r.size * 100) + '%' : '—') + '</b><span>vol ' + (r.vol ? Math.round(r.vol * 100) + '%' : '–') + '</span></div></div>' +
       '<ul>' + i.why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul><div class="tm">' + i.timing + '</div>' +
       (r.px.note ? '<div class="mon-note" style="margin-top:6px">Note: ' + r.px.note + '</div>' : '') + '</div>';
   }
@@ -251,9 +251,9 @@ function renderIdeas() {
   var tr = function (t) { return t === 1 ? '<span class="pos">▲ up</span>' : t === 0.5 ? '<span class="pos">△ up (partial)</span>' : t === -1 ? '<span class="neg">▼ down</span>' : t === -0.5 ? '<span class="neg">▽ down (partial)</span>' : '<span style="color:#888">— none</span>'; };
   var cl = function (x) { return x == null ? '' : x >= 0 ? 'pos' : 'neg'; };
   document.getElementById('boardBody').innerHTML = I.board.slice().sort(function (a, b) { return b.size * b.dir - a.size * a.dir || b.trend - a.trend; }).map(function (r) {
-    var p = r.px, v200 = p.sma200 ? p.close / p.sma200 - 1 : null, rng = (p.hi52 > p.lo52) ? (p.close - p.lo52) / (p.hi52 - p.lo52) * 100 : null;
+    var p = r.px, v200 = p.vs200, rng = p.rng52;
     return '<tr><td><span class="mk" onclick="openInCot(\'' + r.ticker + '\')">' + r.name + '</span><span class="tk">' + r.ticker + '</span></td>' +
-      '<td class="num">' + X(p.close) + '</td><td class="num ' + cl(p.r1w) + '">' + P(p.r1w) + '</td><td class="num ' + cl(p.r4w) + '">' + P(p.r4w) + '</td><td class="num ' + cl(p.r26w) + '">' + P(p.r26w) + '</td><td class="num ' + cl(p.r52w) + '">' + P(p.r52w) + '</td>' +
+      '<td class="num" title="' + (p.contract ? r.ticker + p.contract : 'continuous front') + '">' + X(p.close) + (p.contract ? ' <small style="color:#888">' + p.contract + '</small>' : '') + '</td><td class="num ' + cl(p.r1w) + '">' + P(p.r1w) + '</td><td class="num ' + cl(p.r4w) + '">' + P(p.r4w) + '</td><td class="num ' + cl(p.r26w) + '">' + P(p.r26w) + '</td><td class="num ' + cl(p.r52w) + '">' + P(p.r52w) + '</td>' +
       '<td class="num ' + cl(v200) + '">' + P(v200) + '</td><td class="num">' + (p.rsi == null ? '–' : p.rsi.toFixed(0)) + '</td><td>' + tr(r.trend) + '</td>' +
       '<td class="num ' + (r.px.carry && r.px.carry.seasonal ? '' : cl(r.carry)) + '" title="' + r.cTxt + '">' + (r.carry == null ? '–' : P(r.carry)) + (r.px.carry && r.px.carry.seasonal ? '*' : '') + '</td>' +
       '<td>' + r.rule + '</td><td class="num">' + Math.round(r.cot) + '</td><td class="num">' + (r.vol ? Math.round(r.vol * 100) + '%' : '–') + '</td>' +
