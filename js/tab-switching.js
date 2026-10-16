@@ -33,6 +33,9 @@ function switchTab(tab){
   // Call init functions for already-loaded tabs
   if(tab==='ai' && _tabLoaded['ai']) initAiTab();
   if(tab==='formula' && _tabLoaded['formula']) initFormulaTab();
+  // First visit to the COT Analyzer: show Cotton straight away instead of an empty page
+  if(tab==='cot' && _tabLoaded['cot']) autoLoadDefaultMarket();
+  if(tab==='cot' && !_tabLoaded['cot']) setTimeout(function wait(){ if(_tabLoaded['cot']) autoLoadDefaultMarket(); else setTimeout(wait,150); },150);
 }
 
 /* ===========================================================
@@ -40,3 +43,13 @@ function switchTab(tab){
    =========================================================== */
 var _aiInited = false;
 
+
+var _autoLoaded=false;
+function autoLoadDefaultMarket(){
+  if(_autoLoaded||typeof CD==='undefined'||CD)return;
+  var sel=document.getElementById('commoditySelect');if(!sel||sel.value)return;
+  var o=sel.querySelector('option[data-tk="CT"]');if(!o)return;
+  _autoLoaded=true;sel.value=o.value;
+  if(typeof onCommChange==='function')onCommChange();
+  if(typeof fetchData==='function')fetchData();
+}

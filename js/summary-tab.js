@@ -75,6 +75,7 @@ function renderDesk() {
     card('&#x26A0;&#xFE0F; Long-liquidation risk', 'warn', a.liqRisk, function (r) { return 'longs ' + COTInsights.ord(r.mm.p.L[a.win]) + ' pct'; });
 
   try { renderIdeas(); } catch (e) { console.error('[Ideas]', e); }
+  try { renderSofts(); } catch (e) { console.error('[Softs]', e); }
   renderSectors();
   renderMonitor();
   renderLeagueAndRanges();
@@ -174,6 +175,7 @@ function popExec(data) { document.getElementById('execSec').style.display = 'blo
 /* Jump from Summary to the full COT Analyzer for one market */
 function openInCot(ticker) {
   var it = allBCOM.filter(function (b) { return b.ticker === ticker; })[0]; if (!it) return;
+  window._autoLoaded = true; try { _autoLoaded = true; } catch (e) { }
   switchTab('cot');
   var go = function () {
     var sel = document.getElementById('commoditySelect'); if (!sel) return setTimeout(go, 100);
@@ -259,5 +261,36 @@ function renderIdeas() {
       '<td>' + r.rule + '</td><td class="num">' + Math.round(r.cot) + '</td><td class="num">' + (r.vol ? Math.round(r.vol * 100) + '%' : '–') + '</td>' +
       '<td class="num">' + (r.size > 0 ? (r.dir > 0 ? '<span class="pos">L ' : '<span class="neg">S ') + Math.round(r.size * 100) + '%</span>' : '–') + '</td>' +
       '<td class="num" title="position in 52-week range">' + (rng == null ? '–' : '<span class="cotbar" style="background:linear-gradient(90deg,#e9ecef,#cfd8e6)"><i style="left:' + rng.toFixed(0) + '%"></i></span>' + rng.toFixed(0) + '%') + '</td></tr>';
+  }).join('');
+}
+
+
+/* ===========================================================
+   SOFTS FOCUS — cocoa, coffee, sugar, cotton side by side
+   =========================================================== */
+var SOFTS = ['CT', 'KC', 'CC', 'SB'];
+function renderSofts() {
+  var el = document.getElementById('softCards'); if (!el || !_snap || !_deskA) return;
+  var rows = {}; _deskA.rows.forEach(function (r) { rows[r.ticker] = r; });
+  var ideaBy = {}; if (_ideas) { _ideas.ideas.forEach(function (i) { ideaBy[i.row.ticker] = i; }); _ideas.watch.forEach(function (i) { ideaBy[i.row.ticker] = i; }); }
+  var snapBy = {}; (_snap.commodities || []).forEach(function (c) { snapBy[c.ticker] = c; });
+  var K = COTInsights.k, SK = COTInsights.sk, P = COTInsights.pctf, X = COTInsights.pxf, W = _deskA.win;
+  el.innerHTML = SOFTS.map(function (tk) {
+    var r = rows[tk], cm = snapBy[tk]; if (!r || !cm) return '';
+    var px = cm.px || {}, i = ideaBy[tk];
+    var crop = '';
+    ['old', 'other'].forEach(function (ct) {
+      var v = cm.v[ct]; if (!v || !v.cats || !v.cats.managed_money) return;
+      var mm = v.cats.managed_money, ci = COTInsights.cotIdx(mm, W);
+      crop += '<div><span>' + (ct === 'old' ? 'Old crop' : 'New crop') + '</span><b>' + K(mm.N) + '</b><span>COT idx ' + Math.round(ci) + '</span></div>';
+    });
+    if (!crop) crop = '<div style="grid-column:span 2"><span>Crop-year split</span><b>n/a</b><span>not reported for ' + cm.name + '</span></div>';
+    var tr = px.trend > 0 ? '<span class="pos">▲ uptrend' + (px.trend < 1 ? ' (partial)' : '') + '</span>' : px.trend < 0 ? '<span class="neg">▼ downtrend' + (px.trend > -1 ? ' (partial)' : '') + '</span>' : '<span style="color:#888">no trend</span>';
+    var idea = i ? '<span class="conv conv-' + i.conv + '">' + i.side + ' · ' + i.conv + '</span>' : '<span class="conv conv-Low">No trade</span>';
+    return '<div class="soft"><div class="soft-h"><div><span class="idea-t" onclick="openInCot(\'' + tk + '\')">' + cm.name + '</span> <small style="color:#888">' + (px.contract || tk) + ' ' + X(px.close) + ' <span class="' + ((px.r4w || 0) >= 0 ? 'pos' : 'neg') + '">' + P(px.r4w) + ' 4w</span></small></div>' + idea + '</div>' +
+      '<div class="soft-row"><span class="badge b-' + r.reg.tone + '">' + r.reg.lbl + '</span> ' + tr + '</div>' +
+      '<div class="lvls"><div><span>MM net</span><b>' + K(r.mm.N) + '</b><span class="' + (r.mm.dN >= 0 ? 'pos' : 'neg') + '">' + SK(r.mm.dN) + ' w/w</span></div><div><span>COT idx</span><b>' + Math.round(r.cot) + '</b><span>' + COTInsights.WIN_LBL[W] + '</span></div>' + crop + '</div>' +
+      '<div class="soft-row" style="justify-content:space-between">' + spark(r.mm.spark, 150, 26) + '<small>P/M ' + (r.pmP == null ? '–' : COTInsights.ord(r.pmP)) + ' pct · flow ' + (r.z >= 0 ? '+' : '−') + Math.abs(r.z).toFixed(1) + 'σ</small></div>' +
+      '<div class="soft-read">' + r.read + '</div></div>';
   }).join('');
 }

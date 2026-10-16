@@ -409,36 +409,6 @@ function toggleDbg(){
   }
   c.innerHTML=h;
 }
-function doPrint(){
-  /* Load all tabs first so every section appears in the PDF */
-  enterPrintMode().then(function(){
-  /* Explicitly resize every chart canvas to its print height before printing.
-     This ensures Chart.js redraws at the correct size rather than overflowing. */
-  var pH={
-    posChart:210,cmpChart:200,trdChart:210,szChart:200,seaChart:330,
-    sc1:195,sc2:195,sc3:195,sc4:195,sc5:195,sc6:195,
-    sp1:195,sp2:195,sp3:195,sp4:195,sp5:195,sp6:195,
-    aSeaChartOld:200,aSeaChartOther:200,aSeaChartAll:200
-  };
-  var saved=[];
-  Object.keys(pH).forEach(function(id){
-    var canvas=document.getElementById(id);if(!canvas)return;
-    var cont=canvas.parentElement;
-    saved.push({el:cont,h:cont.style.height});
-    cont.style.height=pH[id]+'px';
-  });
-  /* Resize all Chart.js instances */
-  Object.keys(charts).forEach(function(k){if(charts[k]&&charts[k].resize){try{charts[k].resize();}catch(e){}}});
-  setTimeout(function(){
-    window.print();
-    setTimeout(function(){
-      saved.forEach(function(s){s.el.style.height=s.h||'';});
-      Object.keys(charts).forEach(function(k){if(charts[k]&&charts[k].resize){try{charts[k].resize();}catch(e){}}});
-    },600);
-  },400);
-  });
-}
-
 
 /* ===========================================================
    SHARED TABLE HELPERS (used by Summary and the agri panels in Seasonality)

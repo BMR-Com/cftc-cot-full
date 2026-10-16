@@ -43,6 +43,11 @@
 .scorebar:before{content:'';position:absolute;left:50%;top:-2px;height:14px;width:1px;background:#999;}
 .flag{display:inline-block;margin-right:4px;font-size:.95em;}
 .mon-note{font-size:.76em;color:#555;margin-top:10px;line-height:1.5;}
+.softs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;}
+.soft{border:1px solid #e1e6ec;border-radius:10px;padding:12px 14px;background:#fbfcfd;}
+.soft-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.soft-row{display:flex;align-items:center;gap:8px;font-size:.8em;margin:4px 0;flex-wrap:wrap;}
+.soft-read{font-size:.78em;color:#444;line-height:1.45;margin-top:6px;border-top:1px dashed #e1e6ec;padding-top:6px;}
 .ideas{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;}
 .idea{border:1px solid #e1e6ec;border-radius:10px;padding:12px 14px;background:#fff;border-left:5px solid #999;}
 .idea.long{border-left-color:#1a8c4e;} .idea.short{border-left-color:#c0392b;}
@@ -63,6 +68,14 @@
 @media (max-width:768px){.brief-grid{grid-template-columns:1fr;}.brief-grid .bh{padding-top:8px;}}
 @media print{.desk{box-shadow:none;padding:6px 8px;page-break-inside:avoid;}.desk-ctl{display:none!important;}.brief-grid{font-size:7pt;}.mon{font-size:5.5pt;}.mon-wrap{max-height:none;overflow:visible;}.mon td.read{min-width:0;}.setups{font-size:7pt;}}
 </style>
+
+<!-- ============================================================
+     SOFTS FOCUS
+     ============================================================ -->
+<div class="desk" id="softsSec">
+  <div class="desk-hdr"><div><div class="desk-title">&#x2615; Softs Focus — Cocoa · Coffee · Sugar · Cotton</div><div class="desk-sub">Managed-money positioning, old/new-crop split, price trend and current trade idea. Click a market for the full COT history.</div></div></div>
+  <div class="softs" id="softCards"></div>
+</div>
 
 <!-- ============================================================
      DESK BRIEF — trader-style narrative from the weekly snapshot

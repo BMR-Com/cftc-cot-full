@@ -3,7 +3,7 @@
 <header>
   <h1>&#x1F4CA; Bloomberg Commodity Index COT Analyzer</h1>
   <div class="subtitle">CFTC Commitment of Traders - BCOM Constituents Only</div>
-  <div class="info-box"><strong>Source:</strong> CFTC Disaggregated Reports &nbsp;|&nbsp; <strong>Index:</strong> BCOM 2026 Target Weights &nbsp;|&nbsp; <strong>Coverage:</strong> 23 commodities &nbsp;|&nbsp; <strong>Update:</strong> Weekly (Fri 3:30 PM ET)</div>
+  <div class="info-box"><strong>Source:</strong> CFTC Disaggregated Reports &nbsp;|&nbsp; <strong>Index:</strong> BCOM 2026 Target Weights &nbsp;|&nbsp; <strong>Coverage:</strong> 21 CFTC-reported BCOM markets &nbsp;|&nbsp; <strong>Update:</strong> Weekly (Fri 3:30 PM ET)</div>
 </header>
 
 <div class="controls">
@@ -15,7 +15,6 @@
   <div class="control-group"><label>End</label><input type="date" id="endDate"></div>
   <button id="fetchBtn" onclick="fetchData()">&#x1F4C8; Generate Charts</button>
   <button onclick="dlCSV()" style="background:#6c3483;">&#x2B07;&#xFE0F; CSV</button>
-  <button onclick="doPrint()" style="background:#c0392b;">&#x1F5A8;&#xFE0F; Print</button>
 </div>
 
 <div class="loading" id="loading"><div class="spinner"></div><div id="loadingText">Loading...</div></div>
