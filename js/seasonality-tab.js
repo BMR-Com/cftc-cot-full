@@ -4,7 +4,13 @@
    =========================================================== */
 
 function initSeasonalityTab() {
-    console.log('[Seasonality Tab] Initialized');
+  /* Show the weekly seasonality straight away from cached static data —
+     no need to click Generate in the COT tab first. */
+  document.getElementById('chart5').style.display = 'block';
+  buildSeaCommSel();
+  if (!document.querySelector('#seaYrSel .yr-chip')) popYears();
+  drawSea();
+  doAgriCrop();
 }
 
 /* ===========================================================
@@ -20,7 +26,8 @@ function buildSeaCommSel(){
   var bn=document.createElement('button');bn.type='button';bn.className='chip-none comm-chip';bn.textContent='NONE';bn.style.cssText='margin-top:0;min-width:auto;';
   bn.onclick=function(){seaComms=new Set([allApis[0]]);refreshSeaChips();drawSea();};ct.appendChild(bn);
   /* Default: always start with just the currently-selected commodity */
-  if(seaComms.size===0||true){seaComms=new Set(CD?[CD.comm]:[allApis[0]]);}
+  var dflt=CD&&allApis.indexOf(CD.comm)!==-1?CD.comm:(allBCOM.filter(function(b){return b.ticker==='CT';})[0]||allBCOM[0]).api;
+  seaComms=new Set([dflt]);
   var cs='';
   allBCOM.forEach(function(bc){
     if(bc.sector!==cs){cs=bc.sector;var lb=document.createElement('span');lb.textContent='—'+bc.sector.split('(')[0].trim()+'—';lb.style.cssText='font-size:0.7em;color:#666;white-space:nowrap;';ct.appendChild(lb);}
@@ -34,45 +41,68 @@ function refreshSeaChips(){
   var el=document.getElementById('seaCount');if(el)el.textContent='('+seaComms.size+'/'+allBCOM.length+')';
 }
 function popYears(){
-  if(!CD)return;var ys={};CD.dates.forEach(function(d){ys[new Date(d).getFullYear()]=true;});
-  var yrs=Object.keys(ys).map(Number).sort(),ct=document.getElementById('seaYrSel');ct.innerHTML='<strong style="font-size:0.85em;">Years:</strong>';
+  var ys={};
+  if(CD&&CD.dates.length){CD.dates.forEach(function(d){ys[+d.slice(0,4)]=true;});}
+  else{var y1=COTStore.man?+COTStore.man.report_date.slice(0,4):new Date().getFullYear();for(var y=2006;y<=y1;y++)ys[y]=true;}
+  var yrs=Object.keys(ys).map(Number).sort(),ct=document.getElementById('seaYrSel');if(!ct)return;ct.innerHTML='<strong style="font-size:0.85em;">Years:</strong>';
   seaYrs=new Set(yrs.slice(-3));
   yrs.forEach(function(y){var c=document.createElement('div');c.className='yr-chip'+(seaYrs.has(y)?' active':'');c.textContent=y;c.onclick=function(){if(seaYrs.has(y)&&seaYrs.size>1){seaYrs.delete(y);c.classList.remove('active');}else if(!seaYrs.has(y)){seaYrs.add(y);c.classList.add('active');}drawSea();};ct.appendChild(c);});
 }
+var seaRaw={};  /* api -> raw source (static series wrapper or live records); category applied per draw */
+function seaLoad(api,ep){
+  if(seaRaw[api])return Promise.resolve(seaRaw[api]);
+  return COTStore.seriesForApi(api).then(function(ser){return seaRaw[api]=staticRaw(ser,api);})
+  .catch(function(){
+    return fetchT(ep+"?$where="+liveWhere(api)+" AND report_date_as_yyyy_mm_dd >= '2006-01-01'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000",25000)
+      .then(function(r){return r.json();}).then(function(d){if(d.length)seaRaw[api]=d;return seaRaw[api];});
+  });
+}
 function drawSea(){
+  if(!document.getElementById('seaChart'))return;
   var metric=document.getElementById('seaMet').value,agg=document.getElementById('seaAgg').value;
   var comms=Array.from(seaComms);if(!comms.length)return;
-  var tc=document.getElementById('traderCategory').value,ep=EP[document.getElementById('reportType').value];
-  var toFetch=comms.filter(function(c){return!seaCache[c];});
-  if(toFetch.length>0){
-    var done=0;
-    toFetch.forEach(function(c){
-      fetchT(ep+"?$where=market_and_exchange_names='"+c.replace(/'/g,"''")+"' AND report_date_as_yyyy_mm_dd >= '2006-01-01'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000",20000)
-      .then(function(r){return r.json();}).then(function(d){if(d.length>0)seaCache[c]=procData(d,tc);}).catch(function(){})
-      .finally(function(){done++;if(done>=toFetch.length)renderSea(metric,agg,comms,'seaChart','sea','seaNote',seaYrs);});
-    });
-  } else renderSea(metric,agg,comms,'seaChart','sea','seaNote',seaYrs);
+  var tc=document.getElementById('traderCategory')?document.getElementById('traderCategory').value:'managed_money';
+  var ep=EP[document.getElementById('reportType')?document.getElementById('reportType').value:'combined']||EP.combined;
+  var note=document.getElementById('seaNote');if(note&&comms.some(function(c){return!seaRaw[c];}))note.textContent='Loading…';
+  Promise.all(comms.map(function(c){return seaLoad(c,ep).catch(function(){return null;});})).then(function(){
+    var map={};comms.forEach(function(c){if(seaRaw[c]){var p=procData(seaRaw[c],tc,'all');if(p)map[c]=p;}});
+    var band=document.getElementById('seaBand');
+    renderSea(metric,agg,comms,'seaChart','sea','seaNote',seaYrs,map,band&&band.checked);
+  });
 }
 
-function renderSea(metric,agg,comms,canvasId,chartKey,noteId,yearsSet){
-  var yd={};
-  comms.forEach(function(comm){var p=seaCache[comm];if(!p)return;
-    p.dates.forEach(function(date,di){var yr=new Date(date).getFullYear();if(!yearsSet.has(yr))return;var w=wk(new Date(date));if(!yd[yr])yd[yr]={};if(!yd[yr][w])yd[yr][w]={s:0,c:0};
+function renderSea(metric,agg,comms,canvasId,chartKey,noteId,yearsSet,dataMap,showBand){
+  var src=dataMap||seaCache,yd={},maxYr=0;
+  comms.forEach(function(comm){var p=src[comm];if(p&&p.dates.length)maxYr=Math.max(maxYr,+p.dates[p.dates.length-1].slice(0,4));});
+  var bandYrs={};if(showBand)for(var by=maxYr-5;by<maxYr;by++)bandYrs[by]=true;
+  var cw={}; /* comm|yr|week -> {s,c}: average within a week per market first (two reports can share an ISO week after holidays/shutdowns) */
+  comms.forEach(function(comm){var p=src[comm];if(!p)return;
+    p.dates.forEach(function(date,di){var yr=+date.slice(0,4);if(!yearsSet.has(yr)&&!bandYrs[yr])return;var w=wk(new Date(date));var key=comm+'|'+yr+'|'+w;if(!cw[key])cw[key]={yr:yr,w:w,s:0,c:0};
       var v=0;switch(metric){case'net':v=p.net[di];break;case'long':v=p.long[di];break;case'short':v=p.short[di];break;case'net_pct':v=p.nPct[di];break;case'traders_total':v=p.tT[di];break;case'per_trader_long':v=p.plL[di];break;case'per_trader_short':v=p.plS[di];break;}
-      yd[yr][w].s+=v;yd[yr][w].c+=1;
+      cw[key].s+=v;cw[key].c+=1;
     });
   });
+  Object.keys(cw).forEach(function(k2){var e=cw[k2];if(!yd[e.yr])yd[e.yr]={};if(!yd[e.yr][e.w])yd[e.yr][e.w]={s:0,c:0};yd[e.yr][e.w].s+=e.s/e.c;yd[e.yr][e.w].c+=1;});
   var yc=['#c0392b','#d4880f','#f39c12','#1a8c4e','#2980b9','#8e44ad','#16a085','#d35400','#2c3e50','#1abc9c'];
   var sy=Array.from(yearsSet).sort(),ds=[];
-  sy.forEach(function(yr,yi){if(!yd[yr])return;var wd=new Array(53).fill(null);for(var w=1;w<=53;w++){var e=yd[yr][w];if(!e||e.c===0)continue;wd[w-1]=agg==='sum'?e.s:(e.s/e.c);}ds.push({label:String(yr),data:wd,borderColor:yc[yi%yc.length],borderWidth:2.5,pointRadius:2,pointHoverRadius:5,spanGaps:true,fill:false,tension:0.3});});
+  if(showBand){
+    var lo=new Array(53).fill(null),hi=new Array(53).fill(null),av=new Array(53).fill(null),nb=0;
+    for(var w2=1;w2<=53;w2++){var vals=[];Object.keys(bandYrs).forEach(function(y){var e=yd[y]&&yd[y][w2];if(e&&e.c)vals.push(agg==='sum'?e.s:e.s/e.c);});
+      if(vals.length>=3){lo[w2-1]=Math.min.apply(null,vals);hi[w2-1]=Math.max.apply(null,vals);av[w2-1]=vals.reduce(function(a,b){return a+b;},0)/vals.length;nb=Math.max(nb,vals.length);}}
+    if(nb){var bl=(maxYr-5)+'–'+(maxYr-1);
+      ds.push({label:bl+' range',data:hi,borderWidth:0,pointRadius:0,backgroundColor:'rgba(42,82,152,0.10)',fill:'+1',spanGaps:true,order:10});
+      ds.push({label:'_lo',data:lo,borderWidth:0,pointRadius:0,fill:false,spanGaps:true,order:10});
+      ds.push({label:bl+' avg',data:av,borderColor:'rgba(42,82,152,0.55)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false,spanGaps:true,order:9,tension:0.3});}
+  }
+  sy.forEach(function(yr,yi){if(!yd[yr]||!yearsSet.has(yr))return;var wd=new Array(53).fill(null);for(var w=1;w<=53;w++){var e=yd[yr][w];if(!e||e.c===0)continue;wd[w-1]=agg==='sum'?e.s:(e.s/e.c);}ds.push({label:String(yr),data:wd,borderColor:yc[yi%yc.length],borderWidth:2.5,pointRadius:2,pointHoverRadius:5,spanGaps:true,fill:false,tension:0.3});});
   var ml={net:'Net',long:'Long',short:'Short',net_pct:'Net%OI',traders_total:'Traders',per_trader_long:'L/Trader',per_trader_short:'S/Trader'};
-  var cl=comms.length<=3?comms.map(function(c){return c.split(' - ')[0];}).join(', '):comms.length+' commodities';
+  var nm=function(c){var it=COTStore.itemByApi(c);return it?it.name:c.split(' - ')[0];};var cl=comms.length<=3?comms.map(nm).join(', '):comms.length+' commodities';
   var ne=document.getElementById(noteId);if(ne)ne.innerHTML='<strong>Showing:</strong> '+cl+' | <strong>Metric:</strong> '+ml[metric]+' | <strong>Agg:</strong> '+(agg==='sum'?'Sum':'Avg');
   var wl=[];for(var i=1;i<=53;i++)wl.push('W'+i);
   var ip=metric.indexOf('pct')!==-1;
   var ctx=document.getElementById(canvasId).getContext('2d');
   if(charts[chartKey])charts[chartKey].destroy();
-  charts[chartKey]=new Chart(ctx,{type:'line',data:{labels:wl,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{title:{display:true,text:cl+' — '+ml[metric]+' ('+(agg==='sum'?'Sum':'Avg')+')',font:{size:11,weight:'bold'},color:'#1a1a1a'},legend:{position:'top',labels:{boxWidth:11,font:{size:9},color:'#333'}},tooltip:{callbacks:{title:function(it){return 'Week '+parseInt(it[0].label.replace('W',''));},label:function(it){return it.dataset.label+': '+Number(it.raw).toLocaleString(undefined,{maximumFractionDigits:ip?2:0});}}}},scales:{x:{title:{display:true,text:'Week',font:{size:9},color:'#333'},ticks:{callback:function(v,i){return i%4===0?'W'+(i+1):'';},font:{size:8},color:'#333'}},y:{title:{display:true,text:ml[metric],font:{weight:'bold',size:9},color:'#333'},ticks:{callback:function(v){return ip?v.toFixed(0)+'%':(Math.abs(v)>=1000?(v/1000).toFixed(0)+'k':v);},font:{size:9},color:'#333'}}}}});
+  charts[chartKey]=new Chart(ctx,{type:'line',data:{labels:wl,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{title:{display:true,text:cl+' — '+ml[metric]+' ('+(agg==='sum'?'Sum':'Avg')+')',font:{size:11,weight:'bold'},color:'#1a1a1a'},legend:{position:'top',labels:{boxWidth:11,font:{size:9},color:'#333',filter:function(i){return i.text.charAt(0)!=='_';}}},tooltip:{filter:function(i){return i.dataset.label.charAt(0)!=='_'&&i.raw!=null;},callbacks:{title:function(it){return 'Week '+parseInt(it[0].label.replace('W',''));},label:function(it){return it.dataset.label+': '+Number(it.raw).toLocaleString(undefined,{maximumFractionDigits:ip?2:0});}}}},scales:{x:{title:{display:true,text:'Week',font:{size:9},color:'#333'},ticks:{callback:function(v,i){return i%4===0?'W'+(i+1):'';},font:{size:8},color:'#333'}},y:{title:{display:true,text:ml[metric],font:{weight:'bold',size:9},color:'#333'},ticks:{callback:function(v){return ip?v.toFixed(0)+'%':(Math.abs(v)>=1000?(v/1000).toFixed(0)+'k':v);},font:{size:9},color:'#333'}}}}});
 }
 
 
@@ -85,18 +115,21 @@ function getCropBCOM(){return allBCOM.filter(function(c){return CROP_COMM[c.name
 function doAgriCrop(){
   var cropComms=getCropBCOM();
   if(!cropComms.length){showE('No crop commodities loaded. Try loading commodity list first.');return;}
-  var ep=EP[document.getElementById('reportType').value],tot=cropComms.length,done=0;
-  showL(true,'Fetching crop-year data (0/'+tot+')...');
+  var ep=EP.combined,tot=cropComms.length,done=0;
   cropComms.forEach(function(it){
     if(agriRaw[it.api]){done++;if(done>=tot)onAllAgriDone();return;}
-    fetchT(ep+"?$where=market_and_exchange_names='"+it.api.replace(/'/g,"''")+"' AND report_date_as_yyyy_mm_dd >= '2006-01-01'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000",25000)
-    .then(function(r){return r.json();}).then(function(data){if(data.length>0)agriRaw[it.api]=data;})
-    .catch(function(e){console.warn('Crop fetch fail:',it.name,e);})
-    .finally(function(){done++;showL(true,'Fetching crop data ('+done+'/'+tot+')...');if(done>=tot)onAllAgriDone();});
+    COTStore.seriesForApi(it.api).then(function(ser){agriRaw[it.api]=staticRaw(ser,it.api);})
+    .catch(function(){
+      return fetchT(ep+"?$where="+liveWhere(it.api)+" AND report_date_as_yyyy_mm_dd >= '2006-01-01'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000",25000)
+        .then(function(r){return r.json();}).then(function(data){if(data.length>0)agriRaw[it.api]=data;});
+    })
+    .catch(function(e){console.warn('Crop data fail:',it.name,e);})
+    .finally(function(){done++;if(done>=tot)onAllAgriDone();});
   });
 }
 
 function onAllAgriDone(){
+  if(!document.getElementById('agriExecSec'))return;
   buildAgriExec();
   buildAgriSum();
   buildAgriSeaSel();
@@ -217,6 +250,7 @@ function buildAgriSeaSel(){
   var yrSet={};
   Object.keys(agriRaw).forEach(function(api){
     var arr=agriRaw[api];if(!arr)return;
+    if(arr.__series){arr.__series.dates.forEach(function(d){var y=+d.slice(0,4);if(y>=2006)yrSet[y]=true;});return;}
     arr.forEach(function(d){var y=new Date(d.report_date_as_yyyy_mm_dd).getFullYear();if(y>=2006)yrSet[y]=true;});
   });
   var yrs=Object.keys(yrSet).map(Number).sort();
@@ -236,17 +270,12 @@ function refreshAgriSeaChips(){
 /* Draw one agri sea chart for a given crop type into a specific canvas */
 function drawOneAgriSea(ct, canvasId, noteId){
   var metric=document.getElementById('aSMet').value,agg=document.getElementById('aSAgg').value;
-  var tc=document.getElementById('traderCategory').value||'managed_money';
+  var tc=document.getElementById('traderCategory')?document.getElementById('traderCategory').value||'managed_money':'managed_money';
   var comms=Array.from(agriSeaComms);if(!comms.length)return;
-  var localCache={};
-  comms.forEach(function(api){
-    var raw=agriRaw[api];if(!raw)return;
-    var p=procData(raw,tc,ct);if(p)localCache[api]=p;
-  });
-  var saved={};comms.forEach(function(api){saved[api]=seaCache[api];seaCache[api]=localCache[api]||seaCache[api];});
-  var chartKey='agriSea_'+ct;
-  renderSea(metric,agg,comms,canvasId,chartKey,noteId,agriSeaYrs);
-  comms.forEach(function(api){seaCache[api]=saved[api];});
+  var map={};
+  comms.forEach(function(api){var raw=agriRaw[api];if(!raw)return;var p=procData(raw,tc,ct);if(p)map[api]=p;});
+  var band=document.getElementById('aSeaBand');
+  renderSea(metric,agg,comms,canvasId,'agriSea_'+ct,noteId,agriSeaYrs,map,band&&band.checked);
 }
 function drawAllAgriSea(){
   drawOneAgriSea('old',  'aSeaChartOld',   'aSeaNoteOld');

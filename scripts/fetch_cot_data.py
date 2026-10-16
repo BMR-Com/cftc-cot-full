@@ -24,6 +24,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from dateutil import tz
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import web_data  # noqa: E402
+
 # ── Paths ──────────────────────────────────────────────────────────────────
 SCRIPT_DIR  = Path(__file__).parent
 ROOT_DIR    = SCRIPT_DIR.parent
@@ -45,33 +48,36 @@ ET = tz.gettz('US/Eastern')
 SKIP_FRESH_CHECK = os.getenv('SKIP_FRESH_CHECK', 'false').lower() == 'true'
 
 # ── BCOM 2026 Constituents ─────────────────────────────────────────────────
+# "code" is the CFTC contract market code. Market *names* change over time
+# (e.g. WTI, Nat Gas and Brent were renamed in Feb 2022, which silently froze
+# those series); codes are stable across renames, so we query by code and only
+# fall back to the name if a code returns nothing.
+# Not reported by the CFTC (LME / ICE Europe venues): Zinc, Nickel, Lead and
+# Low Sulphur Gas Oil — they are listed in NOT_REPORTED for the UI.
 BCOM = {
-    "Brent Crude Oil":    {"ticker":"CO", "sector":"Energy",           "cftc":"BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE", "crop":False},
-    "Natural Gas":        {"ticker":"NG", "sector":"Energy",           "cftc":"NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",               "crop":False},
-    "WTI Crude Oil":      {"ticker":"CL", "sector":"Energy",           "cftc":"CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",    "crop":False},
-    "Low Sulphur Gas Oil":{"ticker":"QS", "sector":"Energy",           "cftc":"GAS OIL LOW SULPHUR - ICE FUTURES EUROPE",                "crop":False},
-    "ULS Diesel":         {"ticker":"HO", "sector":"Energy",           "cftc":"NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",            "crop":False},
-    "RBOB Gasoline":      {"ticker":"XB", "sector":"Energy",           "cftc":"GASOLINE, RBOB - NEW YORK MERCANTILE EXCHANGE",            "crop":False},
-    "Corn":               {"ticker":"C",  "sector":"Grains",           "cftc":"CORN - CHICAGO BOARD OF TRADE",                           "crop":True},
-    "Soybeans":           {"ticker":"S",  "sector":"Grains",           "cftc":"SOYBEANS - CHICAGO BOARD OF TRADE",                       "crop":True},
-    "Soybean Meal":       {"ticker":"SM", "sector":"Grains",           "cftc":"SOYBEAN MEAL - CHICAGO BOARD OF TRADE",                   "crop":True},
-    "Soybean Oil":        {"ticker":"BO", "sector":"Grains",           "cftc":"SOYBEAN OIL - CHICAGO BOARD OF TRADE",                    "crop":True},
-    "Wheat SRW":          {"ticker":"W",  "sector":"Grains",           "cftc":"WHEAT-SRW - CHICAGO BOARD OF TRADE",                      "crop":True},
-    "HRW Wheat":          {"ticker":"KW", "sector":"Grains",           "cftc":"WHEAT-HRW - CHICAGO BOARD OF TRADE",                      "crop":True},
-    "Copper":             {"ticker":"HG", "sector":"Industrial Metals","cftc":"COPPER- #1 - COMMODITY EXCHANGE INC.",                    "crop":False},
-    "Aluminum":           {"ticker":"LA", "sector":"Industrial Metals","cftc":"ALUMINUM - COMMODITY EXCHANGE INC.",                      "crop":False},
-    "Zinc":               {"ticker":"LX", "sector":"Industrial Metals","cftc":"ZINC - COMMODITY EXCHANGE INC.",                          "crop":False},
-    "Nickel":             {"ticker":"LN", "sector":"Industrial Metals","cftc":"NICKEL - COMMODITY EXCHANGE INC.",                        "crop":False},
-    "Lead":               {"ticker":"LL", "sector":"Industrial Metals","cftc":"LEAD - COMMODITY EXCHANGE INC.",                          "crop":False},
-    "Gold":               {"ticker":"GC", "sector":"Precious Metals",  "cftc":"GOLD - COMMODITY EXCHANGE INC.",                          "crop":False},
-    "Silver":             {"ticker":"SI", "sector":"Precious Metals",  "cftc":"SILVER - COMMODITY EXCHANGE INC.",                        "crop":False},
-    "Sugar":              {"ticker":"SB", "sector":"Softs",            "cftc":"SUGAR NO. 11 - ICE FUTURES U.S.",                         "crop":False},
-    "Coffee":             {"ticker":"KC", "sector":"Softs",            "cftc":"COFFEE C - ICE FUTURES U.S.",                             "crop":True},
-    "Cocoa":              {"ticker":"CC", "sector":"Softs",            "cftc":"COCOA - ICE FUTURES U.S.",                                "crop":True},
-    "Cotton":             {"ticker":"CT", "sector":"Softs",            "cftc":"COTTON NO. 2 - ICE FUTURES U.S.",                         "crop":True},
-    "Live Cattle":        {"ticker":"LC", "sector":"Livestock",        "cftc":"LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE",               "crop":False},
-    "Lean Hogs":          {"ticker":"LH", "sector":"Livestock",        "cftc":"LEAN HOGS - CHICAGO MERCANTILE EXCHANGE",                 "crop":True},
+    "Brent Crude Oil":    {"ticker":"CO", "sector":"Energy",           "code":"06765T", "cftc":"BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",          "crop":False},
+    "Natural Gas":        {"ticker":"NG", "sector":"Energy",           "code":"023651", "cftc":"NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",            "crop":False},
+    "WTI Crude Oil":      {"ticker":"CL", "sector":"Energy",           "code":"067651", "cftc":"WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",            "crop":False},
+    "ULS Diesel":         {"ticker":"HO", "sector":"Energy",           "code":"022651", "cftc":"NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",          "crop":False},
+    "RBOB Gasoline":      {"ticker":"XB", "sector":"Energy",           "code":"111659", "cftc":"GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE",           "crop":False},
+    "Corn":               {"ticker":"C",  "sector":"Grains",           "code":"002602", "cftc":"CORN - CHICAGO BOARD OF TRADE",                          "crop":True},
+    "Soybeans":           {"ticker":"S",  "sector":"Grains",           "code":"005602", "cftc":"SOYBEANS - CHICAGO BOARD OF TRADE",                      "crop":True},
+    "Soybean Meal":       {"ticker":"SM", "sector":"Grains",           "code":"026603", "cftc":"SOYBEAN MEAL - CHICAGO BOARD OF TRADE",                  "crop":True},
+    "Soybean Oil":        {"ticker":"BO", "sector":"Grains",           "code":"007601", "cftc":"SOYBEAN OIL - CHICAGO BOARD OF TRADE",                   "crop":True},
+    "Wheat SRW":          {"ticker":"W",  "sector":"Grains",           "code":"001602", "cftc":"WHEAT-SRW - CHICAGO BOARD OF TRADE",                     "crop":True},
+    "HRW Wheat":          {"ticker":"KW", "sector":"Grains",           "code":"001612", "cftc":"WHEAT-HRW - CHICAGO BOARD OF TRADE",                     "crop":True},
+    "Copper":             {"ticker":"HG", "sector":"Industrial Metals","code":"085692", "cftc":"COPPER- #1 - COMMODITY EXCHANGE INC.",                   "crop":False},
+    "Aluminum":           {"ticker":"LA", "sector":"Industrial Metals","code":None,     "cftc":"ALUMINUM - COMMODITY EXCHANGE INC.",                     "crop":False},
+    "Gold":               {"ticker":"GC", "sector":"Precious Metals",  "code":"088691", "cftc":"GOLD - COMMODITY EXCHANGE INC.",                         "crop":False},
+    "Silver":             {"ticker":"SI", "sector":"Precious Metals",  "code":"084691", "cftc":"SILVER - COMMODITY EXCHANGE INC.",                       "crop":False},
+    "Sugar":              {"ticker":"SB", "sector":"Softs",            "code":"080732", "cftc":"SUGAR NO. 11 - ICE FUTURES U.S.",                        "crop":False},
+    "Coffee":             {"ticker":"KC", "sector":"Softs",            "code":"083731", "cftc":"COFFEE C - ICE FUTURES U.S.",                            "crop":True},
+    "Cocoa":              {"ticker":"CC", "sector":"Softs",            "code":"073732", "cftc":"COCOA - ICE FUTURES U.S.",                               "crop":True},
+    "Cotton":             {"ticker":"CT", "sector":"Softs",            "code":"033661", "cftc":"COTTON NO. 2 - ICE FUTURES U.S.",                        "crop":True},
+    "Live Cattle":        {"ticker":"LC", "sector":"Livestock",        "code":"057642", "cftc":"LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE",              "crop":False},
+    "Lean Hogs":          {"ticker":"LH", "sector":"Livestock",        "code":"054642", "cftc":"LEAN HOGS - CHICAGO MERCANTILE EXCHANGE",                "crop":True},
 }
+NOT_REPORTED = ["Zinc", "Nickel", "Lead", "Low Sulphur Gas Oil"]
 
 TRADER_CATS = ["managed_money", "swap_dealers", "prod_merc", "other_rept"]
 
@@ -198,24 +204,30 @@ def validate_fresh_data(df, expected_date=None):
     return True, latest_date, f"Latest data: {latest_date}"
 
 # ── Fetch from CFTC API ────────────────────────────────────────────────────
-def fetch_commodity(cftc_name, since_date="2006-01-01"):
-    """Fetch all records for a commodity since a given date."""
-    enc = cftc_name.replace("'", "''")
-    url = (
-        f"{ENDPOINT}"
-        f"?$where=market_and_exchange_names='{enc}'"
-        f" AND report_date_as_yyyy_mm_dd >= '{since_date}'"
-        f"&$order=report_date_as_yyyy_mm_dd ASC"
-        f"&$limit={API_LIMIT}"
-    )
-    try:
-        r = requests.get(url, timeout=30)
-        r.raise_for_status()
-        data = r.json()
-        return data
-    except Exception as e:
-        print(f"  ERROR fetching {cftc_name}: {e}")
-        return []
+def _get(where):
+    url = (f"{ENDPOINT}?$where={where}"
+           f"&$order=report_date_as_yyyy_mm_dd ASC&$limit={API_LIMIT}")
+    for attempt in range(3):
+        try:
+            r = requests.get(url, timeout=60)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            print(f"  (attempt {attempt+1}) error: {e}", end=" ")
+            time.sleep(3 * (attempt + 1))
+    return []
+
+
+def fetch_commodity(meta, since_date="2006-01-01"):
+    """Fetch all records for a commodity since a date — by contract code
+    (stable across CFTC renames), falling back to the market name."""
+    date_clause = f" AND report_date_as_yyyy_mm_dd >= '{since_date}'"
+    if meta.get("code"):
+        data = _get(f"cftc_contract_market_code='{meta['code']}'" + date_clause)
+        if data:
+            return data
+    enc = meta["cftc"].replace("'", "''")
+    return _get(f"market_and_exchange_names='{enc}'" + date_clause)
 
 # ── Process raw API records into flat rows ─────────────────────────────────
 def process_records(raw, commodity_name, meta, crop_type="all"):
@@ -291,36 +303,50 @@ PCTILE_COLS = [
     "open_interest",
 ]
 
+def _rolling_midrank(x, windows):
+    """Percentile (mid-rank) of each x[i] within its trailing window x[i-w+1..i].
+    Vectorised with an n×n comparison — n is ~1,000 weekly rows per series."""
+    n = len(x)
+    valid = ~np.isnan(x)
+    xi = x[:, None]; xj = x[None, :]
+    less = (xj < xi) & valid[None, :]
+    eq = (xj == xi) & valid[None, :]
+    idx = np.arange(n)
+    out = {}
+    for name, w in windows.items():
+        m = idx[None, :] <= idx[:, None]
+        if w:
+            m &= idx[None, :] > (idx[:, None] - w)
+        cnt = (m & valid[None, :]).sum(1)
+        r = ((less & m).sum(1) + 0.5 * (eq & m).sum(1)) / np.where(cnt > 0, cnt, 1) * 100
+        r = np.round(r, 1)
+        r[~valid | (cnt == 0)] = np.nan
+        out[name] = r
+    return out
+
+
 def add_percentiles(df):
-    """Add percentile rank columns for each metric."""
-    print("  Calculating percentiles...")
-    groups = df.groupby(["commodity", "crop_type"])
-    pctile_dfs = []
+    """Recompute percentile columns over each series' FULL history.
 
-    for (comm, ct), grp in groups:
-        grp = grp.sort_values("date").reset_index(drop=True)
-        pctile_rows = []
-
-        for i, row in grp.iterrows():
-            pr = {"date": row["date"], "commodity": comm, "crop_type": ct}
-            for col in PCTILE_COLS:
-                if col not in grp.columns:
-                    continue
-                val = row[col]
-                for win_name, win_size in WINDOWS.items():
-                    hist = grp.loc[:i, col]
-                    if win_size and len(hist) > win_size:
-                        hist = hist.iloc[-win_size:]
-                    pr[f"pctile_{col}_{win_name}"] = pct_of_score(hist, val)
-            pctile_rows.append(pr)
-
-        pctile_dfs.append(pd.DataFrame(pctile_rows))
-
-    if not pctile_dfs:
-        return df
-    pctile_df = pd.concat(pctile_dfs, ignore_index=True)
-    df = df.merge(pctile_df, on=["date","commodity","crop_type"], how="left")
-    return df
+    The previous incremental version ranked new rows only against the other
+    new rows (a ~3-row "history"), which produced nonsense like Cotton net
+    long at the 12.5th percentile when it was actually ~82nd. Done vectorised,
+    the full recompute takes seconds, so we simply always do it."""
+    print("  Calculating percentiles (full history)...")
+    df = df[[c for c in df.columns if not c.startswith("pctile_")]].copy()
+    df = df.sort_values(["commodity", "crop_type", "date"]).reset_index(drop=True)
+    new_cols = {}
+    for (comm, ct), idx in df.groupby(["commodity", "crop_type"]).groups.items():
+        g = df.loc[idx]
+        for col in PCTILE_COLS:
+            if col not in g.columns:
+                continue
+            res = _rolling_midrank(pd.to_numeric(g[col], errors="coerce").to_numpy(float), WINDOWS)
+            for win_name, vals in res.items():
+                key = f"pctile_{col}_{win_name}"
+                new_cols.setdefault(key, pd.Series(np.nan, index=df.index))
+                new_cols[key].loc[idx] = vals
+    return pd.concat([df, pd.DataFrame(new_cols)], axis=1)
 
 # ── Historical extremes ────────────────────────────────────────────────────
 def extremes(series, dates, windows=(260, 520)):
@@ -479,145 +505,90 @@ def main():
     print("=" * 65)
     print("BCOM COT Data Fetcher")
     print(f"Started: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}")
-    if SKIP_FRESH_CHECK:
-        print("MODE: Manual run - skipping fresh data validation")
     print("=" * 65)
 
-    # Determine start date (incremental update)
+    old_df = None
+    last_by_comm = {}
     if CSV_PATH.exists():
-        existing = pd.read_csv(CSV_PATH, usecols=["date"])
-        latest_in_csv = existing["date"].max()
-        since = (
-            pd.to_datetime(latest_in_csv) - timedelta(days=14)
-        ).strftime("%Y-%m-%d")
-        print(f"Existing CSV found. Latest date: {latest_in_csv}")
-        print(f"Fetching from {since} (2-week overlap).")
-        full_rebuild = False
-    else:
-        since = "2006-01-01"
-        print(f"No CSV found. Full download from {since}.")
-        full_rebuild = True
+        old_df = pd.read_csv(CSV_PATH, low_memory=False)
+        old_df = old_df[[c for c in old_df.columns if not c.startswith("pctile_")]]
+        last_by_comm = (old_df[old_df["crop_type"] == "all"]
+                        .groupby("commodity")["date"].max().to_dict())
+        print(f"Existing CSV: {len(old_df):,} rows, latest {old_df['date'].max()}")
 
-    all_rows = []
-    total = len(BCOM)
-
+    # Per-commodity incremental window: 2-week overlap from that commodity's
+    # own last date, or full history for markets we have never fetched / that
+    # froze (e.g. after a CFTC rename). Self-healing backfill.
+    all_rows, fetched = [], {}
     for i, (comm_name, meta) in enumerate(BCOM.items(), 1):
-        print(f"  [{i:2d}/{total}] {comm_name} ({meta['ticker']}) ...", end=" ", flush=True)
-        raw = fetch_commodity(meta["cftc"], since_date=since)
+        last = last_by_comm.get(comm_name)
+        since = ((pd.to_datetime(last) - timedelta(days=14)).strftime("%Y-%m-%d")
+                 if last else "2006-01-01")
+        print(f"  [{i:2d}/{len(BCOM)}] {comm_name:20s} since {since} ...", end=" ", flush=True)
+        raw = fetch_commodity(meta, since_date=since)
         if not raw:
             print("no data")
             time.sleep(REQUEST_DELAY)
             continue
-
         rows = process_records(raw, comm_name, meta, crop_type="all")
-        all_rows.extend(rows)
-
         if meta["crop"]:
             for ct in ["old", "other"]:
-                fmap = FIELDS[ct]
-                if raw and fmap["mm_l"] in raw[-1]:
-                    ct_rows = process_records(raw, comm_name, meta, crop_type=ct)
-                    all_rows.extend(ct_rows)
-
-        print(f"{len(raw)} records")
+                if FIELDS[ct]["mm_l"] in raw[-1]:
+                    rows += process_records(raw, comm_name, meta, crop_type=ct)
+        all_rows.extend(rows)
+        fetched[comm_name] = min(r["date"] for r in rows)
+        print(f"{len(raw)} records, latest {raw[-1].get('report_date_as_yyyy_mm_dd','')[:10]}")
         time.sleep(REQUEST_DELAY)
 
-    if not all_rows:
-        print("ERROR: No data fetched. Exiting.")
+    if not all_rows and old_df is None:
+        print("ERROR: No data fetched and no existing CSV. Exiting.")
         sys.exit(1)
 
     new_df = pd.DataFrame(all_rows)
-    new_df["date"] = pd.to_datetime(new_df["date"]).dt.strftime("%Y-%m-%d")
+    if not new_df.empty:
+        new_df["date"] = pd.to_datetime(new_df["date"]).dt.strftime("%Y-%m-%d")
 
-    # Check if we actually got new data
-    if not full_rebuild and CSV_PATH.exists():
-        existing_dates = set(pd.read_csv(CSV_PATH, usecols=["date"])["date"].unique())
-        new_dates = set(new_df["date"].unique())
-        actually_new = new_dates - existing_dates
-        
-        if not actually_new:
-            print("\nNo new data found - using existing data for summary.")
-            old_df = pd.read_csv(CSV_PATH)
-            summary = build_summary(old_df)
-            with open(JSON_PATH, "w") as f:
-                json.dump(summary, f, separators=(",",":"))
-            print(f"Updated {JSON_PATH} with existing data")
-            # keep the cotton extract in sync (creates it on first run after this change)
-            save_cotton_extract(old_df)
-            print(f"Latest report date: {summary['report_date']}")
-            sys.exit(0)
-
-    # Merge with existing CSV
-    if CSV_PATH.exists() and not full_rebuild:
-        old_df = pd.read_csv(CSV_PATH, dtype=str)
-        cutoff = new_df["date"].min()
-        old_df = old_df[old_df["date"] < cutoff]
-        df = pd.concat([old_df, new_df], ignore_index=True)
-        for col in new_df.columns:
-            if col not in ["date","commodity","ticker","sector","crop_type","is_crop"]:
-                df[col] = pd.to_numeric(df[col], errors="coerce")
+    # Merge: for each refreshed commodity drop old rows from its cutoff onward
+    if old_df is not None:
+        keep = old_df.copy()
+        for comm, cutoff in fetched.items():
+            keep = keep[~((keep["commodity"] == comm) & (keep["date"] >= cutoff))]
+        df = pd.concat([keep, new_df], ignore_index=True)
     else:
         df = new_df
+    meta_cols = ["date", "commodity", "ticker", "sector", "crop_type", "is_crop"]
+    for col in df.columns:
+        if col not in meta_cols:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    df = df.drop_duplicates(["commodity", "crop_type", "date"], keep="last")
+    df = df.sort_values(["commodity", "crop_type", "date"]).reset_index(drop=True)
 
-    df = df.sort_values(["commodity","crop_type","date"]).reset_index(drop=True)
-
-    # ── VALIDATE FRESH DATA (skip if manual run) ───────────────────────────
     if not SKIP_FRESH_CHECK:
-        expected_tuesday = get_expected_report_date()
-        is_valid, latest_date, msg = validate_fresh_data(df, expected_tuesday)
+        is_valid, latest_date, msg = validate_fresh_data(df, get_expected_report_date())
         print(f"\n[Validator] {msg}")
-        
         if not is_valid:
-            print("ERROR: Data validation failed. CFTC may not have released new report yet.")
-            sys.exit(1)
-    else:
-        print(f"\n[Validator] Skipped - using latest available data: {df['date'].max()}")
+            # Not fatal: a later scheduled retry will pick the report up. We
+            # still write any backfilled markets; unchanged files aren't committed.
+            print("NOTE: this week's CFTC report isn't out yet — writing what we have.")
 
-    print(f"\nTotal rows: {len(df):,}")
-    
-    # Only calculate percentiles for new data if doing incremental update
-    if not full_rebuild and CSV_PATH.exists():
-        print("Calculating percentiles for new data only...")
-        old_df = df[df["date"] < new_df["date"].min()].copy()
-        new_only_df = df[df["date"] >= new_df["date"].min()].copy()
-        
-        if not old_df.empty:
-            print(f"  Skipping percentiles for {len(old_df):,} existing rows")
-        if not new_only_df.empty:
-            print(f"  Calculating percentiles for {len(new_only_df):,} new rows...")
-            # CRITICAL FIX: Drop any existing percentile columns to avoid merge suffix collision
-            pctile_cols_existing = [c for c in new_only_df.columns if c.startswith('pctile_')]
-            if pctile_cols_existing:
-                print(f"    Dropping {len(pctile_cols_existing)} existing percentile columns from new data before recalculation")
-                new_only_df = new_only_df.drop(columns=pctile_cols_existing)
-            new_only_df = add_percentiles(new_only_df)
-            
-        df = pd.concat([old_df, new_only_df], ignore_index=True)
-    else:
-        print("Calculating percentiles for all data (this takes a few minutes)...")
-        df = add_percentiles(df)
-
-    # Save master CSV
+    df = add_percentiles(df)
     df.to_csv(CSV_PATH, index=False)
-    sz = CSV_PATH.stat().st_size / 1024
-    print(f"\nSaved: {CSV_PATH.name} ({sz:.1f} KB, {len(df):,} rows)")
+    print(f"Saved: {CSV_PATH.name} ({CSV_PATH.stat().st_size/1024:.0f} KB, {len(df):,} rows)")
 
-    # Save cotton-only extract
     save_cotton_extract(df)
 
-    # Build and save summary JSON
-    print("Building latest_summary.json...")
     summary = build_summary(df)
+    summary["not_reported"] = NOT_REPORTED
     with open(JSON_PATH, "w") as f:
-        json.dump(summary, f, separators=(",",":"))
-    sz2 = JSON_PATH.stat().st_size / 1024
-    print(f"Saved: {JSON_PATH.name} ({sz2:.1f} KB)")
+        json.dump(summary, f, separators=(",", ":"))
+    print(f"Saved: {JSON_PATH.name}")
 
-    print("\n" + "=" * 65)
-    print(f"Done: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}")
-    print(f"Latest report date: {summary['report_date']}")
-    print(f"Commodities: {len(summary['commodities'])}")
-    print("=" * 65)
+    man = web_data.build(df, BCOM)
+    print(f"Saved: data/web/ (manifest, snapshot, {len(man['commodities'])} series files)")
+    stale = [c["name"] for c in man["commodities"] if c["stale"]]
+    if stale:
+        print(f"Stale markets (excluded from cross-sectional views): {stale}")
+    print(f"Done. Latest report date: {summary['report_date']}")
 
 if __name__ == "__main__":
     main()
