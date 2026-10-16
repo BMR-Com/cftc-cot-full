@@ -2,7 +2,11 @@
    CONSTANTS
    =========================================================== */
 var EP={futures:'https://publicreporting.cftc.gov/resource/72hh-3qpy.json',combined:'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'};
-var BCOM={'Energy (29.44%)':[{name:'Brent Crude Oil',ticker:'CO',cftc:'BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE'},{name:'Natural Gas',ticker:'NG',cftc:'NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE'},{name:'WTI Crude Oil',ticker:'CL',cftc:'WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE'},{name:'Low Sulfur Gas Oil',ticker:'QS',cftc:'GASOIL LOW SULFUR - ICE FUTURES EUROPE'},{name:'ULS Diesel',ticker:'HO',cftc:'NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE'},{name:'RBOB Gasoline',ticker:'XB',cftc:'GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE'}],'Grains (21.15%)':[{name:'Corn',ticker:'C',cftc:'CORN - CHICAGO BOARD OF TRADE'},{name:'Soybeans',ticker:'S',cftc:'SOYBEANS - CHICAGO BOARD OF TRADE'},{name:'Soybean Meal',ticker:'SM',cftc:'SOYBEAN MEAL - CHICAGO BOARD OF TRADE'},{name:'Soybean Oil',ticker:'BO',cftc:'SOYBEAN OIL - CHICAGO BOARD OF TRADE'},{name:'Wheat',ticker:'W',cftc:'WHEAT-SRW - CHICAGO BOARD OF TRADE'},{name:'HRW Wheat',ticker:'KW',cftc:'WHEAT-HRW - CHICAGO BOARD OF TRADE'}],'Industrial Metals (15.76%)':[{name:'Copper',ticker:'HG',cftc:'COPPER- #1 - COMMODITY EXCHANGE INC.'},{name:'Aluminum',ticker:'LA',cftc:'ALUMINUM - COMMODITY EXCHANGE INC.'},{name:'Zinc',ticker:'LX',cftc:'ZINC - COMMODITY EXCHANGE INC.'},{name:'Nickel',ticker:'LN',cftc:'NICKEL - COMMODITY EXCHANGE INC.'},{name:'Lead',ticker:'LL',cftc:'LEAD - COMMODITY EXCHANGE INC.'}],'Precious Metals (18.84%)':[{name:'Gold',ticker:'GC',cftc:'GOLD - COMMODITY EXCHANGE INC.'},{name:'Silver',ticker:'SI',cftc:'SILVER - COMMODITY EXCHANGE INC.'}],'Softs (9.12%)':[{name:'Sugar',ticker:'SB',cftc:'SUGAR NO. 11 - ICE FUTURES U.S.'},{name:'Coffee',ticker:'KC',cftc:'COFFEE C - ICE FUTURES U.S.'},{name:'Cocoa',ticker:'CC',cftc:'COCOA - ICE FUTURES U.S.'},{name:'Cotton',ticker:'CT',cftc:'COTTON NO. 2 - ICE FUTURES U.S.'}],'Livestock (5.64%)':[{name:'Live Cattle',ticker:'LC',cftc:'LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE'},{name:'Lean Hogs',ticker:'LH',cftc:'LEAN HOGS - CHICAGO MERCANTILE EXCHANGE'}]};
+/* code = CFTC contract market code (stable across CFTC renames — e.g. WTI/NatGas/Brent
+   were renamed in Feb 2022). Zinc/Nickel/Lead (LME) and Low Sulphur Gasoil (ICE Europe)
+   are BCOM constituents but are NOT reported by the CFTC, so they are listed separately. */
+var BCOM={'Energy (29.44%)':[{name:'Brent Crude Oil',ticker:'CO',code:'06765T',cftc:'BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE'},{name:'Natural Gas',ticker:'NG',code:'023651',cftc:'NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE'},{name:'WTI Crude Oil',ticker:'CL',code:'067651',cftc:'WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE'},{name:'ULS Diesel',ticker:'HO',code:'022651',cftc:'NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE'},{name:'RBOB Gasoline',ticker:'XB',code:'111659',cftc:'GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE'}],'Grains (21.15%)':[{name:'Corn',ticker:'C',code:'002602',cftc:'CORN - CHICAGO BOARD OF TRADE'},{name:'Soybeans',ticker:'S',code:'005602',cftc:'SOYBEANS - CHICAGO BOARD OF TRADE'},{name:'Soybean Meal',ticker:'SM',code:'026603',cftc:'SOYBEAN MEAL - CHICAGO BOARD OF TRADE'},{name:'Soybean Oil',ticker:'BO',code:'007601',cftc:'SOYBEAN OIL - CHICAGO BOARD OF TRADE'},{name:'Wheat',ticker:'W',code:'001602',cftc:'WHEAT-SRW - CHICAGO BOARD OF TRADE'},{name:'HRW Wheat',ticker:'KW',code:'001612',cftc:'WHEAT-HRW - CHICAGO BOARD OF TRADE'}],'Industrial Metals (15.76%)':[{name:'Copper',ticker:'HG',code:'085692',cftc:'COPPER- #1 - COMMODITY EXCHANGE INC.'},{name:'Aluminum',ticker:'LA',code:null,cftc:'ALUMINUM - COMMODITY EXCHANGE INC.'}],'Precious Metals (18.84%)':[{name:'Gold',ticker:'GC',code:'088691',cftc:'GOLD - COMMODITY EXCHANGE INC.'},{name:'Silver',ticker:'SI',code:'084691',cftc:'SILVER - COMMODITY EXCHANGE INC.'}],'Softs (9.12%)':[{name:'Sugar',ticker:'SB',code:'080732',cftc:'SUGAR NO. 11 - ICE FUTURES U.S.'},{name:'Coffee',ticker:'KC',code:'083731',cftc:'COFFEE C - ICE FUTURES U.S.'},{name:'Cocoa',ticker:'CC',code:'073732',cftc:'COCOA - ICE FUTURES U.S.'},{name:'Cotton',ticker:'CT',code:'033661',cftc:'COTTON NO. 2 - ICE FUTURES U.S.'}],'Livestock (5.64%)':[{name:'Live Cattle',ticker:'LC',code:'057642',cftc:'LIVE CATTLE - CHICAGO MERCANTILE EXCHANGE'},{name:'Lean Hogs',ticker:'LH',code:'054642',cftc:'LEAN HOGS - CHICAGO MERCANTILE EXCHANGE'}]};
+var BCOM_NOT_REPORTED=['Zinc (LME)','Nickel (LME)','Lead (LME)','Low Sulphur Gas Oil (ICE Europe)'];
 var CROP_COMM={Corn:1,Soybeans:1,'Soybean Meal':1,'Soybean Oil':1,Wheat:1,'HRW Wheat':1,Coffee:1,Cocoa:1,Cotton:1,'Lean Hogs':1};
 var CATS=['managed_money','swap_dealers','prod_merc','other_rept'];
 var CROP_KW_LIST=['CORN','SOYBEAN','WHEAT','COTTON','COFFEE','COCOA','HOG'];
@@ -191,6 +195,7 @@ function matchComm(name,list){
    =========================================================== */
 function procData(raw,cat,crop){
   cat=cat||'managed_money';crop=crop||'all';
+  if(raw&&raw.__series)return COTStore.toProc(raw.__series,cat,crop,raw.__api);
   if(!raw||!raw.length)return null;
   raw=raw.slice().sort(function(a,b){return new Date(a.report_date_as_yyyy_mm_dd)-new Date(b.report_date_as_yyyy_mm_dd);});
   /* Use the LAST (most recent) record for field detection — early records (pre-2009)
@@ -240,45 +245,49 @@ function procSafe(raw,cat,crop){
    Always shows dropdown immediately from hardcoded BCOM names.
    API verification runs in background and updates matches silently.
    =========================================================== */
+/* Socrata WHERE clause for a market: by contract code when known (survives renames). */
+function liveWhere(api){
+  var it=null;for(var i=0;i<allBCOM.length;i++)if(allBCOM[i].api===api){it=allBCOM[i];break;}
+  if(it&&it.code)return "cftc_contract_market_code='"+it.code+"'";
+  return "market_and_exchange_names='"+String(api).replace(/'/g,"''")+"'";
+}
+
 function loadList(){
-  /* Step 1: Build dropdown immediately from hardcoded BCOM names — no API wait */
+  /* Step 1: dropdown immediately from the hardcoded list — no network wait */
   buildFallback();
   showL(false);
-
-  /* Step 2: Quietly verify/update names against the live API in the background */
-  var url=EP.combined+'?$select=market_and_exchange_names&$limit=5000&$order=report_date_as_yyyy_mm_dd+DESC';
-  var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
-  var tid=setTimeout(function(){if(ctrl)ctrl.abort();},20000);
-  fetch(url,ctrl?{signal:ctrl.signal}:{})
-  .then(function(r){clearTimeout(tid);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  /* Step 2: mark markets the data job flagged as stale (no CFTC report in 3+ weeks) */
+  COTStore.manifest().then(function(m){
+    var st={};(m.commodities||[]).forEach(function(c){st[c.ticker]=c.stale;});
+    allBCOM.forEach(function(it){it.stale=!!st[it.ticker];it.hasStatic=(it.ticker in st);});
+    document.querySelectorAll('#commoditySelect option[data-tk]').forEach(function(o){
+      if(st[o.getAttribute('data-tk')])o.textContent=o.textContent.replace(/ ⚠.*$/,'')+' ⚠ stale';
+    });
+  }).catch(function(){});
+  /* Step 3: refresh current CFTC market names by contract code (background) */
+  var url=EP.combined+'?$select=market_and_exchange_names,cftc_contract_market_code&$limit=5000&$order=report_date_as_yyyy_mm_dd+DESC';
+  fetchT(url,20000).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
     if(!Array.isArray(data)||!data.length)return;
-    var seen={};apiList=[];
-    data.forEach(function(d){var n=d.market_and_exchange_names;if(n&&!seen[n]){seen[n]=true;apiList.push(n);}});
-    apiList.sort();
-    /* Re-build dropdown with exact API names for accurate fetching */
-    buildSel(apiList);
-    if(typeof buildSeaCommSel==='function')buildSeaCommSel();
+    var byCode={};data.forEach(function(d){if(d.cftc_contract_market_code&&!byCode[d.cftc_contract_market_code])byCode[d.cftc_contract_market_code]=d.market_and_exchange_names;});
+    apiList=Object.keys(byCode).map(function(k){return byCode[k];}).sort();
+    var changed=false;
+    allBCOM.forEach(function(it){var nm=it.code&&byCode[it.code];if(nm&&nm!==it.api){changed=true;
+      var o=document.querySelector('#commoditySelect option[data-tk="'+it.ticker+'"]');if(o)o.value=nm;it.api=nm;}});
+    if(changed&&typeof buildSeaCommSel==='function'&&document.getElementById('seaCommSel'))buildSeaCommSel();
   })
-  .catch(function(e){
-    /* API unreachable — hardcoded fallback already loaded, just log */
-    console.warn('API name verify failed (using hardcoded names):',e.message);
-  });
+  .catch(function(e){console.warn('CFTC name refresh skipped (using built-in names):',e.message);});
 }
 
-function buildSel(api){
-  var sel=document.getElementById('commoditySelect');sel.innerHTML='<option value="">-- Select BCOM Commodity --</option>';allBCOM=[];
-  Object.keys(BCOM).forEach(function(sec){
-    var comms=BCOM[sec],og=document.createElement('optgroup');og.label=sec;var any=false;
-    comms.forEach(function(c){var m=matchComm(c.cftc,api);if(m){var o=document.createElement('option');o.value=m;o.textContent=c.name+' ('+c.ticker+')';o.setAttribute('data-cn',c.name);og.appendChild(o);any=true;allBCOM.push({name:c.name,ticker:c.ticker,sector:sec,api:m});}else console.warn('No match:',c.cftc);});
-    if(any)sel.appendChild(og);
-  });sel.disabled=false;
-}
+function buildSel(api){buildFallback();}
 
 function buildFallback(){
   var sel=document.getElementById('commoditySelect');sel.innerHTML='<option value="">-- Select Commodity --</option>';allBCOM=[];
-  Object.keys(BCOM).forEach(function(sec){var comms=BCOM[sec],og=document.createElement('optgroup');og.label=sec;comms.forEach(function(c){var o=document.createElement('option');o.value=c.cftc;o.textContent=c.name+' ('+c.ticker+')';o.setAttribute('data-cn',c.name);og.appendChild(o);allBCOM.push({name:c.name,ticker:c.ticker,sector:sec,api:c.cftc});});sel.appendChild(og);});sel.disabled=false;
+  Object.keys(BCOM).forEach(function(sec){var comms=BCOM[sec],og=document.createElement('optgroup');og.label=sec;comms.forEach(function(c){var o=document.createElement('option');o.value=c.cftc;o.textContent=c.name+' ('+c.ticker+')';o.setAttribute('data-cn',c.name);o.setAttribute('data-tk',c.ticker);og.appendChild(o);allBCOM.push({name:c.name,ticker:c.ticker,code:c.code,sector:sec,api:c.cftc,stale:false});});sel.appendChild(og);});sel.disabled=false;
 }
+
+/* Markets used in cross-sectional views (Summary/Scatter): skip stale ones */
+function liveBCOM(){return allBCOM.filter(function(it){return!it.stale;});}
 
 function onCommChange(){
   var sel=document.getElementById('commoditySelect');
@@ -319,7 +328,7 @@ function fetchData(){
   var crop=document.getElementById('cropYear').value||'all';
   showL(true,'Fetching '+comm.split(' - ')[0]+'...');hideE();
   var ep=EP[rt],enc=comm.replace(/'/g,"''");
-  var url=ep+"?$where=market_and_exchange_names='"+enc+"' AND report_date_as_yyyy_mm_dd >= '"+sd+"' AND report_date_as_yyyy_mm_dd <= '"+ed+"'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000";
+  var url=ep+"?$where="+liveWhere(comm)+" AND report_date_as_yyyy_mm_dd >= '"+sd+"' AND report_date_as_yyyy_mm_dd <= '"+ed+"'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000";
   dbgInfo={url:url,comm:comm,cat:tc};
   fetchT(url,30000).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
@@ -333,10 +342,9 @@ function fetchData(){
     ['chart1','chart2','chart3','chart4','chart5','weeklyDetail'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='block';});
     if(typeof popYears==='function')popYears();if(typeof buildSeaCommSel==='function')buildSeaCommSel();updateAll();if(typeof buildWeeklyDetail==='function')buildWeeklyDetail();
     /* Auto-trigger all other sections */
-    if(typeof generateSummary==='function')generateSummary();
-    if(typeof doScatter==='function')doScatter();
-    if(typeof doScatterPct==='function')doScatterPct();
-    if(isCrop(comm))if(typeof doAgriCrop==='function')doAgriCrop();
+    /* Cross-market tabs come from the pre-computed snapshot and don't depend on
+       the selected commodity — no need to rebuild them on every Generate click. */
+    if(isCrop(comm)&&typeof doAgriCrop==='function'&&document.getElementById('agriExecSec'))doAgriCrop();
     /* Show AI section if key is present */
     if(sessionStorage.getItem('groqKey')){var aiSec=document.getElementById('aiSec');if(aiSec)aiSec.style.display='block';}
     showL(false);
@@ -429,4 +437,55 @@ function doPrint(){
     },600);
   },400);
   });
+}
+
+
+/* ===========================================================
+   SHARED TABLE HELPERS (used by Summary and the agri panels in Seasonality)
+   =========================================================== */
+function mmBar(cur,mn,mx,isN){
+  if(mn===mx)return '';
+  var p=((cur-mn)/(mx-mn))*100,safe=Math.max(2,Math.min(98,p));
+  var cl,grad;
+  if(isN){
+    if(cur>=0){cl='#1a8c4e';grad='linear-gradient(90deg,#d5f5e3 0%,#1a8c4e 100%)';}
+    else{cl='#c0392b';grad='linear-gradient(90deg,#fadbd8 0%,#c0392b 100%)';}
+  } else {cl='#2a5298';grad='linear-gradient(90deg,#d6eaf8 0%,#2a5298 100%)';}
+  return '<div class="mmbar-wrap">'+
+    '<div class="mmbar-cont">'+
+      '<div style="position:absolute;left:0;top:0;height:100%;width:'+safe+'%;background:'+grad+';border-radius:8px;opacity:0.85;"></div>'+
+      '<div class="mmbar-dot" style="left:'+safe+'%;background:'+cl+';border:2px solid white;box-shadow:0 0 3px rgba(0,0,0,0.4);"></div>'+
+    '</div>'+
+    '<div class="mmbar-lbl"><span>'+ff(mn)+'</span><span>'+ff(mx)+'</span></div>'+
+  '</div>';
+}
+
+function renderSum(tbodyId,data){
+  var tb=document.getElementById(tbodyId);if(!tb)return;tb.innerHTML='';
+  if(!data.length){tb.innerHTML='<tr><td colspan="14" style="text-align:center;padding:20px;">No data</td></tr>';return;}
+  data.sort(function(a,b){if(a.sec!==b.sec)return a.sec.localeCompare(b.sec);if(a.comm!==b.comm)return a.comm.localeCompare(b.comm);return a.cat.localeCompare(b.cat);});
+  var cs='',cc='';
+  data.forEach(function(it){
+    if(it.sec!==cs){cs=it.sec;var hr=document.createElement('tr');hr.innerHTML='<td colspan="14" class="section-header">'+cs+'</td>';tb.appendChild(hr);}
+    var sh=it.comm!==cc;cc=it.comm;var r=document.createElement('tr');
+    r.innerHTML='<td class="commodity-name">'+(sh?it.comm:'')+'</td><td style="font-weight:600;color:'+(CAT_COL[it.catKey]||'#333')+'">'+it.cat+'</td>'+
+    '<td>'+mmBar(it.net,it.netMn,it.netMx,true)+'</td><td class="data-cell '+(it.net>0?'positive-value':it.net<0?'negative-value':'')+'">'+it.net.toLocaleString()+'</td>'+
+    '<td>'+mmBar(it.nPct,it.nPctMn,it.nPctMx,true)+'</td><td class="data-cell '+(it.nPct>0?'positive-value':it.nPct<0?'negative-value':'')+'">'+it.nPct.toFixed(1)+'%</td>'+
+    '<td>'+mmBar(it.lon,it.lonMn,it.lonMx,false)+'</td><td class="data-cell positive-value">'+it.lon.toLocaleString()+'</td>'+
+    '<td>'+mmBar(it.lPct,it.lPctMn,it.lPctMx,false)+'</td><td class="data-cell positive-value">'+it.lPct.toFixed(1)+'%</td>'+
+    '<td>'+mmBar(it.sho,it.shoMn,it.shoMx,false)+'</td><td class="data-cell negative-value">'+it.sho.toLocaleString()+'</td>'+
+    '<td>'+mmBar(it.sPct,it.sPctMn,it.sPctMx,false)+'</td><td class="data-cell negative-value">'+it.sPct.toFixed(1)+'%</td>';
+    tb.appendChild(r);
+  });
+}
+
+
+/* Percentile "league tables" used by the exec summaries.
+   data rows need: comm, mSP, mNP, mLP, mSPoi, mNPoi, mLPoi (0-100). */
+function fillPctTables(sfx,data){
+  function pColor(p,r,g,b){var a=0.08+0.52*(p/100);return 'rgba('+r+','+g+','+b+','+a.toFixed(2)+')';}
+  function fill(id,arr,field,r,g,b,inv){var tb=document.getElementById(id);if(!tb)return;tb.innerHTML='';arr.forEach(function(it){var v=inv?100-it[field]:it[field];v=Math.max(0,Math.min(100,v||0));var tr=document.createElement('tr');tr.innerHTML='<td>'+it.comm+'</td><td style="background:'+pColor(v,r,g,b)+';color:#1a1a1a;">'+v.toFixed(1)+'%</td>';tb.appendChild(tr);});}
+  var srt=function(f,d){return data.slice().sort(function(a,b){return d*((a[f]||0)-(b[f]||0));});};
+  fill('t_gs'+sfx,srt('mSP',-1),'mSP',231,76,60,false);fill('t_ns'+sfx,srt('mNP',1),'mNP',243,156,18,true);fill('t_gl'+sfx,srt('mLP',-1),'mLP',39,174,96,false);
+  fill('t_gso'+sfx,srt('mSPoi',-1),'mSPoi',169,50,38,false);fill('t_nso'+sfx,srt('mNPoi',1),'mNPoi',183,149,11,true);fill('t_glo'+sfx,srt('mLPoi',-1),'mLPoi',30,132,73,false);
 }

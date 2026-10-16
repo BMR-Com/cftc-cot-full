@@ -264,6 +264,15 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 .tab-btn.active{color:white;border-bottom-color:#ffe066;}
 @media print{#tabBar{display:none!important;}}
 
+
+/* ── Data status strip ── */
+#dataStatus{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;background:rgba(0,0,0,0.18);color:rgba(255,255,255,0.9);font-size:0.78em;padding:6px 20px;}
+#dataStatus b{color:#fff;}
+.ds-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:2px;}
+.ds-ok{background:#2ecc71;} .ds-warn{background:#f1c40f;}
+.ds-sep{opacity:0.5;}
+@media print{#dataStatus{display:none!important;}}
+
 /* ── Custom Formula Builder ── */
 .formula-term-row{display:flex;gap:8px;align-items:center;background:#f8fafc;padding:10px 14px;border:1px solid #cbd5e1;border-radius:8px;flex-wrap:wrap;}
 .formula-term-row select{padding:6px 10px;border:1px solid #94a3b8;border-radius:6px;font-size:13px;background:white;}
@@ -291,6 +300,8 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
   <button class="tab-btn" onclick="switchTab('ai')" id="tb_ai">🤖 AI Analysis</button>
 </div>
 
+<div id="dataStatus" style="display:none;"></div>
+
 <!-- ── Tab Panes (loaded dynamically) ── -->
 <div id="pane_cot" class="tab-pane"></div>
 <div id="pane_summary" class="tab-pane" style="display:none;"></div>
@@ -301,6 +312,8 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 
 <!-- ── Shared JavaScript ── -->
 <script src="js/shared.js"></script>
+<script src="js/data-store.js"></script>
+<script src="js/insights.js"></script>
 <script src="js/tab-switching.js"></script>
 
 <script>
@@ -355,6 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Initialize COT tab
             document.getElementById('endDate').valueAsDate = new Date();
             loadList();
+            renderDataStatus();
         })
         .catch(function(e) { console.error('Failed to load COT tab:', e); });
 });
@@ -383,6 +397,10 @@ function enterPrintMode() {
                     tabs.forEach(function(t) {
                         var pane = document.getElementById('pane_' + t.id);
                         if(pane) pane.style.display = 'block';
+                    });
+                    // Populate the data-driven tabs (they normally init on first click)
+                    ['initSummaryTab','initScatterTab','initSeasonalityTab'].forEach(function(fn){
+                        if(typeof window[fn]==='function' && !window['_pm_'+fn]){ window['_pm_'+fn]=true; try{ window[fn](); }catch(e){ console.warn(fn,e); } }
                     });
                     resolve();
                 }

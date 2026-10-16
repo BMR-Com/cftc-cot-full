@@ -2,8 +2,12 @@ name: Weekly COT Data Update
 
 on:
   schedule:
-    # Run at 23:00 UTC (6:00 PM CT / 7:00 PM ET) - 3.5 hours after CFTC release
-    - cron: '30 19 * * 5'
+    # CFTC publishes Fri 3:30 PM ET (19:30 UTC summer / 20:30 UTC winter).
+    # Run after release in both seasons, then retry for late/holiday-delayed reports.
+    - cron: '50 20 * * 5'   # Fri 3:50 PM ET (winter) / 4:50 PM ET (summer)
+    - cron: '30 23 * * 5'   # Fri evening retry
+    - cron: '0 14 * * 6'    # Sat morning retry
+    - cron: '0 14 * * 1'    # Mon retry (holiday weeks publish Monday)
   workflow_dispatch:
     inputs:
       full_rebuild:
@@ -12,6 +16,10 @@ on:
         default: 'false'
         type: choice
         options: ['false', 'true']
+
+concurrency:
+  group: cot-data-update
+  cancel-in-progress: false
 
 jobs:
   update-cot-data:
@@ -47,6 +55,8 @@ jobs:
           python scripts/fetch_cot_data.py
         env:
           PYTHONUNBUFFERED: '1'
+          # Manual runs skip the "is this week's report out yet?" check
+          SKIP_FRESH_CHECK: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
 
       - name: Verify outputs exist
         run: |
@@ -56,12 +66,13 @@ jobs:
           echo "CSV rows: $(wc -l < data/bcom_cot_master.csv)"
           echo "JSON size: $(wc -c < data/latest_summary.json) bytes"
           echo "Latest report date: $(python3 -c "import json; d=json.load(open('data/latest_summary.json')); print(d['report_date'])")"
+          echo "Web data:"; ls -lh data/web data/web/series | head -40
 
       - name: Commit updated data to repository
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add data/bcom_cot_master.csv data/latest_summary.json
+          git add data/bcom_cot_master.csv data/latest_summary.json data/cotton_cot.csv data/web
           if git diff --staged --quiet; then
             echo "No changes detected — CFTC may not have released new data yet."
           else
@@ -79,4 +90,5 @@ jobs:
           path: |
             data/bcom_cot_master.csv
             data/latest_summary.json
+            data/web
           retention-days: 90

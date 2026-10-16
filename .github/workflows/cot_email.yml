@@ -86,7 +86,7 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'cot-report-email.yml',
+              workflow_id: 'cot_email.yml',
               ref: context.ref,
               inputs: { retry_attempt: '1' }
             });

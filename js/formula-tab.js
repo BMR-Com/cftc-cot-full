@@ -172,9 +172,15 @@ function updateFormulaCharts(){
     if(window._formulaRawCache[commApi]){
         renderAllFormulaCharts(window._formulaRawCache[commApi], terms);
     } else {
-        showL(true, 'Fetching formula data...');
+        showL(true, 'Loading formula data...');
+        /* Pre-computed weekly series (cached in the browser); live CFTC API as fallback */
+        COTStore.seriesForApi(commApi).then(function(ser){
+            window._formulaRawCache[commApi] = staticRaw(ser, commApi);
+            renderAllFormulaCharts(window._formulaRawCache[commApi], terms);
+            showL(false);
+        }).catch(function(){
         var ep = EP.combined;  // Formula tab always uses combined reports
-        fetchT(ep + "?$where=market_and_exchange_names='" + commApi.replace(/'/g,"''") + "' AND report_date_as_yyyy_mm_dd >= '2006-01-01'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000", 20000)
+        fetchT(ep + "?$where=" + liveWhere(commApi) + " AND report_date_as_yyyy_mm_dd >= '2006-01-01'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000", 20000)
         .then(function(r){ return r.json(); })
         .then(function(data){
             if(data.length > 0){
@@ -188,6 +194,7 @@ function updateFormulaCharts(){
         .catch(function(e){
             showE('Error fetching data: ' + e.message);
             showL(false);
+        });
         });
     }
 }

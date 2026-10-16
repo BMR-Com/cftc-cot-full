@@ -15,6 +15,17 @@ from datetime import datetime
 from dateutil import tz
 from playwright.async_api import async_playwright
 from pypdf import PdfWriter, PdfReader
+import functools, http.server, threading
+
+
+def start_local_server(root: Path) -> str:
+    """Serve the repo over http://127.0.0.1 — Chromium blocks fetch() on file://,
+    which the page needs to load its tabs and pre-computed data files."""
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(root))
+    handler.log_message = lambda *a, **k: None
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return f"http://127.0.0.1:{srv.server_address[1]}"
 
 # ── Config ─────────────────────────────────────────────────────────────────
 HTML_FILE       = Path(__file__).parent.parent / "index.html"
@@ -153,7 +164,7 @@ async def generate():
         page = await browser.new_page(viewport={"width": 1400, "height": 900})
 
         # Load with print=1 to force all tabs to load
-        file_url = HTML_FILE.resolve().as_uri() + "?print=1"
+        file_url = start_local_server(HTML_FILE.parent.resolve()) + "/index.html?print=1"
         print(f"[COT PDF] Loading report (print mode): {file_url}")
 
         try:

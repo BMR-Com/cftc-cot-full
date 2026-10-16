@@ -308,8 +308,7 @@ function renderAiChart(spec){
   startDate.setFullYear(endDate.getFullYear() - (spec.years || 10));
 
   var ep = EP.combined;
-  var enc = commApi.replace(/'/g, "''");
-  var url = ep + "?$where=market_and_exchange_names='" + enc + "' AND report_date_as_yyyy_mm_dd >= '" + startDate.toISOString().split('T')[0] + "' AND report_date_as_yyyy_mm_dd <= '" + endDate.toISOString().split('T')[0] + "'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000";
+  var url = ep + "?$where=" + liveWhere(commApi) + " AND report_date_as_yyyy_mm_dd >= '" + startDate.toISOString().split('T')[0] + "' AND report_date_as_yyyy_mm_dd <= '" + endDate.toISOString().split('T')[0] + "'&$order=report_date_as_yyyy_mm_dd ASC&$limit=10000";
 
   fetchT(url, 20000)
     .then(function(r){ return r.json(); })
