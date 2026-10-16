@@ -1,0 +1,2775 @@
+{
+ "by_keyword": {
+  "disagg_combined": [
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NAT GAS ICE LD1 - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "394"
+   },
+   {
+    "cftc_contract_market_code": "067A28",
+    "market_and_exchange_names": "CRUDE OIL CAL SPREAD OPT FIN  - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "367"
+   },
+   {
+    "cftc_contract_market_code": "03565C",
+    "market_and_exchange_names": "HENRY HUB PENULTIMATE NAT GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "407"
+   },
+   {
+    "cftc_contract_market_code": "085692",
+    "market_and_exchange_names": "COPPER- #1 - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "0233AX",
+    "market_and_exchange_names": "NATURAL GAS INDEX: EP SAN JUAN - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "16"
+   },
+   {
+    "cftc_contract_market_code": "02141R",
+    "market_and_exchange_names": "USGC HSFO-PLATTS/BRENT 1ST LN  - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "353"
+   },
+   {
+    "cftc_contract_market_code": "037021",
+    "market_and_exchange_names": "USD Malaysian Crude Palm Oil C - CHICAGO MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "229"
+   },
+   {
+    "cftc_contract_market_code": "06641A",
+    "market_and_exchange_names": "NAT GASLNE OPIS MT B NONTET FP - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "451"
+   },
+   {
+    "cftc_contract_market_code": "0233AT",
+    "market_and_exchange_names": "NAT GAS LD1 for GDD -TEXOK - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "383"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MWP - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06742G",
+    "market_and_exchange_names": "CRUDE DIFF-TMX WCS 1A INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "451"
+   },
+   {
+    "cftc_contract_market_code": "023392",
+    "market_and_exchange_names": "NAT GAS ICE PEN - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "191696",
+    "market_and_exchange_names": "ALUMINIUM EURO PREM DUTY-PAID - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "284"
+   },
+   {
+    "cftc_contract_market_code": "023A84",
+    "market_and_exchange_names": "NATURAL GAS CAL SPREAD OPT FIN - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "680"
+   },
+   {
+    "cftc_contract_market_code": "0676A5",
+    "market_and_exchange_names": "WTI  HOUSTON ARGUS/WTI TR MO - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "427"
+   },
+   {
+    "cftc_contract_market_code": "067A71",
+    "market_and_exchange_names": "WTI MIDLAND ARGUS VS WTI TRADE - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "405"
+   },
+   {
+    "cftc_contract_market_code": "06765C",
+    "market_and_exchange_names": "CRUDE OIL AVG PRICE OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "957"
+   },
+   {
+    "cftc_contract_market_code": "067651",
+    "market_and_exchange_names": "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "067657",
+    "market_and_exchange_names": "CRUDE OIL CAL SPREAD OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "745"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "654"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "023651",
+    "market_and_exchange_names": "NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "111A34",
+    "market_and_exchange_names": "GULF COAST CBOB GAS A2 PL RBOB - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "243"
+   },
+   {
+    "cftc_contract_market_code": "06765T",
+    "market_and_exchange_names": "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06741Q",
+    "market_and_exchange_names": "WTI CRUDE OIL 1ST LINE - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "55"
+   },
+   {
+    "cftc_contract_market_code": "06742T",
+    "market_and_exchange_names": "CRUDE DIFF-TMX SW 1A INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "365"
+   },
+   {
+    "cftc_contract_market_code": "06739C",
+    "market_and_exchange_names": "CRUDE DIFF-WCS HOUSTON/WTI 1ST - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "309"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE OPIS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "407"
+   },
+   {
+    "cftc_contract_market_code": "02365U",
+    "market_and_exchange_names": "EUR STYLE NATURAL GAS OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "963"
+   },
+   {
+    "cftc_contract_market_code": "0233EP",
+    "market_and_exchange_names": "NAT GAS TETCO-WLA INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-09-29T00:00:00.000",
+    "n": "15"
+   },
+   {
+    "cftc_contract_market_code": "0676A6",
+    "market_and_exchange_names": "WTI  HOUSTON ARGUS/WTI BALMO - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-09-22T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "067A55",
+    "market_and_exchange_names": "Micro WTI CRUDE OIL FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-09-15T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "022A13",
+    "market_and_exchange_names": "UP DOWN GC ULSD VS HO SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-09-08T00:00:00.000",
+    "n": "504"
+   },
+   {
+    "cftc_contract_market_code": "111415",
+    "market_and_exchange_names": "GASOLINE CRK-RBOB/BRENT 1st - ICE FUTURES ENERGY DIV",
+    "last": "2026-08-25T00:00:00.000",
+    "n": "122"
+   },
+   {
+    "cftc_contract_market_code": "865392",
+    "market_and_exchange_names": "MARINE .5% FOB USGC/BRENT 1st - ICE FUTURES ENERGY DIV",
+    "last": "2026-07-28T00:00:00.000",
+    "n": "215"
+   },
+   {
+    "cftc_contract_market_code": "111416",
+    "market_and_exchange_names": "RBOB GASOLINE 1ST LINE - ICE FUTURES ENERGY DIV",
+    "last": "2026-06-23T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "191691",
+    "market_and_exchange_names": "ALUMINUM - COMMODITY EXCHANGE INC.",
+    "last": "2026-06-09T00:00:00.000",
+    "n": "143"
+   },
+   {
+    "cftc_contract_market_code": "06765L",
+    "market_and_exchange_names": "WTI-BRENT CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-05-26T00:00:00.000",
+    "n": "225"
+   },
+   {
+    "cftc_contract_market_code": "085699",
+    "market_and_exchange_names": "MICRO COPPER - COMMODITY EXCHANGE INC.",
+    "last": "2026-05-12T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "02165A",
+    "market_and_exchange_names": "GULF # 6 FUEL 3.0% SULFUR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-04-28T00:00:00.000",
+    "n": "249"
+   },
+   {
+    "cftc_contract_market_code": "111A08",
+    "market_and_exchange_names": "GRP 3 SOC GAS VS RBOB SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-03-03T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "023B41",
+    "market_and_exchange_names": "NAT GAS OPT ON CALENDAR STRIP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2025-12-09T00:00:00.000",
+    "n": "21"
+   },
+   {
+    "cftc_contract_market_code": "11165K",
+    "market_and_exchange_names": "RBOB CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2025-09-30T00:00:00.000",
+    "n": "93"
+   },
+   {
+    "cftc_contract_market_code": "06741R",
+    "market_and_exchange_names": "WTI 1st Line-Brent 1st Line - ICE FUTURES ENERGY DIV",
+    "last": "2025-06-24T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "06765Z",
+    "market_and_exchange_names": "WTI-BRENT SPREAD OPTION - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2025-04-22T00:00:00.000",
+    "n": "406"
+   },
+   {
+    "cftc_contract_market_code": "023655",
+    "market_and_exchange_names": "E-MINI NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2024-08-27T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "02141X",
+    "market_and_exchange_names": "USGC HSFO PLATTS vs WTI 1st  - ICE FUTURES ENERGY DIV",
+    "last": "2024-03-26T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "06742U",
+    "market_and_exchange_names": "ARGUS WTI Mid/WTI TRADE MONTH - ICE FUTURES ENERGY DIV",
+    "last": "2022-08-23T00:00:00.000",
+    "n": "188"
+   },
+   {
+    "cftc_contract_market_code": "06765B",
+    "market_and_exchange_names": "EUR STYLE CRUDE OIL OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-08-16T00:00:00.000",
+    "n": "520"
+   },
+   {
+    "cftc_contract_market_code": "037021",
+    "market_and_exchange_names": "USD MALAYSIAN CRUDE PALM OIL - CHICAGO MERCANTILE EXCHANGE",
+    "last": "2022-03-15T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "023651",
+    "market_and_exchange_names": "NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "817"
+   },
+   {
+    "cftc_contract_market_code": "023392",
+    "market_and_exchange_names": "NATURAL GAS PENULTIMATE ICE - ICE FUTURES ENERGY DIV",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "457"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MW US TR PLATTS - COMMODITY EXCHANGE INC.",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "163"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "#2 HEATING OIL- NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "227"
+   },
+   {
+    "cftc_contract_market_code": "085692",
+    "market_and_exchange_names": "COPPER-GRADE #1 - COMMODITY EXCHANGE INC.",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "817"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE BLENDSTOCK (RBOB)  - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "347"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS HENRY LD1 FIXED - ICE FUTURES ENERGY DIV",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "196"
+   },
+   {
+    "cftc_contract_market_code": "067651",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "817"
+   },
+   {
+    "cftc_contract_market_code": "06765T",
+    "market_and_exchange_names": "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "564"
+   },
+   {
+    "cftc_contract_market_code": "0233BB",
+    "market_and_exchange_names": "NORTHERN NATURAL GAS - VENTURA (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-18T00:00:00.000",
+    "n": "435"
+   },
+   {
+    "cftc_contract_market_code": "0233B1",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-TEXOK (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-18T00:00:00.000",
+    "n": "225"
+   },
+   {
+    "cftc_contract_market_code": "0233BA",
+    "market_and_exchange_names": "NORTHERN NATURAL GAS - DEMARCATION POOL (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-04T00:00:00.000",
+    "n": "63"
+   },
+   {
+    "cftc_contract_market_code": "0233AY",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-MID-CONTINENT POOL PIN (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-04T00:00:00.000",
+    "n": "289"
+   },
+   {
+    "cftc_contract_market_code": "191694",
+    "market_and_exchange_names": "ALUMINIUM EURO PREM DUTYUNPAID - COMMODITY EXCHANGE INC.",
+    "last": "2021-12-28T00:00:00.000",
+    "n": "45"
+   },
+   {
+    "cftc_contract_market_code": "06739B",
+    "market_and_exchange_names": "CRUDE DIFF-WCS CUSHING/WTI 1ST - ICE FUTURES ENERGY DIV",
+    "last": "2021-11-23T00:00:00.000",
+    "n": "2"
+   },
+   {
+    "cftc_contract_market_code": "023B98",
+    "market_and_exchange_names": "DUTCH TTF NAT GAS CAL MONTH - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2021-08-24T00:00:00.000",
+    "n": "8"
+   },
+   {
+    "cftc_contract_market_code": "06742R",
+    "market_and_exchange_names": "ARGUS MARS vs WTI TRADE MONTH - ICE FUTURES ENERGY DIV",
+    "last": "2020-11-24T00:00:00.000",
+    "n": "117"
+   },
+   {
+    "cftc_contract_market_code": "0233AW",
+    "market_and_exchange_names": "NATURAL GAS INDEX: ALGONQUIN CITY GATES - ICE FUTURES ENERGY DIV",
+    "last": "2020-09-01T00:00:00.000",
+    "n": "152"
+   },
+   {
+    "cftc_contract_market_code": "06743D",
+    "market_and_exchange_names": "ARGUS WTI HOUSTON/WTI TRADE MO - ICE FUTURES ENERGY DIV",
+    "last": "2020-05-19T00:00:00.000",
+    "n": "2"
+   },
+   {
+    "cftc_contract_market_code": "023P02",
+    "market_and_exchange_names": "HHUB NAT GAS PENULT FINL-10000 - NASDAQ FUTURES",
+    "last": "2020-03-24T00:00:00.000",
+    "n": "236"
+   },
+   {
+    "cftc_contract_market_code": "023P03",
+    "market_and_exchange_names": "HHUB NAT GAS PENULT FINL-2500 - NASDAQ FUTURES",
+    "last": "2019-10-22T00:00:00.000",
+    "n": "96"
+   },
+   {
+    "cftc_contract_market_code": "86465C",
+    "market_and_exchange_names": "SING JET KERO GASOIL SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2019-03-26T00:00:00.000",
+    "n": "12"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI CRUDE OIL CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2019-03-19T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "86465C",
+    "market_and_exchange_names": "SING JET KERO GASOIL SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "527"
+   },
+   {
+    "cftc_contract_market_code": "11165K",
+    "market_and_exchange_names": "RBOB CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "422"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MW US TR PLATTS SWAP - COMMODITY EXCHANGE INC.",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "163"
+   },
+   {
+    "cftc_contract_market_code": "02165A",
+    "market_and_exchange_names": "GULF # 6 FUEL 3.0% SULFUR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "639"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI CRUDE OIL CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "593"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE OPIS SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "452"
+   },
+   {
+    "cftc_contract_market_code": "06765L",
+    "market_and_exchange_names": "WTI-BRENT CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "34"
+   },
+   {
+    "cftc_contract_market_code": "86565N",
+    "market_and_exchange_names": "GULF#6 FUELOIL BRENT CRACK SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-09-25T00:00:00.000",
+    "n": "68"
+   },
+   {
+    "cftc_contract_market_code": "023P01",
+    "market_and_exchange_names": "HENRY HUB NAT GAS FINL-10000 - NASDAQ FUTURES",
+    "last": "2018-09-25T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "111A41",
+    "market_and_exchange_names": "RBOB GASOLINE/BRENT CRACK SPRD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-06-26T00:00:00.000",
+    "n": "160"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB LD1  - ICE FUTURES ENERGY DIV",
+    "last": "2018-05-01T00:00:00.000",
+    "n": "14"
+   },
+   {
+    "cftc_contract_market_code": "02165B",
+    "market_and_exchange_names": "NY RES FUEL 1.0% SULFUR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-01-30T00:00:00.000",
+    "n": "540"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB - ICE FUTURES ENERGY DIV",
+    "last": "2018-01-23T00:00:00.000",
+    "n": "276"
+   },
+   {
+    "cftc_contract_market_code": "067A49",
+    "market_and_exchange_names": "CANADIAN HVY CRUDE NET ENRGY  - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-11-14T00:00:00.000",
+    "n": "127"
+   },
+   {
+    "cftc_contract_market_code": "0233B1",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE, TEXOK (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2017-09-26T00:00:00.000",
+    "n": "230"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "#2 HEATING OIL, NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-09-26T00:00:00.000",
+    "n": "203"
+   },
+   {
+    "cftc_contract_market_code": "02265J",
+    "market_and_exchange_names": "SING GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-08-22T00:00:00.000",
+    "n": "266"
+   },
+   {
+    "cftc_contract_market_code": "11165L",
+    "market_and_exchange_names": "RBOB UP-DOWN CAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2016-01-26T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "022A13",
+    "market_and_exchange_names": "UP DOWN GC ULSD VS HO SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2016-01-05T00:00:00.000",
+    "n": "428"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD PLATT CRACK  - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-12-29T00:00:00.000",
+    "n": "29"
+   },
+   {
+    "cftc_contract_market_code": "11165L",
+    "market_and_exchange_names": "RBOB UP-DOWN CAL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-12-29T00:00:00.000",
+    "n": "127"
+   },
+   {
+    "cftc_contract_market_code": "06765Y",
+    "market_and_exchange_names": "BRENT AVG PRICE OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-09-29T00:00:00.000",
+    "n": "202"
+   },
+   {
+    "cftc_contract_market_code": "0233AY",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-MID-CONTINENT POOL PIN (BASIS - ICE FUTURES ENERGY DIV",
+    "last": "2015-07-28T00:00:00.000",
+    "n": "86"
+   },
+   {
+    "cftc_contract_market_code": "067A49",
+    "market_and_exchange_names": "CANADIAN HVY CRUDE NET ENRGY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-06-09T00:00:00.000",
+    "n": "85"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD PLATT CRACK - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-06-09T00:00:00.000",
+    "n": "57"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE BLENDSTOCK (RBOB) - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-06-09T00:00:00.000",
+    "n": "470"
+   },
+   {
+    "cftc_contract_market_code": "067A28",
+    "market_and_exchange_names": "CRUDE OIL CAL SPREAD OPT FIN - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-06-09T00:00:00.000",
+    "n": "41"
+   },
+   {
+    "cftc_contract_market_code": "067DU1",
+    "market_and_exchange_names": "OMAN CRUDE OIL - DUBAI MERCANTILE EXCHANGE",
+    "last": "2015-05-26T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "06765X",
+    "market_and_exchange_names": "EUR STYLE BRENT OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-02-24T00:00:00.000",
+    "n": "164"
+   },
+   {
+    "cftc_contract_market_code": "022A60",
+    "market_and_exchange_names": "GRP 3 ULSD VS HEATING OIL SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2014-08-19T00:00:00.000",
+    "n": "69"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD CRACK SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2014-05-06T00:00:00.000",
+    "n": "72"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - ICE FUTURES EUROPE",
+    "last": "2014-03-25T00:00:00.000",
+    "n": "235"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "NO. 2 HEATING OIL, N.Y. HARBOR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-11-05T00:00:00.000",
+    "n": "387"
+   },
+   {
+    "cftc_contract_market_code": "06765I",
+    "market_and_exchange_names": "WTI CRUDE OIL FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-09-17T00:00:00.000",
+    "n": "375"
+   },
+   {
+    "cftc_contract_market_code": "869654",
+    "market_and_exchange_names": "FAME BIODIESEL V GASOIL SPR SP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-06-18T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "06765J",
+    "market_and_exchange_names": "BRENT FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-05-14T00:00:00.000",
+    "n": "245"
+   },
+   {
+    "cftc_contract_market_code": "022A66",
+    "market_and_exchange_names": "NY ULSD VS HEATING OIL SPR SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-02-26T00:00:00.000",
+    "n": "15"
+   },
+   {
+    "cftc_contract_market_code": "06765N",
+    "market_and_exchange_names": "BRENT (ICE) CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-12-31T00:00:00.000",
+    "n": "83"
+   },
+   {
+    "cftc_contract_market_code": "06765G",
+    "market_and_exchange_names": "DUBAI CRUDE OIL CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-30T00:00:00.000",
+    "n": "299"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB - ICE OTC",
+    "last": "2012-10-09T00:00:00.000",
+    "n": "144"
+   },
+   {
+    "cftc_contract_market_code": "02265T",
+    "market_and_exchange_names": "SING GASOIL ICE GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "39"
+   },
+   {
+    "cftc_contract_market_code": "86765C",
+    "market_and_exchange_names": "GASOIL CRACK SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "239"
+   },
+   {
+    "cftc_contract_market_code": "06765O",
+    "market_and_exchange_names": "BRENT-DUBAI SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "252"
+   },
+   {
+    "cftc_contract_market_code": "022A05",
+    "market_and_exchange_names": "GULF COAST ULSD SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "18"
+   },
+   {
+    "cftc_contract_market_code": "02265U",
+    "market_and_exchange_names": "NYMEX HEATING OIL/RDAM GASOIL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-09-25T00:00:00.000",
+    "n": "81"
+   },
+   {
+    "cftc_contract_market_code": "02265V",
+    "market_and_exchange_names": "GASOIL (ICE) SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-09-04T00:00:00.000",
+    "n": "62"
+   },
+   {
+    "cftc_contract_market_code": "022A22",
+    "market_and_exchange_names": "SING GASOIL BALMO SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-07-31T00:00:00.000",
+    "n": "68"
+   },
+   {
+    "cftc_contract_market_code": "869652",
+    "market_and_exchange_names": "FAM BIODIESEL V GASOIL SPR SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-05-29T00:00:00.000",
+    "n": "5"
+   },
+   {
+    "cftc_contract_market_code": "022653",
+    "market_and_exchange_names": "HEATING OIL AVG PRICE OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-04-24T00:00:00.000",
+    "n": "141"
+   },
+   {
+    "cftc_contract_market_code": "022A62",
+    "market_and_exchange_names": "ULSD UP-DOWN BALMO SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-03-27T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "02265T",
+    "market_and_exchange_names": "SING GASOIL/RDAM GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-01-03T00:00:00.000",
+    "n": "198"
+   },
+   {
+    "cftc_contract_market_code": "022A24",
+    "market_and_exchange_names": "GASOIL (ICE) MINI CAL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2011-09-27T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "022A18",
+    "market_and_exchange_names": "ULSD UP DOWN SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2011-06-28T00:00:00.000",
+    "n": "16"
+   },
+   {
+    "cftc_contract_market_code": "006265",
+    "market_and_exchange_names": "SULFUR FINANCIAL INSTR 2009 - CHICAGO CLIMATE FUTURES EXCHANGE",
+    "last": "2010-12-28T00:00:00.000",
+    "n": "50"
+   },
+   {
+    "cftc_contract_market_code": "022A46",
+    "market_and_exchange_names": "GASOIL AVG PRICE OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-12-28T00:00:00.000",
+    "n": "4"
+   },
+   {
+    "cftc_contract_market_code": "006261",
+    "market_and_exchange_names": "SULFUR FINANCIAL INSTRUMENT - CHICAGO CLIMATE FUTURES EXCHANGE",
+    "last": "2010-12-14T00:00:00.000",
+    "n": "191"
+   },
+   {
+    "cftc_contract_market_code": "86465D",
+    "market_and_exchange_names": "JET CIF NWE/GASOIL FUT - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-08-31T00:00:00.000",
+    "n": "75"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE 5 DEC SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-04-20T00:00:00.000",
+    "n": "18"
+   },
+   {
+    "cftc_contract_market_code": "967652",
+    "market_and_exchange_names": "RBOB CRACK SPREAD SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-03-30T00:00:00.000",
+    "n": "7"
+   },
+   {
+    "cftc_contract_market_code": "066654",
+    "market_and_exchange_names": "MT BELVIEU NAT GASOLINE SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-12-15T00:00:00.000",
+    "n": "45"
+   },
+   {
+    "cftc_contract_market_code": "022A26",
+    "market_and_exchange_names": "GASOIL 0.1 BARGE FOB RDM V ICE - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-10-27T00:00:00.000",
+    "n": "14"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - ICE EUROPE",
+    "last": "2009-09-22T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "06765M",
+    "market_and_exchange_names": "DATED TO FRONTLINE BRENT SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-07-28T00:00:00.000",
+    "n": "35"
+   },
+   {
+    "cftc_contract_market_code": "11165J",
+    "market_and_exchange_names": "RBOB GASOLINE FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-04-07T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "023656",
+    "market_and_exchange_names": "NATURAL GAS CAL SPREAD OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-02-17T00:00:00.000",
+    "n": "42"
+   },
+   {
+    "cftc_contract_market_code": "022654",
+    "market_and_exchange_names": "EUR STYLE HEATING OIL OPTIONS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2008-12-22T00:00:00.000",
+    "n": "28"
+   },
+   {
+    "cftc_contract_market_code": "067655",
+    "market_and_exchange_names": "E-MINI CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2007-01-16T00:00:00.000",
+    "n": "23"
+   }
+  ],
+  "disagg_futures": [
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "654"
+   },
+   {
+    "cftc_contract_market_code": "111A34",
+    "market_and_exchange_names": "GULF COAST CBOB GAS A2 PL RBOB - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "03565C",
+    "market_and_exchange_names": "HENRY HUB PENULTIMATE NAT GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "407"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NAT GAS ICE LD1 - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06765T",
+    "market_and_exchange_names": "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06741Q",
+    "market_and_exchange_names": "WTI CRUDE OIL 1ST LINE - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "55"
+   },
+   {
+    "cftc_contract_market_code": "06742T",
+    "market_and_exchange_names": "CRUDE DIFF-TMX SW 1A INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "365"
+   },
+   {
+    "cftc_contract_market_code": "06739C",
+    "market_and_exchange_names": "CRUDE DIFF-WCS HOUSTON/WTI 1ST - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "309"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE OPIS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "407"
+   },
+   {
+    "cftc_contract_market_code": "0233AT",
+    "market_and_exchange_names": "NAT GAS LD1 for GDD -TEXOK - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "383"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MWP - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06742G",
+    "market_and_exchange_names": "CRUDE DIFF-TMX WCS 1A INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "451"
+   },
+   {
+    "cftc_contract_market_code": "023392",
+    "market_and_exchange_names": "NAT GAS ICE PEN - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "0676A5",
+    "market_and_exchange_names": "WTI  HOUSTON ARGUS/WTI TR MO - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "427"
+   },
+   {
+    "cftc_contract_market_code": "067A71",
+    "market_and_exchange_names": "WTI MIDLAND ARGUS VS WTI TRADE - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "405"
+   },
+   {
+    "cftc_contract_market_code": "191696",
+    "market_and_exchange_names": "ALUMINIUM EURO PREM DUTY-PAID - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "284"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "394"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "085692",
+    "market_and_exchange_names": "COPPER- #1 - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "243"
+   },
+   {
+    "cftc_contract_market_code": "02141R",
+    "market_and_exchange_names": "USGC HSFO-PLATTS/BRENT 1ST LN  - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "353"
+   },
+   {
+    "cftc_contract_market_code": "067651",
+    "market_and_exchange_names": "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "0233AX",
+    "market_and_exchange_names": "NATURAL GAS INDEX: EP SAN JUAN - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "16"
+   },
+   {
+    "cftc_contract_market_code": "023651",
+    "market_and_exchange_names": "NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06641A",
+    "market_and_exchange_names": "NAT GASLNE OPIS MT B NONTET FP - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "451"
+   },
+   {
+    "cftc_contract_market_code": "037021",
+    "market_and_exchange_names": "USD Malaysian Crude Palm Oil C - CHICAGO MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "229"
+   },
+   {
+    "cftc_contract_market_code": "0233EP",
+    "market_and_exchange_names": "NAT GAS TETCO-WLA INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-09-29T00:00:00.000",
+    "n": "15"
+   },
+   {
+    "cftc_contract_market_code": "0676A6",
+    "market_and_exchange_names": "WTI  HOUSTON ARGUS/WTI BALMO - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-09-22T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "022A13",
+    "market_and_exchange_names": "UP DOWN GC ULSD VS HO SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-09-08T00:00:00.000",
+    "n": "504"
+   },
+   {
+    "cftc_contract_market_code": "111415",
+    "market_and_exchange_names": "GASOLINE CRK-RBOB/BRENT 1st - ICE FUTURES ENERGY DIV",
+    "last": "2026-08-25T00:00:00.000",
+    "n": "122"
+   },
+   {
+    "cftc_contract_market_code": "865392",
+    "market_and_exchange_names": "MARINE .5% FOB USGC/BRENT 1st - ICE FUTURES ENERGY DIV",
+    "last": "2026-07-28T00:00:00.000",
+    "n": "215"
+   },
+   {
+    "cftc_contract_market_code": "111416",
+    "market_and_exchange_names": "RBOB GASOLINE 1ST LINE - ICE FUTURES ENERGY DIV",
+    "last": "2026-06-23T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "191691",
+    "market_and_exchange_names": "ALUMINUM - COMMODITY EXCHANGE INC.",
+    "last": "2026-06-09T00:00:00.000",
+    "n": "143"
+   },
+   {
+    "cftc_contract_market_code": "06765L",
+    "market_and_exchange_names": "WTI-BRENT CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-05-26T00:00:00.000",
+    "n": "225"
+   },
+   {
+    "cftc_contract_market_code": "085699",
+    "market_and_exchange_names": "MICRO COPPER - COMMODITY EXCHANGE INC.",
+    "last": "2026-05-12T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "02165A",
+    "market_and_exchange_names": "GULF # 6 FUEL 3.0% SULFUR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-04-28T00:00:00.000",
+    "n": "249"
+   },
+   {
+    "cftc_contract_market_code": "111A08",
+    "market_and_exchange_names": "GRP 3 SOC GAS VS RBOB SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-03-03T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "11165K",
+    "market_and_exchange_names": "RBOB CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2025-09-30T00:00:00.000",
+    "n": "93"
+   },
+   {
+    "cftc_contract_market_code": "06741R",
+    "market_and_exchange_names": "WTI 1st Line-Brent 1st Line - ICE FUTURES ENERGY DIV",
+    "last": "2025-06-24T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "023655",
+    "market_and_exchange_names": "E-MINI NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2024-08-27T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "02141X",
+    "market_and_exchange_names": "USGC HSFO PLATTS vs WTI 1st  - ICE FUTURES ENERGY DIV",
+    "last": "2024-03-26T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "06742U",
+    "market_and_exchange_names": "ARGUS WTI Mid/WTI TRADE MONTH - ICE FUTURES ENERGY DIV",
+    "last": "2022-08-23T00:00:00.000",
+    "n": "188"
+   },
+   {
+    "cftc_contract_market_code": "037021",
+    "market_and_exchange_names": "USD MALAYSIAN CRUDE PALM OIL - CHICAGO MERCANTILE EXCHANGE",
+    "last": "2022-03-15T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "023651",
+    "market_and_exchange_names": "NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "817"
+   },
+   {
+    "cftc_contract_market_code": "023392",
+    "market_and_exchange_names": "NATURAL GAS PENULTIMATE ICE - ICE FUTURES ENERGY DIV",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "457"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MW US TR PLATTS - COMMODITY EXCHANGE INC.",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "163"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "#2 HEATING OIL- NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "227"
+   },
+   {
+    "cftc_contract_market_code": "085692",
+    "market_and_exchange_names": "COPPER-GRADE #1 - COMMODITY EXCHANGE INC.",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "817"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE BLENDSTOCK (RBOB)  - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "347"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS HENRY LD1 FIXED - ICE FUTURES ENERGY DIV",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "196"
+   },
+   {
+    "cftc_contract_market_code": "067651",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "817"
+   },
+   {
+    "cftc_contract_market_code": "06765T",
+    "market_and_exchange_names": "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "527"
+   },
+   {
+    "cftc_contract_market_code": "0233B1",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-TEXOK (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-18T00:00:00.000",
+    "n": "225"
+   },
+   {
+    "cftc_contract_market_code": "0233BB",
+    "market_and_exchange_names": "NORTHERN NATURAL GAS - VENTURA (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-18T00:00:00.000",
+    "n": "435"
+   },
+   {
+    "cftc_contract_market_code": "0233AY",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-MID-CONTINENT POOL PIN (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-04T00:00:00.000",
+    "n": "289"
+   },
+   {
+    "cftc_contract_market_code": "0233BA",
+    "market_and_exchange_names": "NORTHERN NATURAL GAS - DEMARCATION POOL (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-04T00:00:00.000",
+    "n": "63"
+   },
+   {
+    "cftc_contract_market_code": "191694",
+    "market_and_exchange_names": "ALUMINIUM EURO PREM DUTYUNPAID - COMMODITY EXCHANGE INC.",
+    "last": "2021-12-28T00:00:00.000",
+    "n": "45"
+   },
+   {
+    "cftc_contract_market_code": "06739B",
+    "market_and_exchange_names": "CRUDE DIFF-WCS CUSHING/WTI 1ST - ICE FUTURES ENERGY DIV",
+    "last": "2021-11-23T00:00:00.000",
+    "n": "2"
+   },
+   {
+    "cftc_contract_market_code": "023B98",
+    "market_and_exchange_names": "DUTCH TTF NAT GAS CAL MONTH - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2021-08-24T00:00:00.000",
+    "n": "8"
+   },
+   {
+    "cftc_contract_market_code": "06742R",
+    "market_and_exchange_names": "ARGUS MARS vs WTI TRADE MONTH - ICE FUTURES ENERGY DIV",
+    "last": "2020-11-24T00:00:00.000",
+    "n": "117"
+   },
+   {
+    "cftc_contract_market_code": "0233AW",
+    "market_and_exchange_names": "NATURAL GAS INDEX: ALGONQUIN CITY GATES - ICE FUTURES ENERGY DIV",
+    "last": "2020-09-01T00:00:00.000",
+    "n": "152"
+   },
+   {
+    "cftc_contract_market_code": "06743D",
+    "market_and_exchange_names": "ARGUS WTI HOUSTON/WTI TRADE MO - ICE FUTURES ENERGY DIV",
+    "last": "2020-05-19T00:00:00.000",
+    "n": "2"
+   },
+   {
+    "cftc_contract_market_code": "023P02",
+    "market_and_exchange_names": "HHUB NAT GAS PENULT FINL-10000 - NASDAQ FUTURES",
+    "last": "2020-02-25T00:00:00.000",
+    "n": "218"
+   },
+   {
+    "cftc_contract_market_code": "023P03",
+    "market_and_exchange_names": "HHUB NAT GAS PENULT FINL-2500 - NASDAQ FUTURES",
+    "last": "2019-10-22T00:00:00.000",
+    "n": "96"
+   },
+   {
+    "cftc_contract_market_code": "86465C",
+    "market_and_exchange_names": "SING JET KERO GASOIL SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2019-03-26T00:00:00.000",
+    "n": "12"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI CRUDE OIL CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2019-03-19T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "86465C",
+    "market_and_exchange_names": "SING JET KERO GASOIL SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "527"
+   },
+   {
+    "cftc_contract_market_code": "02165A",
+    "market_and_exchange_names": "GULF # 6 FUEL 3.0% SULFUR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "639"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MW US TR PLATTS SWAP - COMMODITY EXCHANGE INC.",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "163"
+   },
+   {
+    "cftc_contract_market_code": "06765L",
+    "market_and_exchange_names": "WTI-BRENT CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "34"
+   },
+   {
+    "cftc_contract_market_code": "11165K",
+    "market_and_exchange_names": "RBOB CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "422"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE OPIS SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "452"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI CRUDE OIL CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "593"
+   },
+   {
+    "cftc_contract_market_code": "023P01",
+    "market_and_exchange_names": "HENRY HUB NAT GAS FINL-10000 - NASDAQ FUTURES",
+    "last": "2018-09-25T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "86565N",
+    "market_and_exchange_names": "GULF#6 FUELOIL BRENT CRACK SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-09-25T00:00:00.000",
+    "n": "68"
+   },
+   {
+    "cftc_contract_market_code": "111A41",
+    "market_and_exchange_names": "RBOB GASOLINE/BRENT CRACK SPRD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-06-26T00:00:00.000",
+    "n": "160"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB LD1  - ICE FUTURES ENERGY DIV",
+    "last": "2018-05-01T00:00:00.000",
+    "n": "14"
+   },
+   {
+    "cftc_contract_market_code": "02165B",
+    "market_and_exchange_names": "NY RES FUEL 1.0% SULFUR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-01-30T00:00:00.000",
+    "n": "540"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB - ICE FUTURES ENERGY DIV",
+    "last": "2018-01-23T00:00:00.000",
+    "n": "276"
+   },
+   {
+    "cftc_contract_market_code": "0233B1",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE, TEXOK (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2017-09-26T00:00:00.000",
+    "n": "230"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "#2 HEATING OIL, NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-09-26T00:00:00.000",
+    "n": "203"
+   },
+   {
+    "cftc_contract_market_code": "02265J",
+    "market_and_exchange_names": "SING GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-08-22T00:00:00.000",
+    "n": "266"
+   },
+   {
+    "cftc_contract_market_code": "067A49",
+    "market_and_exchange_names": "CANADIAN HVY CRUDE NET ENRGY  - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-08-15T00:00:00.000",
+    "n": "114"
+   },
+   {
+    "cftc_contract_market_code": "11165L",
+    "market_and_exchange_names": "RBOB UP-DOWN CAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2016-01-26T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "022A13",
+    "market_and_exchange_names": "UP DOWN GC ULSD VS HO SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2016-01-05T00:00:00.000",
+    "n": "428"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD PLATT CRACK  - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-12-29T00:00:00.000",
+    "n": "29"
+   },
+   {
+    "cftc_contract_market_code": "11165L",
+    "market_and_exchange_names": "RBOB UP-DOWN CAL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-12-29T00:00:00.000",
+    "n": "127"
+   },
+   {
+    "cftc_contract_market_code": "0233AY",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-MID-CONTINENT POOL PIN (BASIS - ICE FUTURES ENERGY DIV",
+    "last": "2015-07-28T00:00:00.000",
+    "n": "86"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD PLATT CRACK - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-06-09T00:00:00.000",
+    "n": "57"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE BLENDSTOCK (RBOB) - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-06-09T00:00:00.000",
+    "n": "470"
+   },
+   {
+    "cftc_contract_market_code": "067A49",
+    "market_and_exchange_names": "CANADIAN HVY CRUDE NET ENRGY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-06-09T00:00:00.000",
+    "n": "85"
+   },
+   {
+    "cftc_contract_market_code": "067DU1",
+    "market_and_exchange_names": "OMAN CRUDE OIL - DUBAI MERCANTILE EXCHANGE",
+    "last": "2015-05-26T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "022A60",
+    "market_and_exchange_names": "GRP 3 ULSD VS HEATING OIL SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2014-08-19T00:00:00.000",
+    "n": "69"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD CRACK SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2014-05-06T00:00:00.000",
+    "n": "72"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - ICE FUTURES EUROPE",
+    "last": "2014-03-25T00:00:00.000",
+    "n": "235"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "NO. 2 HEATING OIL, N.Y. HARBOR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-11-05T00:00:00.000",
+    "n": "387"
+   },
+   {
+    "cftc_contract_market_code": "06765I",
+    "market_and_exchange_names": "WTI CRUDE OIL FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-09-17T00:00:00.000",
+    "n": "375"
+   },
+   {
+    "cftc_contract_market_code": "869654",
+    "market_and_exchange_names": "FAME BIODIESEL V GASOIL SPR SP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-06-18T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "06765J",
+    "market_and_exchange_names": "BRENT FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-05-14T00:00:00.000",
+    "n": "245"
+   },
+   {
+    "cftc_contract_market_code": "022A66",
+    "market_and_exchange_names": "NY ULSD VS HEATING OIL SPR SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-02-26T00:00:00.000",
+    "n": "15"
+   },
+   {
+    "cftc_contract_market_code": "06765N",
+    "market_and_exchange_names": "BRENT (ICE) CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-12-31T00:00:00.000",
+    "n": "83"
+   },
+   {
+    "cftc_contract_market_code": "06765G",
+    "market_and_exchange_names": "DUBAI CRUDE OIL CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-30T00:00:00.000",
+    "n": "299"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB - ICE OTC",
+    "last": "2012-10-09T00:00:00.000",
+    "n": "144"
+   },
+   {
+    "cftc_contract_market_code": "02265T",
+    "market_and_exchange_names": "SING GASOIL ICE GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "39"
+   },
+   {
+    "cftc_contract_market_code": "06765O",
+    "market_and_exchange_names": "BRENT-DUBAI SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "252"
+   },
+   {
+    "cftc_contract_market_code": "86765C",
+    "market_and_exchange_names": "GASOIL CRACK SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "239"
+   },
+   {
+    "cftc_contract_market_code": "022A05",
+    "market_and_exchange_names": "GULF COAST ULSD SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "18"
+   },
+   {
+    "cftc_contract_market_code": "02265U",
+    "market_and_exchange_names": "NYMEX HEATING OIL/RDAM GASOIL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-09-25T00:00:00.000",
+    "n": "81"
+   },
+   {
+    "cftc_contract_market_code": "02265V",
+    "market_and_exchange_names": "GASOIL (ICE) SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-09-04T00:00:00.000",
+    "n": "62"
+   },
+   {
+    "cftc_contract_market_code": "022A22",
+    "market_and_exchange_names": "SING GASOIL BALMO SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-07-31T00:00:00.000",
+    "n": "68"
+   },
+   {
+    "cftc_contract_market_code": "869652",
+    "market_and_exchange_names": "FAM BIODIESEL V GASOIL SPR SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-05-29T00:00:00.000",
+    "n": "5"
+   },
+   {
+    "cftc_contract_market_code": "022A62",
+    "market_and_exchange_names": "ULSD UP-DOWN BALMO SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-03-27T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "02265T",
+    "market_and_exchange_names": "SING GASOIL/RDAM GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-01-03T00:00:00.000",
+    "n": "198"
+   },
+   {
+    "cftc_contract_market_code": "022A24",
+    "market_and_exchange_names": "GASOIL (ICE) MINI CAL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2011-09-27T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "022A18",
+    "market_and_exchange_names": "ULSD UP DOWN SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2011-06-28T00:00:00.000",
+    "n": "16"
+   },
+   {
+    "cftc_contract_market_code": "006265",
+    "market_and_exchange_names": "SULFUR FINANCIAL INSTR 2009 - CHICAGO CLIMATE FUTURES EXCHANGE",
+    "last": "2010-12-28T00:00:00.000",
+    "n": "50"
+   },
+   {
+    "cftc_contract_market_code": "006261",
+    "market_and_exchange_names": "SULFUR FINANCIAL INSTRUMENT - CHICAGO CLIMATE FUTURES EXCHANGE",
+    "last": "2010-12-14T00:00:00.000",
+    "n": "191"
+   },
+   {
+    "cftc_contract_market_code": "86465D",
+    "market_and_exchange_names": "JET CIF NWE/GASOIL FUT - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-08-31T00:00:00.000",
+    "n": "75"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE 5 DEC SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-04-20T00:00:00.000",
+    "n": "18"
+   },
+   {
+    "cftc_contract_market_code": "967652",
+    "market_and_exchange_names": "RBOB CRACK SPREAD SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-03-30T00:00:00.000",
+    "n": "7"
+   },
+   {
+    "cftc_contract_market_code": "066654",
+    "market_and_exchange_names": "MT BELVIEU NAT GASOLINE SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-12-15T00:00:00.000",
+    "n": "45"
+   },
+   {
+    "cftc_contract_market_code": "022A26",
+    "market_and_exchange_names": "GASOIL 0.1 BARGE FOB RDM V ICE - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-10-27T00:00:00.000",
+    "n": "14"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - ICE EUROPE",
+    "last": "2009-09-22T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "06765M",
+    "market_and_exchange_names": "DATED TO FRONTLINE BRENT SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-07-28T00:00:00.000",
+    "n": "35"
+   },
+   {
+    "cftc_contract_market_code": "11165J",
+    "market_and_exchange_names": "RBOB GASOLINE FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-04-07T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "067655",
+    "market_and_exchange_names": "E-MINI CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2007-01-16T00:00:00.000",
+    "n": "23"
+   }
+  ],
+  "legacy_futures": [
+   {
+    "cftc_contract_market_code": "067651",
+    "market_and_exchange_names": "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "085692",
+    "market_and_exchange_names": "COPPER- #1 - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "067A71",
+    "market_and_exchange_names": "WTI MIDLAND ARGUS VS WTI TRADE - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "405"
+   },
+   {
+    "cftc_contract_market_code": "037021",
+    "market_and_exchange_names": "USD Malaysian Crude Palm Oil C - CHICAGO MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "229"
+   },
+   {
+    "cftc_contract_market_code": "03565C",
+    "market_and_exchange_names": "HENRY HUB PENULTIMATE NAT GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "407"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NAT GAS ICE LD1 - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06742G",
+    "market_and_exchange_names": "CRUDE DIFF-TMX WCS 1A INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "451"
+   },
+   {
+    "cftc_contract_market_code": "023392",
+    "market_and_exchange_names": "NAT GAS ICE PEN - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "191696",
+    "market_and_exchange_names": "ALUMINIUM EURO PREM DUTY-PAID - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "284"
+   },
+   {
+    "cftc_contract_market_code": "111A34",
+    "market_and_exchange_names": "GULF COAST CBOB GAS A2 PL RBOB - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06765T",
+    "market_and_exchange_names": "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "06741Q",
+    "market_and_exchange_names": "WTI CRUDE OIL 1ST LINE - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "55"
+   },
+   {
+    "cftc_contract_market_code": "06742T",
+    "market_and_exchange_names": "CRUDE DIFF-TMX SW 1A INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "365"
+   },
+   {
+    "cftc_contract_market_code": "06739C",
+    "market_and_exchange_names": "CRUDE DIFF-WCS HOUSTON/WTI 1ST - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "309"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE OPIS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "407"
+   },
+   {
+    "cftc_contract_market_code": "02141R",
+    "market_and_exchange_names": "USGC HSFO-PLATTS/BRENT 1ST LN - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "353"
+   },
+   {
+    "cftc_contract_market_code": "0676A5",
+    "market_and_exchange_names": "WTI  HOUSTON ARGUS/WTI TR MO - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "427"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "654"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MWP - COMMODITY EXCHANGE INC.",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "0233AT",
+    "market_and_exchange_names": "NAT GAS LD1 for GDD -TEXOK - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "383"
+   },
+   {
+    "cftc_contract_market_code": "0233AX",
+    "market_and_exchange_names": "NATURAL GAS INDEX: EP SAN JUAN - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "16"
+   },
+   {
+    "cftc_contract_market_code": "023651",
+    "market_and_exchange_names": "NAT GAS NYME - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "244"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "243"
+   },
+   {
+    "cftc_contract_market_code": "06641A",
+    "market_and_exchange_names": "NAT GASLNE OPIS MT B NONTET FP - ICE FUTURES ENERGY DIV",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "451"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-10-06T00:00:00.000",
+    "n": "394"
+   },
+   {
+    "cftc_contract_market_code": "0233EP",
+    "market_and_exchange_names": "NAT GAS TETCO-WLA INDEX - ICE FUTURES ENERGY DIV",
+    "last": "2026-09-29T00:00:00.000",
+    "n": "15"
+   },
+   {
+    "cftc_contract_market_code": "0676A6",
+    "market_and_exchange_names": "WTI  HOUSTON ARGUS/WTI BALMO - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-09-22T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "022A13",
+    "market_and_exchange_names": "UP DOWN GC ULSD VS HO SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-09-08T00:00:00.000",
+    "n": "504"
+   },
+   {
+    "cftc_contract_market_code": "111415",
+    "market_and_exchange_names": "GASOLINE CRK-RBOB/BRENT 1st - ICE FUTURES ENERGY DIV",
+    "last": "2026-08-25T00:00:00.000",
+    "n": "122"
+   },
+   {
+    "cftc_contract_market_code": "865392",
+    "market_and_exchange_names": "MARINE .5% FOB USGC/BRENT 1st - ICE FUTURES ENERGY DIV",
+    "last": "2026-07-28T00:00:00.000",
+    "n": "215"
+   },
+   {
+    "cftc_contract_market_code": "111416",
+    "market_and_exchange_names": "RBOB GASOLINE 1ST LINE - ICE FUTURES ENERGY DIV",
+    "last": "2026-06-23T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "191691",
+    "market_and_exchange_names": "ALUMINUM - COMMODITY EXCHANGE INC.",
+    "last": "2026-06-09T00:00:00.000",
+    "n": "208"
+   },
+   {
+    "cftc_contract_market_code": "06765L",
+    "market_and_exchange_names": "WTI-BRENT CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-05-26T00:00:00.000",
+    "n": "225"
+   },
+   {
+    "cftc_contract_market_code": "085699",
+    "market_and_exchange_names": "MICRO COPPER - COMMODITY EXCHANGE INC.",
+    "last": "2026-05-12T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "02165A",
+    "market_and_exchange_names": "GULF # 6 FUEL 3.0% SULFUR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-04-28T00:00:00.000",
+    "n": "249"
+   },
+   {
+    "cftc_contract_market_code": "111A08",
+    "market_and_exchange_names": "GRP 3 SOC GAS VS RBOB SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2026-03-03T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "11165K",
+    "market_and_exchange_names": "RBOB CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2025-09-30T00:00:00.000",
+    "n": "93"
+   },
+   {
+    "cftc_contract_market_code": "06741R",
+    "market_and_exchange_names": "WTI 1st Line-Brent 1st Line - ICE FUTURES ENERGY DIV",
+    "last": "2025-06-24T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "023655",
+    "market_and_exchange_names": "E-MINI NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2024-08-27T00:00:00.000",
+    "n": "5"
+   },
+   {
+    "cftc_contract_market_code": "02141X",
+    "market_and_exchange_names": "USGC HSFO PLATTS vs WTI 1st - ICE FUTURES ENERGY DIV",
+    "last": "2024-03-26T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "06742U",
+    "market_and_exchange_names": "ARGUS WTI Mid/WTI TRADE MONTH - ICE FUTURES ENERGY DIV",
+    "last": "2022-08-23T00:00:00.000",
+    "n": "188"
+   },
+   {
+    "cftc_contract_market_code": "037021",
+    "market_and_exchange_names": "USD MALAYSIAN CRUDE PALM OIL - CHICAGO MERCANTILE EXCHANGE",
+    "last": "2022-03-15T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "067651",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "1147"
+   },
+   {
+    "cftc_contract_market_code": "111659",
+    "market_and_exchange_names": "GASOLINE BLENDSTOCK (RBOB) - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "834"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MW US TR PLATTS - COMMODITY EXCHANGE INC.",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "163"
+   },
+   {
+    "cftc_contract_market_code": "023651",
+    "market_and_exchange_names": "NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "1590"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "#2 HEATING OIL- NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "227"
+   },
+   {
+    "cftc_contract_market_code": "085692",
+    "market_and_exchange_names": "COPPER-GRADE #1 - COMMODITY EXCHANGE INC.",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "1608"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS HENRY LD1 FIXED - ICE FUTURES ENERGY DIV",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "196"
+   },
+   {
+    "cftc_contract_market_code": "06765T",
+    "market_and_exchange_names": "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "527"
+   },
+   {
+    "cftc_contract_market_code": "023392",
+    "market_and_exchange_names": "NATURAL GAS PENULTIMATE ICE - ICE FUTURES ENERGY DIV",
+    "last": "2022-02-01T00:00:00.000",
+    "n": "457"
+   },
+   {
+    "cftc_contract_market_code": "0233BB",
+    "market_and_exchange_names": "NORTHERN NATURAL GAS - VENTURA (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-18T00:00:00.000",
+    "n": "435"
+   },
+   {
+    "cftc_contract_market_code": "0233B1",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-TEXOK (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-18T00:00:00.000",
+    "n": "225"
+   },
+   {
+    "cftc_contract_market_code": "0233BA",
+    "market_and_exchange_names": "NORTHERN NATURAL GAS - DEMARCATION POOL (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-04T00:00:00.000",
+    "n": "57"
+   },
+   {
+    "cftc_contract_market_code": "0233AY",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-MID-CONTINENT POOL PIN (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2022-01-04T00:00:00.000",
+    "n": "289"
+   },
+   {
+    "cftc_contract_market_code": "191694",
+    "market_and_exchange_names": "ALUMINIUM EURO PREM DUTYUNPAID - COMMODITY EXCHANGE INC.",
+    "last": "2021-12-28T00:00:00.000",
+    "n": "45"
+   },
+   {
+    "cftc_contract_market_code": "06739B",
+    "market_and_exchange_names": "CRUDE DIFF-WCS CUSHING/WTI 1ST - ICE FUTURES ENERGY DIV",
+    "last": "2021-11-23T00:00:00.000",
+    "n": "2"
+   },
+   {
+    "cftc_contract_market_code": "023B98",
+    "market_and_exchange_names": "DUTCH TTF NAT GAS CAL MONTH - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2021-08-24T00:00:00.000",
+    "n": "8"
+   },
+   {
+    "cftc_contract_market_code": "06742R",
+    "market_and_exchange_names": "ARGUS MARS vs WTI TRADE MONTH - ICE FUTURES ENERGY DIV",
+    "last": "2020-11-24T00:00:00.000",
+    "n": "117"
+   },
+   {
+    "cftc_contract_market_code": "0233AW",
+    "market_and_exchange_names": "NATURAL GAS INDEX: ALGONQUIN CITY GATES - ICE FUTURES ENERGY DIV",
+    "last": "2020-09-01T00:00:00.000",
+    "n": "152"
+   },
+   {
+    "cftc_contract_market_code": "06743D",
+    "market_and_exchange_names": "ARGUS WTI HOUSTON/WTI TRADE MO - ICE FUTURES ENERGY DIV",
+    "last": "2020-05-19T00:00:00.000",
+    "n": "2"
+   },
+   {
+    "cftc_contract_market_code": "023P02",
+    "market_and_exchange_names": "HHUB NAT GAS PENULT FINL-10000 - NASDAQ FUTURES",
+    "last": "2020-02-25T00:00:00.000",
+    "n": "218"
+   },
+   {
+    "cftc_contract_market_code": "023P03",
+    "market_and_exchange_names": "HHUB NAT GAS PENULT FINL-2500 - NASDAQ FUTURES",
+    "last": "2019-10-22T00:00:00.000",
+    "n": "96"
+   },
+   {
+    "cftc_contract_market_code": "86465C",
+    "market_and_exchange_names": "SING JET KERO GASOIL SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2019-03-26T00:00:00.000",
+    "n": "12"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI CRUDE OIL CALENDAR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2019-03-19T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "02165A",
+    "market_and_exchange_names": "GULF # 6 FUEL 3.0% SULFUR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "639"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE OPIS SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "452"
+   },
+   {
+    "cftc_contract_market_code": "191693",
+    "market_and_exchange_names": "ALUMINUM MW US TR PLATTS SWAP - COMMODITY EXCHANGE INC.",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "163"
+   },
+   {
+    "cftc_contract_market_code": "86465C",
+    "market_and_exchange_names": "SING JET KERO GASOIL SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "527"
+   },
+   {
+    "cftc_contract_market_code": "11165K",
+    "market_and_exchange_names": "RBOB CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "422"
+   },
+   {
+    "cftc_contract_market_code": "06765A",
+    "market_and_exchange_names": "WTI CRUDE OIL CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "593"
+   },
+   {
+    "cftc_contract_market_code": "06765L",
+    "market_and_exchange_names": "WTI-BRENT CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-12-18T00:00:00.000",
+    "n": "34"
+   },
+   {
+    "cftc_contract_market_code": "86565N",
+    "market_and_exchange_names": "GULF#6 FUELOIL BRENT CRACK SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-09-25T00:00:00.000",
+    "n": "68"
+   },
+   {
+    "cftc_contract_market_code": "023P01",
+    "market_and_exchange_names": "HENRY HUB NAT GAS FINL-10000 - NASDAQ FUTURES",
+    "last": "2018-09-25T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "111A41",
+    "market_and_exchange_names": "RBOB GASOLINE/BRENT CRACK SPRD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-06-26T00:00:00.000",
+    "n": "160"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB LD1 - ICE FUTURES ENERGY DIV",
+    "last": "2018-05-01T00:00:00.000",
+    "n": "14"
+   },
+   {
+    "cftc_contract_market_code": "02165B",
+    "market_and_exchange_names": "NY RES FUEL 1.0% SULFUR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2018-01-30T00:00:00.000",
+    "n": "566"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB - ICE FUTURES ENERGY DIV",
+    "last": "2018-01-23T00:00:00.000",
+    "n": "276"
+   },
+   {
+    "cftc_contract_market_code": "0233B1",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE, TEXOK (BASIS) - ICE FUTURES ENERGY DIV",
+    "last": "2017-09-26T00:00:00.000",
+    "n": "230"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "#2 HEATING OIL, NY HARBOR-ULSD - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-09-26T00:00:00.000",
+    "n": "203"
+   },
+   {
+    "cftc_contract_market_code": "02265J",
+    "market_and_exchange_names": "SING GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-08-22T00:00:00.000",
+    "n": "266"
+   },
+   {
+    "cftc_contract_market_code": "067A49",
+    "market_and_exchange_names": "CANADIAN HVY CRUDE NET ENRGY - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2017-08-15T00:00:00.000",
+    "n": "199"
+   },
+   {
+    "cftc_contract_market_code": "11165L",
+    "market_and_exchange_names": "RBOB UP-DOWN CAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2016-01-26T00:00:00.000",
+    "n": "3"
+   },
+   {
+    "cftc_contract_market_code": "022A13",
+    "market_and_exchange_names": "UP DOWN GC ULSD VS HO SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2016-01-05T00:00:00.000",
+    "n": "428"
+   },
+   {
+    "cftc_contract_market_code": "11165L",
+    "market_and_exchange_names": "RBOB UP-DOWN CAL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-12-29T00:00:00.000",
+    "n": "127"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD PLATT CRACK - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2015-12-29T00:00:00.000",
+    "n": "86"
+   },
+   {
+    "cftc_contract_market_code": "0233AY",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-MID-CONTINENT POOL PIN (BASIS - ICE FUTURES ENERGY DIV",
+    "last": "2015-07-28T00:00:00.000",
+    "n": "18"
+   },
+   {
+    "cftc_contract_market_code": "067DU1",
+    "market_and_exchange_names": "OMAN CRUDE OIL - DUBAI MERCANTILE EXCHANGE",
+    "last": "2015-05-26T00:00:00.000",
+    "n": "13"
+   },
+   {
+    "cftc_contract_market_code": "0233AY",
+    "market_and_exchange_names": "NATURAL GAS PIPELINE-MID-CONTINENT POOL PIN (BASIS - ICE FUTURES ENER",
+    "last": "2014-12-30T00:00:00.000",
+    "n": "68"
+   },
+   {
+    "cftc_contract_market_code": "0233BA",
+    "market_and_exchange_names": "NORTHERN NATURAL GAS - DEMARCATION POOL (BASIS) - ICE FUTURES ENERGY",
+    "last": "2014-12-02T00:00:00.000",
+    "n": "6"
+   },
+   {
+    "cftc_contract_market_code": "022A60",
+    "market_and_exchange_names": "GRP 3 ULSD VS HEATING OIL SPR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2014-08-19T00:00:00.000",
+    "n": "69"
+   },
+   {
+    "cftc_contract_market_code": "022A09",
+    "market_and_exchange_names": "GULF COAST ULSD CRACK SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2014-05-06T00:00:00.000",
+    "n": "72"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - ICE FUTURES EUROPE",
+    "last": "2014-03-25T00:00:00.000",
+    "n": "235"
+   },
+   {
+    "cftc_contract_market_code": "022651",
+    "market_and_exchange_names": "NO. 2 HEATING OIL, N.Y. HARBOR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-11-05T00:00:00.000",
+    "n": "1262"
+   },
+   {
+    "cftc_contract_market_code": "06765I",
+    "market_and_exchange_names": "WTI CRUDE OIL FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-09-17T00:00:00.000",
+    "n": "375"
+   },
+   {
+    "cftc_contract_market_code": "869654",
+    "market_and_exchange_names": "FAME BIODIESEL V GASOIL SPR SP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-06-18T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "06765J",
+    "market_and_exchange_names": "BRENT FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-05-14T00:00:00.000",
+    "n": "245"
+   },
+   {
+    "cftc_contract_market_code": "022A66",
+    "market_and_exchange_names": "NY ULSD VS HEATING OIL SPR SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2013-02-26T00:00:00.000",
+    "n": "15"
+   },
+   {
+    "cftc_contract_market_code": "06765N",
+    "market_and_exchange_names": "BRENT (ICE) CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-12-31T00:00:00.000",
+    "n": "83"
+   },
+   {
+    "cftc_contract_market_code": "06765G",
+    "market_and_exchange_names": "DUBAI CRUDE OIL CALENDAR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-30T00:00:00.000",
+    "n": "300"
+   },
+   {
+    "cftc_contract_market_code": "023391",
+    "market_and_exchange_names": "NATURAL GAS ICE HENRY HUB - ICE OTC",
+    "last": "2012-10-09T00:00:00.000",
+    "n": "144"
+   },
+   {
+    "cftc_contract_market_code": "06765O",
+    "market_and_exchange_names": "BRENT-DUBAI SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "252"
+   },
+   {
+    "cftc_contract_market_code": "86765C",
+    "market_and_exchange_names": "GASOIL CRACK SPR SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "239"
+   },
+   {
+    "cftc_contract_market_code": "02265T",
+    "market_and_exchange_names": "SING GASOIL ICE GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "39"
+   },
+   {
+    "cftc_contract_market_code": "022A05",
+    "market_and_exchange_names": "GULF COAST ULSD SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-10-02T00:00:00.000",
+    "n": "18"
+   },
+   {
+    "cftc_contract_market_code": "02265U",
+    "market_and_exchange_names": "NYMEX HEATING OIL/RDAM GASOIL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-09-25T00:00:00.000",
+    "n": "81"
+   },
+   {
+    "cftc_contract_market_code": "02265V",
+    "market_and_exchange_names": "GASOIL (ICE) SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-09-04T00:00:00.000",
+    "n": "62"
+   },
+   {
+    "cftc_contract_market_code": "022A22",
+    "market_and_exchange_names": "SING GASOIL BALMO SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-07-31T00:00:00.000",
+    "n": "68"
+   },
+   {
+    "cftc_contract_market_code": "869652",
+    "market_and_exchange_names": "FAM BIODIESEL V GASOIL SPR SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-05-29T00:00:00.000",
+    "n": "5"
+   },
+   {
+    "cftc_contract_market_code": "022A62",
+    "market_and_exchange_names": "ULSD UP-DOWN BALMO SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-03-27T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "02265T",
+    "market_and_exchange_names": "SING GASOIL/RDAM GASOIL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2012-01-03T00:00:00.000",
+    "n": "198"
+   },
+   {
+    "cftc_contract_market_code": "022A24",
+    "market_and_exchange_names": "GASOIL (ICE) MINI CAL SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2011-09-27T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "022A18",
+    "market_and_exchange_names": "ULSD UP DOWN SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2011-06-28T00:00:00.000",
+    "n": "16"
+   },
+   {
+    "cftc_contract_market_code": "006265",
+    "market_and_exchange_names": "SULFUR FINANCIAL INSTR 2009 - CHICAGO CLIMATE FUTURES EXCHANGE",
+    "last": "2010-12-28T00:00:00.000",
+    "n": "50"
+   },
+   {
+    "cftc_contract_market_code": "006261",
+    "market_and_exchange_names": "SULFUR FINANCIAL INSTRUMENT - CHICAGO CLIMATE FUTURES EXCHANGE",
+    "last": "2010-12-14T00:00:00.000",
+    "n": "191"
+   },
+   {
+    "cftc_contract_market_code": "86465D",
+    "market_and_exchange_names": "JET CIF NWE/GASOIL FUT - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-08-31T00:00:00.000",
+    "n": "75"
+   },
+   {
+    "cftc_contract_market_code": "06665R",
+    "market_and_exchange_names": "MT BELV NAT GASOLINE 5 DEC SWP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-04-20T00:00:00.000",
+    "n": "18"
+   },
+   {
+    "cftc_contract_market_code": "967652",
+    "market_and_exchange_names": "RBOB CRACK SPREAD SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2010-03-30T00:00:00.000",
+    "n": "7"
+   },
+   {
+    "cftc_contract_market_code": "066654",
+    "market_and_exchange_names": "MT BELVIEU NAT GASOLINE SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-12-15T00:00:00.000",
+    "n": "45"
+   },
+   {
+    "cftc_contract_market_code": "022A26",
+    "market_and_exchange_names": "GASOIL 0.1 BARGE FOB RDM V ICE - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-10-27T00:00:00.000",
+    "n": "14"
+   },
+   {
+    "cftc_contract_market_code": "067411",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - ICE EUROPE",
+    "last": "2009-09-22T00:00:00.000",
+    "n": "9"
+   },
+   {
+    "cftc_contract_market_code": "06765M",
+    "market_and_exchange_names": "DATED TO FRONTLINE BRENT SWAP - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-07-28T00:00:00.000",
+    "n": "35"
+   },
+   {
+    "cftc_contract_market_code": "023A26",
+    "market_and_exchange_names": "TETCO M-3 NAT GAS INDEX - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-05-26T00:00:00.000",
+    "n": "8"
+   },
+   {
+    "cftc_contract_market_code": "11165J",
+    "market_and_exchange_names": "RBOB GASOLINE FINANCIAL - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2009-04-07T00:00:00.000",
+    "n": "10"
+   },
+   {
+    "cftc_contract_market_code": "023A23",
+    "market_and_exchange_names": "SOCAL NAT GAS INDEX - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2007-08-28T00:00:00.000",
+    "n": "1"
+   },
+   {
+    "cftc_contract_market_code": "067655",
+    "market_and_exchange_names": "E-MINY CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2007-01-16T00:00:00.000",
+    "n": "32"
+   },
+   {
+    "cftc_contract_market_code": "111652",
+    "market_and_exchange_names": "UNLEADED GASOLINE, N.Y. HARBOR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2006-12-05T00:00:00.000",
+    "n": "901"
+   },
+   {
+    "cftc_contract_market_code": "023655",
+    "market_and_exchange_names": "E-MINY NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2006-09-19T00:00:00.000",
+    "n": "5"
+   },
+   {
+    "cftc_contract_market_code": "067653",
+    "market_and_exchange_names": "CRUDE OIL, BRENT - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2005-04-19T00:00:00.000",
+    "n": "1"
+   },
+   {
+    "cftc_contract_market_code": "191651",
+    "market_and_exchange_names": "ALUMINUM - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2000-02-22T00:00:00.000",
+    "n": "32"
+   },
+   {
+    "cftc_contract_market_code": "067651",
+    "market_and_exchange_names": "CRUDE OIL, LIGHT 'SWEET' - NEW YORK MERCANTILE EXCHANGE",
+    "last": "2000-02-01T00:00:00.000",
+    "n": "545"
+   },
+   {
+    "cftc_contract_market_code": "023611",
+    "market_and_exchange_names": "NATURAL GAS - KANSAS CITY BOARD OF TRADE",
+    "last": "1999-07-20T00:00:00.000",
+    "n": "161"
+   },
+   {
+    "cftc_contract_market_code": "191651",
+    "market_and_exchange_names": "ALUMINUM - COMMODITY EXCHANGE INC.",
+    "last": "1999-05-18T00:00:00.000",
+    "n": "1"
+   },
+   {
+    "cftc_contract_market_code": "023653",
+    "market_and_exchange_names": "ALBERTA NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "last": "1996-10-29T00:00:00.000",
+    "n": "1"
+   },
+   {
+    "cftc_contract_market_code": "111655",
+    "market_and_exchange_names": "UNLEADED GASOLINE, GULF COAST - NEW YORK MERCANTILE EXCHANGE",
+    "last": "1993-01-19T00:00:00.000",
+    "n": "17"
+   },
+   {
+    "cftc_contract_market_code": "067652",
+    "market_and_exchange_names": "CRUDE OIL, SOUR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "1992-05-15T00:00:00.000",
+    "n": "6"
+   },
+   {
+    "cftc_contract_market_code": "085691",
+    "market_and_exchange_names": "COPPER - COMMODITY EXCHANGE INC.",
+    "last": "1989-12-15T00:00:00.000",
+    "n": "95"
+   },
+   {
+    "cftc_contract_market_code": "111651",
+    "market_and_exchange_names": "LEADED GASOLINE, N.Y. HARBOR - NEW YORK MERCANTILE EXCHANGE",
+    "last": "1986-10-15T00:00:00.000",
+    "n": "19"
+   }
+  ]
+ },
+ "bcom_codes": {
+  "disagg_combined": {
+   "Brent Crude Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2011-03-08T00:00:00.000",
+    "n": "808"
+   },
+   "Natural Gas": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "WTI Crude Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "ULS Diesel": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "RBOB Gasoline": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Corn": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Soybeans": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Soybean Meal": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Soybean Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Wheat SRW": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "HRW Wheat": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Copper": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Aluminum": {
+    "last": "2026-06-09T00:00:00.000",
+    "first": "2022-12-13T00:00:00.000",
+    "n": "143"
+   },
+   "Gold": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Silver": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Sugar": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Coffee": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Cocoa": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Cotton": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Live Cattle": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Lean Hogs": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   }
+  },
+  "disagg_futures": {
+   "Brent Crude Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2011-10-18T00:00:00.000",
+    "n": "771"
+   },
+   "Natural Gas": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "WTI Crude Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "ULS Diesel": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "RBOB Gasoline": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Corn": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Soybeans": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Soybean Meal": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Soybean Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Wheat SRW": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "HRW Wheat": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Copper": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Aluminum": {
+    "last": "2026-06-09T00:00:00.000",
+    "first": "2022-12-13T00:00:00.000",
+    "n": "143"
+   },
+   "Gold": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Silver": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Sugar": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Coffee": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Cocoa": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Cotton": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Live Cattle": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   },
+   "Lean Hogs": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-06-13T00:00:00.000",
+    "n": "1061"
+   }
+  },
+  "legacy_futures": {
+   "Brent Crude Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2011-10-18T00:00:00.000",
+    "n": "771"
+   },
+   "Natural Gas": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1990-04-12T00:00:00.000",
+    "n": "1834"
+   },
+   "WTI Crude Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1936"
+   },
+   "ULS Diesel": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1936"
+   },
+   "RBOB Gasoline": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "2006-02-14T00:00:00.000",
+    "n": "1078"
+   },
+   "Corn": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1998-01-06T00:00:00.000",
+    "n": "1501"
+   },
+   "Soybeans": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1998-01-06T00:00:00.000",
+    "n": "1501"
+   },
+   "Soybean Meal": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1938"
+   },
+   "Soybean Oil": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1938"
+   },
+   "Wheat SRW": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1998-01-06T00:00:00.000",
+    "n": "1501"
+   },
+   "HRW Wheat": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1998-01-06T00:00:00.000",
+    "n": "1501"
+   },
+   "Copper": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1989-07-31T00:00:00.000",
+    "n": "1852"
+   },
+   "Aluminum": {
+    "last": "2026-06-09T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "209"
+   },
+   "Gold": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1937"
+   },
+   "Silver": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1937"
+   },
+   "Sugar": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1935"
+   },
+   "Coffee": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1935"
+   },
+   "Cocoa": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1935"
+   },
+   "Cotton": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1936"
+   },
+   "Live Cattle": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1986-01-15T00:00:00.000",
+    "n": "1938"
+   },
+   "Lean Hogs": {
+    "last": "2026-10-06T00:00:00.000",
+    "first": "1996-04-02T00:00:00.000",
+    "n": "1589"
+   }
+  }
+ }
+}
