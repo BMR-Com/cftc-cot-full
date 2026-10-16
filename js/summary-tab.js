@@ -27,11 +27,15 @@ function generateSummary() {
   var sub = document.getElementById('briefSub');
   COTStore.snapshot().then(function (snap) {
     _snap = snap;
-    renderDesk();
-  }).catch(function (e) {
+    try { renderDesk(); }
+    catch (e) {  /* a rendering bug is NOT "data missing" — say what happened */
+      console.error('[Summary] render error', e);
+      if (sub) sub.innerHTML = '⚠ Could not render the summary (' + (e && e.message) + '). Try a hard refresh (Ctrl/Cmd+Shift+R).';
+    }
+  }, function (e) {
     console.warn('[Summary] snapshot unavailable, using live CFTC API:', e && e.message);
-    if (sub) sub.textContent = 'Pre-computed data not found — falling back to live CFTC API (slower). Run the "Weekly COT Data Update" workflow to enable the fast path.';
-    legacyGenerateSummary();
+    if (sub) sub.textContent = 'Pre-computed data not reachable (' + (e && e.message) + ') — falling back to the live CFTC API (slower).';
+    try { legacyGenerateSummary(); } catch (e2) { console.error(e2); showL(false); }
   });
 }
 
@@ -48,7 +52,7 @@ function renderDesk() {
   var stale = (_snap.commodities || []).filter(function (c) { return c.stale; }).map(function (c) { return c.name; });
   document.getElementById('briefSub').innerHTML = 'CFTC Disaggregated F&amp;O combined · positions as of <b>' + fmtDate(a.date) + '</b> · look-back ' + W +
     (o.crop !== 'all' ? ' · ' + o.crop + '-crop view for grains/softs/hogs' : '') +
-    (stale.length ? ' · excluded (stale): ' + stale.join(', ') : '') +
+    (stale.length ? ' · left out (no recent CFTC data): ' + stale.join(', ') : '') +
     ' · not reported by CFTC: ' + BCOM_NOT_REPORTED.join(', ');
 
   /* narrative */
