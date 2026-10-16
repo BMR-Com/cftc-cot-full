@@ -159,7 +159,7 @@ def main():
             continue
         f = _frame(cd, p[0])
         if len(f):
-            f = f.reset_index(); f.columns = ["date"] + list(f.columns[1:]); f["ticker"] = tk; f["contract"] = p[2]; fr.append(f)
+            f = f.reset_index(); f.columns = ["date"] + list(f.columns[1:]); f["ticker"] = tk; f["contract"] = YAHOO[tk][1] + p[2]; fr.append(f)
     if fr:
         fc = pd.concat(fr, ignore_index=True)
         for c in ["open", "high", "low", "close"]:
