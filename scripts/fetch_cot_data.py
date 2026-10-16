@@ -67,7 +67,9 @@ BCOM = {
     "Wheat SRW":          {"ticker":"W",  "sector":"Grains",           "code":"001602", "cftc":"WHEAT-SRW - CHICAGO BOARD OF TRADE",                     "crop":True},
     "HRW Wheat":          {"ticker":"KW", "sector":"Grains",           "code":"001612", "cftc":"WHEAT-HRW - CHICAGO BOARD OF TRADE",                     "crop":True},
     "Copper":             {"ticker":"HG", "sector":"Industrial Metals","code":"085692", "cftc":"COPPER- #1 - COMMODITY EXCHANGE INC.",                   "crop":False},
-    "Aluminum":           {"ticker":"LA", "sector":"Industrial Metals","code":None,     "cftc":"ALUMINUM - COMMODITY EXCHANGE INC.",                     "crop":False},
+    # COMEX outright Aluminum (191691) stopped being reported in Jun 2026; use the
+    # US Midwest Premium contract, which the CFTC still publishes weekly.
+    "Aluminum MWP":       {"ticker":"ALI","sector":"Industrial Metals","code":"191693", "cftc":"ALUMINUM MWP - COMMODITY EXCHANGE INC.",                 "crop":False},
     "Gold":               {"ticker":"GC", "sector":"Precious Metals",  "code":"088691", "cftc":"GOLD - COMMODITY EXCHANGE INC.",                         "crop":False},
     "Silver":             {"ticker":"SI", "sector":"Precious Metals",  "code":"084691", "cftc":"SILVER - COMMODITY EXCHANGE INC.",                       "crop":False},
     "Sugar":              {"ticker":"SB", "sector":"Softs",            "code":"080732", "cftc":"SUGAR NO. 11 - ICE FUTURES U.S.",                        "crop":False},
