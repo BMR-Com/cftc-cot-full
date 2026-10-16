@@ -311,10 +311,13 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 <div id="pane_ai" class="tab-pane" style="display:none;"></div>
 
 <!-- ── Shared JavaScript ── -->
-<script src="js/shared.js"></script>
-<script src="js/data-store.js"></script>
-<script src="js/insights.js"></script>
-<script src="js/tab-switching.js"></script>
+<!-- APP_VER: bump on every code change so browsers never mix old and new JS
+     (GitHub Pages lets browsers cache files for 10 minutes). -->
+<script>var APP_VER='2026.10.15.2';</script>
+<script src="js/shared.js?v=2026.10.15.2"></script>
+<script src="js/data-store.js?v=2026.10.15.2"></script>
+<script src="js/insights.js?v=2026.10.15.2"></script>
+<script src="js/tab-switching.js?v=2026.10.15.2"></script>
 
 <script>
 /* ===========================================================
@@ -331,8 +334,9 @@ function loadTab(tabId, htmlUrl, jsUrl) {
         var pane = document.getElementById('pane_' + tabId);
         if (!pane) { reject('Pane not found'); return; }
 
-        fetch(htmlUrl)
-            .then(function(r) { return r.text(); })
+        var vq = '?v=' + encodeURIComponent(window.APP_VER || '');
+        fetch(htmlUrl + vq)
+            .then(function(r) { if (!r.ok) throw new Error(htmlUrl + ' HTTP ' + r.status); return r.text(); })
             .then(function(html) {
                 pane.innerHTML = html;
                 _tabLoaded[tabId] = true;
@@ -340,7 +344,7 @@ function loadTab(tabId, htmlUrl, jsUrl) {
                 // Load JS if provided
                 if (jsUrl && !_tabJSLoaded[jsUrl]) {
                     var script = document.createElement('script');
-                    script.src = jsUrl;
+                    script.src = jsUrl + vq;
                     script.onload = function() {
                         _tabJSLoaded[jsUrl] = true;
                         resolve();

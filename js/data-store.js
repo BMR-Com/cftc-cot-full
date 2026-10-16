@@ -168,11 +168,12 @@ function renderDataStatus() {
   var el = document.getElementById('dataStatus'); if (!el) return;
   COTStore.manifest().then(function (m) {
     var exp = COTStore.expectedReportDate();
-    var stale = (m.commodities || []).filter(function (c) { return c.stale; }).map(function (c) { return c.name; });
+    var mon = function (d) { var x = new Date(d + 'T12:00:00'); return x.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); };
+    var stale = (m.commodities || []).filter(function (c) { return c.stale; }).map(function (c) { return c.name + ' (last ' + mon(c.last_date) + ')'; });
     var h = '<span class="ds-dot ds-ok"></span>CFTC positions as of <b>' + fmtDate(m.report_date) + '</b>' +
       '<span class="ds-sep">·</span>pre-computed ' + m.generated;
     if (m.report_date < exp) h = h.replace('ds-ok', 'ds-warn') + '<span class="ds-sep">·</span><span class="ds-warn-txt">checking CFTC for the ' + fmtDate(exp) + ' report…</span>';
-    if (stale.length) h += '<span class="ds-sep">·</span><span title="No CFTC report for these markets in 3+ weeks — excluded from cross-market views until the next data run backfills them.">⚠ stale: ' + stale.join(', ') + '</span>';
+    if (stale.length) h += '<span class="ds-sep">·</span><span title="These markets have no CFTC report in the data for 3+ weeks, so they are left out of Summary and Scatter. WTI / Nat Gas / Brent were renamed by the CFTC in 2022 and are backfilled by the next Weekly COT Data Update run; COMEX Aluminum is no longer published by the CFTC.">⚠ no recent CFTC data: ' + stale.join(', ') + '</span>';
     el.innerHTML = h; el.style.display = 'flex';
     if (m.report_date < exp) {
       COTStore.liveLatestDate().then(function (live) {
