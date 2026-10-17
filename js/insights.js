@@ -185,12 +185,18 @@ var COTInsights = (function () {
     var ci = a.cit;
     if (ci) {
       var pf = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2); };
-      var lst = function (arr) { return arr.map(function (x) { return x.name + ' (' + pf(x.dnp4) + ' pts)'; }).join(', '); };
-      var t = 'Index traders (CIT, ' + ci.n + ' ag markets) added length in ' + ci.adding4 + ' of ' + ci.n + ' over 4 weeks' +
-        (ci.breadth4_pct != null ? ' — breadth at the ' + ord(ci.breadth4_pct) + ' percentile of history' : '') +
-        '; average index share of OI ' + pf(ci.avg_dnp4) + ' pts over 4 weeks, ' + pf(ci.avg_dnp13) + ' over 13. ' +
-        'Inflows: ' + lst(ci.top_in) + '. Outflows: ' + lst(ci.top_out) + '.' +
-        (ci.rebal ? ' January reweight window: index moves this week are mostly mechanical rebalancing, not new allocation.' :
+      var usd = function (v) { if (v == null) return '–'; var x = Math.abs(v); return (v < 0 ? '−' : '+') + '$' + (x >= 1e9 ? (x / 1e9).toFixed(2) + 'bn' : (x / 1e6).toFixed(0) + 'm'); };
+      var usdL = function (v) { if (v == null) return '–'; return '$' + (Math.abs(v) >= 1e9 ? (v / 1e9).toFixed(1) + 'bn' : (v / 1e6).toFixed(0) + 'm'); };
+      var T = ci.total || {};
+      var t = 'Index traders (CIT, ' + ci.n + ' ag markets) are net long ' + usdL(T.Nusd) + ' (long ' + usdL(T.Lusd) + ', short ' + usdL(T.Susd) + '). ' +
+        'Week: index ' + usd(T.dNusd) + ' (' + sk(T.dN) + ' lots) vs managed money ' + usd(T.mmdNusd) + ' (' + sk(T.mmdN) + ' lots). ';
+      var secs = Object.keys(ci.sectors || {}).map(function (k) { var x = ci.sectors[k]; return k + ' index ' + usd(x.dNusd) + ' / funds ' + usd(x.mmdNusd); });
+      if (secs.length) t += 'By sector: ' + secs.join('; ') + '. ';
+      var mk = (ci.markets || []).filter(function (m) { return m.dNusd != null; }).sort(function (x, y) { return y.dNusd - x.dNusd; });
+      if (mk.length) t += 'Biggest index buying: ' + mk.slice(0, 3).filter(function (m) { return m.dNusd > 0; }).map(function (m) { return m.name + ' ' + usd(m.dNusd); }).join(', ') +
+        '; selling: ' + mk.slice(-3).reverse().filter(function (m) { return m.dNusd < 0; }).map(function (m) { return m.name + ' ' + usd(m.dNusd); }).join(', ') + '. ';
+      t += 'Over 4 weeks index money added in ' + ci.adding4 + ' of ' + ci.n + ' markets' + (ci.breadth4_pct != null ? ' (breadth ' + ord(ci.breadth4_pct) + ' percentile)' : '') + '.' +
+        (ci.rebal ? ' January reweight window: moves this week are mostly mechanical rebalancing.' :
           (ci.adding4 >= Math.ceil(ci.n * 0.75) ? ' Broad-based adding = allocation flow into the complex.' :
            ci.adding4 <= Math.floor(ci.n * 0.25) ? ' Broad-based cutting = allocation flow out of the complex.' : ''));
       L.push({ h: 'Index flows', t: t });

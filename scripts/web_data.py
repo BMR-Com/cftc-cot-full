@@ -37,7 +37,7 @@ SERIES_DIR = WEB_DIR / "series"
 CSV_PATH = DATA_DIR / "bcom_cot_master.csv"
 
 CATS = ["managed_money", "swap_dealers", "prod_merc", "other_rept"]
-WIN = {"f": None, "y5": 260, "y3": 156, "y1": 52}
+WIN = {"f": None, "y10": 520, "y5": 260, "y3": 156, "y1": 52}
 STALE_DAYS = 21  # a market with no report in 3 weeks is excluded from cross-sectional views
 
 
@@ -155,6 +155,12 @@ SEASONAL_CURVE = {"NG", "LC", "LH"}   # Fama-French: carry unreliable on seasona
 
 
 CIT_CSV = DATA_DIR / "cit_master.csv"
+# Dollars per 1.00 of quoted price, per contract (front-month quote units from Yahoo):
+# grains ¢/bu x 5,000 bu; meal $/st x 100; oil ¢/lb x 60,000; cotton ¢/lb x 50,000;
+# sugar ¢/lb x 112,000; coffee ¢/lb x 37,500; cocoa $/t x 10; cattle/hogs ¢/lb x 40,000 (feeder 50,000)
+CONTRACT_USD = {"C": 50, "S": 50, "W": 50, "KW": 50, "SM": 100, "BO": 600, "CT": 500, "SB": 1120,
+                "KC": 375, "CC": 10, "LC": 400, "LH": 400, "FC": 500}
+PCT_WINS = ("y1", "y3", "y5", "y10", "f")
 
 
 def load_cit():
@@ -167,13 +173,35 @@ def load_cit():
             for t, g in c.groupby("ticker")}
 
 
-def cit_metrics(g):
-    """Latest-week index-trader metrics for one market (g indexed by date)."""
+def front_close_on(prices, ticker, dates):
+    """Unadjusted front-month close on/before each COT date (within 7 days), for $ exposure."""
+    pg = prices.get(ticker)
+    if pg is None or not len(pg):
+        return pd.Series(np.nan, index=dates)
+    cs = pg["close"].dropna()
+    dt = pd.to_datetime(pd.Index(dates))
+    idx = cs.index.searchsorted(dt, side="right") - 1
+    out = [cs.iloc[i] if i >= 0 and (d - cs.index[i]).days <= 7 else np.nan for i, d in zip(idx, dt)]
+    return pd.Series(out, index=dates, dtype=float)
+
+
+def _usd(n, px, mult):
+    if n is None or px is None or mult is None or (isinstance(px, float) and math.isnan(px)):
+        return None
+    return _num(n * px * mult)
+
+
+def cit_metrics(g, px, mult, mm=None):
+    """Latest-week index-trader metrics for one market (g indexed by date; px aligned to g.index)."""
     L = g["cit_long"].to_numpy(float); S = g["cit_short"].to_numpy(float)
     oi = g["open_interest"].to_numpy(float); N = L - S
+    TL = g["cit_traders_long"].to_numpy(float)
     with np.errstate(divide="ignore", invalid="ignore"):
         npc = np.where(oi > 0, N / oi * 100, 0.0)
         lp = np.where(oi > 0, L / oi * 100, 0.0)
+        ptl = np.where(TL > 0, L / TL, np.nan)
+    P = px.to_numpy(float)
+    Nusd = N * P * mult if mult else np.full(len(N), np.nan)
 
     def d(a, k=1):
         return a[-1] - a[-1 - k] if len(a) > k else None
@@ -182,53 +210,80 @@ def cit_metrics(g):
     sd = np.nanstd(win(dN, 156)) if len(dN) > 4 else np.nan
     z = (dN[-1] / sd) if sd and not np.isnan(sd) and sd > 0 else 0.0
     rb = g["rebalance_window"].astype(str).str.lower().eq("true").to_numpy()
-    return {
+    p_last = P[-1] if len(P) and not np.isnan(P[-1]) else None
+    nusd_ok = Nusd[~np.isnan(Nusd)]
+    out = {
         "date": g.index[-1], "L": _num(L[-1]), "S": _num(S[-1]), "N": _num(N[-1]),
-        "TL": _num(g["cit_traders_long"].iloc[-1]), "np": _num(npc[-1], 2), "lp": _num(lp[-1], 2),
+        "TL": _num(TL[-1]), "TS": _num(g["cit_traders_short"].iloc[-1]), "PTL": _num(ptl[-1]),
+        "np": _num(npc[-1], 2), "lp": _num(lp[-1], 2),
         "dN": _num(d(N)), "dN4": _num(d(N, 4)), "dN13": _num(d(N, 13)), "dN52": _num(d(N, 52)),
+        "dL": _num(d(L)), "dS": _num(d(S)),
         "dnp4": _num(d(npc, 4), 2), "dnp13": _num(d(npc, 13), 2),
         "z": _num(z, 2), "streak": streak(dN), "rebal": bool(rb[-1]),
-        "p": {"N": pct_set(N), "np": pct_set(npc), "L": pct_set(L)},
+        "px": _num(p_last, 4) if p_last is not None else None, "mult": mult,
+        "Lusd": _usd(L[-1], p_last, mult), "Susd": _usd(S[-1], p_last, mult), "Nusd": _usd(N[-1], p_last, mult),
+        "dNusd": _usd(d(N), p_last, mult), "dN4usd": _usd(d(N, 4), p_last, mult),
+        "p": {"N": pct_set(N, PCT_WINS), "np": pct_set(npc, PCT_WINS), "L": pct_set(L, PCT_WINS),
+              "Nusd": pct_set(nusd_ok, PCT_WINS) if len(nusd_ok) > 10 and not np.isnan(Nusd[-1]) else None},
         "cot3": cot_index(N, 156),
         "r": {"N": [_num(np.nanmin(N)), _num(np.nanmax(N))], "np": [_num(np.nanmin(npc), 2), _num(np.nanmax(npc), 2)]},
         "spark": [_num(x) for x in win(N, 52)],
     }
+    if mm is not None and len(mm) > 1:
+        mN = (mm["managed_money_long"] - mm["managed_money_short"]).to_numpy(float)
+        out["mm"] = {"N": _num(mN[-1]), "dN": _num(mN[-1] - mN[-2]), "dN4": _num(mN[-1] - mN[-5]) if len(mN) > 4 else None,
+                     "Nusd": _usd(mN[-1], p_last, mult), "dNusd": _usd(mN[-1] - mN[-2], p_last, mult)}
+    return out
 
 
-def cit_aggregate(cit, rd):
-    """Complex-wide index flow: is money being allocated to or pulled from ag commodities?"""
+def cit_aggregate(cit, rd, snaps):
+    """Complex-wide index flow, in lots and dollars, by sector and market (snaps: ticker -> cit metrics)."""
     rows = []
     for t, g in cit.items():
-        if (rd - pd.to_datetime(g.index[-1])).days > STALE_DAYS or len(g) < 14:
+        if (rd - pd.to_datetime(g.index[-1])).days > STALE_DAYS or len(g) < 14 or t not in snaps:
             continue
+        m = snaps[t]
         N = g["cit_net"].to_numpy(float); oi = g["open_interest"].to_numpy(float)
         npc = np.where(oi > 0, N / oi * 100, 0.0)
+        mm = m.get("mm") or {}
         rows.append({"t": t, "sector": g["sector"].iloc[-1], "name": g["commodity"].iloc[-1],
-                     "dN": N[-1] - N[-2], "dN4": N[-1] - N[-5], "dN13": N[-1] - N[-14],
-                     "dnp4": npc[-1] - npc[-5], "dnp13": npc[-1] - npc[-14]})
+                     "N": m["N"], "dN": N[-1] - N[-2], "dN4": N[-1] - N[-5], "dN13": N[-1] - N[-14],
+                     "dnp4": npc[-1] - npc[-5], "dnp13": npc[-1] - npc[-14],
+                     "Lusd": m.get("Lusd"), "Susd": m.get("Susd"), "Nusd": m.get("Nusd"),
+                     "dNusd": m.get("dNusd"), "dN4usd": m.get("dN4usd"),
+                     "mmN": mm.get("N"), "mmdN": mm.get("dN"), "mmNusd": mm.get("Nusd"), "mmdNusd": mm.get("dNusd")})
     if not rows:
         return None
     r = pd.DataFrame(rows)
-    # history of breadth: share of markets whose index net rose over 4 weeks, per report date
-    allg = pd.concat([g.assign(t=t)[["cit_net", "open_interest", "t"]] for t, g in cit.items()])
+    allg = pd.concat([g.assign(t=t)[["cit_net", "t"]] for t, g in cit.items()])
     allg.index = pd.to_datetime(allg.index)
     w = allg.pivot_table(index=allg.index, columns="t", values="cit_net").sort_index()
-    br = (w.diff(4) > 0).sum(axis=1) / w.notna().sum(axis=1) * 100
-    br = br.dropna()
-    sec = r.groupby("sector")[["dnp4", "dnp13"]].mean().round(2)
+    br = ((w.diff(4) > 0).sum(axis=1) / w.notna().sum(axis=1) * 100).dropna()
+    usd_cols = ["Lusd", "Susd", "Nusd", "dNusd", "dN4usd", "mmNusd", "mmdNusd"]
+
+    def tot(df):
+        o = {k: _num(df[k].sum(min_count=1)) for k in usd_cols}
+        o.update({k: _num(df[k].sum()) for k in ["N", "dN", "dN4", "mmN", "mmdN"]})
+        o["dnp4"] = _num(df.dnp4.mean(), 2); o["dnp13"] = _num(df.dnp13.mean(), 2); o["n"] = len(df)
+        o["adding4"] = int((df.dN4 > 0).sum())
+        return o
+
+    last = max(g.index[-1] for g in cit.values()); ld = pd.to_datetime(last)
     return {
-        "date": max(g.index[-1] for g in cit.values()), "n": len(r),
+        "date": last, "n": len(r),
         "adding4": int((r.dN4 > 0).sum()), "adding13": int((r.dN13 > 0).sum()),
         "avg_dnp4": _num(r.dnp4.mean(), 2), "avg_dnp13": _num(r.dnp13.mean(), 2),
-        "rebal": bool(pd.to_datetime(max(g.index[-1] for g in cit.values())).month == 1
-                      and pd.to_datetime(max(g.index[-1] for g in cit.values())).day <= 20),
+        "rebal": bool(ld.month == 1 and ld.day <= 20),
         "breadth4": _num(br.iloc[-1], 1) if len(br) else None,
         "breadth4_pct": midrank_pct(br.to_numpy(float), br.iloc[-1]) if len(br) else None,
-        "breadth_hist": {"dates": [d.strftime("%Y-%m-%d") for d in br.index[-260:]],
-                         "v": [_num(x, 1) for x in br.iloc[-260:]]},
-        "sectors": {k: {"dnp4": _num(v.dnp4, 2), "dnp13": _num(v.dnp13, 2)} for k, v in sec.iterrows()},
-        "top_in": r.sort_values("dnp4", ascending=False).head(3)[["name", "dnp4", "dN4"]].to_dict("records"),
-        "top_out": r.sort_values("dnp4").head(3)[["name", "dnp4", "dN4"]].to_dict("records"),
+        "breadth_hist": {"dates": [d.strftime("%Y-%m-%d") for d in br.index[-520:]],
+                         "v": [_num(x, 1) for x in br.iloc[-520:]]},
+        "total": tot(r),
+        "sectors": {k: tot(v) for k, v in r.groupby("sector")},
+        "markets": [{k: (_num(v) if isinstance(v, (int, float, np.floating, np.integer)) and k not in ("dnp4", "dnp13") else
+                         (_num(v, 2) if k in ("dnp4", "dnp13") else v)) for k, v in row.items()} for row in rows],
+        "top_in": [{"name": x["name"], "dnp4": _num(x["dnp4"], 2), "dN4": _num(x["dN4"])} for x in r.sort_values("dnp4", ascending=False).head(3).to_dict("records")],
+        "top_out": [{"name": x["name"], "dnp4": _num(x["dnp4"], 2), "dN4": _num(x["dN4"])} for x in r.sort_values("dnp4").head(3).to_dict("records")],
     }
 
 
@@ -341,12 +396,8 @@ def build(df, bcom_meta=None):
     snapshot = {"report_date": report_date, "generated": now, "commodities": []}
     prices, prep, fronts = load_prices()
     cit = load_cit()
+    cit_snaps = {}
     if cit:
-        agg = cit_aggregate(cit, rd)
-        if agg:
-            for k2 in ("top_in", "top_out"):
-                agg[k2] = [{"name": x["name"], "dnp4": _num(x["dnp4"], 2), "dN4": _num(x["dN4"])} for x in agg[k2]]
-            snapshot["cit_agg"] = agg
         manifest["cit_tickers"] = sorted(cit.keys())
     if prep:
         snapshot["regime"] = prep.get("regime")
@@ -391,10 +442,18 @@ def build(df, bcom_meta=None):
                          for i, d in zip(idx, all_dates)]
         cg = cit.get(ticker)
         if cg is not None and len(cg) > 1:
+            mult = CONTRACT_USD.get(ticker)
+            cpx = front_close_on(prices, ticker, cg.index)
             cr = cg.reindex(all_dates)
-            ser["cit"] = {"l": [_num(x) for x in cr["cit_long"]], "s": [_num(x) for x in cr["cit_short"]],
-                          "tl": [_num(x) for x in cr["cit_traders_long"]], "oi": [_num(x) for x in cr["open_interest"]]}
-            snap["cit"] = cit_metrics(cg)
+            cpa = front_close_on(prices, ticker, all_dates)
+            col = lambda k: [_num(x) for x in cr[k]]
+            ser["cit"] = {"l": col("cit_long"), "s": col("cit_short"), "tl": col("cit_traders_long"), "ts": col("cit_traders_short"),
+                          "oi": col("open_interest"), "ncl": col("noncomm_long"), "ncs": col("noncomm_short"),
+                          "cml": col("comm_long"), "cms": col("comm_short"), "nrl": col("nonrept_long"), "nrs": col("nonrept_short"),
+                          "px": [_num(x, 4) for x in cpa], "mult": mult}
+            mmg = (cd[cd["crop_type"] == "all"].drop_duplicates("date", keep="last").set_index("date").sort_index())
+            snap["cit"] = cit_metrics(cg, cpx, mult, mmg)
+            cit_snaps[ticker] = snap["cit"]
         for ct in crop_types:
             g = (cd[cd["crop_type"] == ct].drop_duplicates("date", keep="last")
                  .set_index("date").reindex(all_dates))
@@ -424,6 +483,10 @@ def build(df, bcom_meta=None):
             json.dump(ser, f, separators=(",", ":"))
         snapshot["commodities"].append(snap)
 
+    if cit and cit_snaps:
+        agg = cit_aggregate(cit, rd, cit_snaps)
+        if agg:
+            snapshot["cit_agg"] = agg
     with open(WEB_DIR / "snapshot.json", "w") as f:
         json.dump(snapshot, f, separators=(",", ":"))
     with open(WEB_DIR / "manifest.json", "w") as f:
