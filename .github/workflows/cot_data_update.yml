@@ -55,6 +55,13 @@ jobs:
         env:
           PYTHONUNBUFFERED: '1'
 
+      - name: Fetch index-trader (CIT) supplemental report
+        continue-on-error: true   # 13 ag markets only; COT update must not fail because of it
+        run: python scripts/fetch_cit_data.py
+        env:
+          PYTHONUNBUFFERED: '1'
+          FULL_REBUILD: ${{ github.event.inputs.full_rebuild == 'true' && 'true' || 'false' }}
+
       - name: Run COT data fetcher
         run: |
           mkdir -p data
@@ -78,7 +85,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add data/bcom_cot_master.csv data/latest_summary.json data/cotton_cot.csv data/web data/prices
+          git add data/bcom_cot_master.csv data/latest_summary.json data/cotton_cot.csv data/web data/prices data/cit_master.csv
           if git diff --staged --quiet; then
             echo "No changes detected — CFTC may not have released new data yet."
           else
@@ -96,5 +103,6 @@ jobs:
           path: |
             data/bcom_cot_master.csv
             data/latest_summary.json
+            data/cit_master.csv
             data/web
           retention-days: 90
