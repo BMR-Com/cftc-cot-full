@@ -62,7 +62,7 @@ function ixTable() {
 
 function ixLoad() {
   var t = document.getElementById('ixSel').value; if (!t) return;
-  ixTable();
+  ixTable(); ixPctTable();
   var from = document.getElementById('ixFrom').value || '2006-01-01';
   COTStore.series(t).then(function (s) {
     if (!s.cit) return;
@@ -79,25 +79,35 @@ function ixLoad() {
     d.mult = c.mult;
     d.usd = function (arr) { return arr.map(function (v, i) { return (v == null || d.px[i] == null || !d.mult) ? null : v * d.px[i] * d.mult; }); };
     IX = d;
-    ixPct(t);
     ixDrawPos(); ixDrawCmp(); ixDrawTrd(); ixDrawSz();
   });
 }
 
-function ixPct(t) {
-  var cm = (ixSnap.commodities || []).filter(function (c) { return c.ticker === t; })[0]; if (!cm || !cm.cit) return;
-  var p = cm.cit.p, W = [['y1', '1 yr'], ['y3', '3 yr'], ['y5', '5 yr'], ['y10', '10 yr'], ['f', 'Since 2006']];
-  var rowsDef = [['N', 'Net (lots)'], ['np', 'Net % of OI'], ['L', 'Long (lots)'], ['Nusd', 'Net ($)']];
-  var h = '<div></div>' + W.map(function (w) { return '<div class="pb-h">' + w[1] + '</div>'; }).join('');
-  rowsDef.forEach(function (r) {
-    var set = p[r[0]];
-    h += '<div class="pb-l">' + r[1] + '</div>' + W.map(function (w) {
-      var v = set ? set[w[0]] : null;
-      return v == null ? '<div style="text-align:center;color:#999;">–</div>' : '<div class="pb" title="' + r[1] + ' — ' + w[1] + ': ' + v.toFixed(0) + 'th percentile"><i style="left:' + Math.max(2, Math.min(98, v)) + '%"></i><span style="' + (v > 60 ? 'left:6px;right:auto;' : '') + '">' + v.toFixed(0) + '</span></div>';
-    }).join('');
+function ixPctBar(v) {
+  if (v == null) return '<td class="pc" style="text-align:center;color:#999;">–</td>';
+  return '<td class="pc"><div class="pb" title="' + v.toFixed(0) + 'th percentile"><i style="left:' + Math.max(3, Math.min(97, v)) + '%"></i><span style="' + (v > 60 ? 'left:5px;right:auto;' : '') + '">' + v.toFixed(0) + '</span></div></td>';
+}
+function ixPctTable() {
+  var W = [['y5', '5 years', 'w5'], ['y10', '10 years', 'w10'], ['f', 'Since 2006', 'wf']];
+  var P = [['N', 'Net'], ['np', 'Net %OI'], ['L', 'Long'], ['Nusd', 'Net $']];
+  document.getElementById('ixPctHead').innerHTML =
+    '<tr><th rowspan="2">Market</th><th rowspan="2">Net (lots)</th><th rowspan="2">Net ($)</th><th rowspan="2">% of OI</th>' +
+    W.map(function (w) { return '<th colspan="' + P.length + '" class="' + w[2] + '">' + w[1] + '</th>'; }).join('') + '</tr><tr>' +
+    W.map(function (w) { return P.map(function (p) { return '<th class="' + w[2] + '">' + p[1] + '</th>'; }).join(''); }).join('') + '</tr>';
+  var sec = { Grains: 0, Softs: 1, Livestock: 2 }, sel = document.getElementById('ixSel').value;
+  var rows = (ixSnap.commodities || []).filter(function (c) { return c.cit; })
+    .sort(function (a, b) { return (sec[a.sector] - sec[b.sector]) || ((b.cit.Nusd || 0) - (a.cit.Nusd || 0)); });
+  var h = '', last = null;
+  rows.forEach(function (c) {
+    if (c.sector !== last) { h += '<tr class="sec"><td class="nm" colspan="' + (4 + W.length * P.length) + '" style="text-align:left;">' + c.sector + '</td></tr>'; last = c.sector; }
+    var x = c.cit;
+    h += '<tr data-t="' + c.ticker + '"' + (c.ticker === sel ? ' class="sel"' : '') + '><td class="nm">' + c.name + '</td><td>' + ixK(x.N) + '</td><td>' + ixUsd(x.Nusd) + '</td><td>' + (x.np != null ? x.np.toFixed(1) + '%' : '–') + '</td>' +
+      W.map(function (w) { return P.map(function (p) { var s = x.p && x.p[p[0]]; return ixPctBar(s ? s[w[0]] : null); }).join(''); }).join('') + '</tr>';
   });
-  document.getElementById('ixPct').innerHTML = h;
-  document.getElementById('ixPctTitle').innerHTML = '&#x1F4CF; ' + cm.name + ': index positioning vs history &nbsp;<span style="font-size:.75em;color:#555;font-weight:600;">net ' + ixK(cm.cit.N) + ' lots · ' + ixUsd(cm.cit.Nusd) + ' · ' + (cm.cit.np != null ? cm.cit.np.toFixed(1) + '% of OI' : '') + '</span>';
+  document.getElementById('ixPctBody').innerHTML = h;
+  document.querySelectorAll('#ixPctBody tr[data-t]').forEach(function (tr) {
+    tr.onclick = function () { document.getElementById('ixSel').value = tr.getAttribute('data-t'); ixLoad(); };
+  });
 }
 
 function ixFinish(key, ch) { ixCharts[key] = ch; ixApplyZoom(key); }

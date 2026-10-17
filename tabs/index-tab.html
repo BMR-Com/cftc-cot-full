@@ -15,13 +15,17 @@
 .ix-tbl tr.sel td{background:#fff7dd;}
 .ix-pos{color:#1a8c4e!important;} .ix-neg{color:#c0392b!important;}
 .ix-rb{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.78em;font-weight:600;background:#fff4d6;color:#8a6100;}
+.pct-tbl td.pc{padding:5px 6px;min-width:62px;}
+.pct-tbl th.w5{background:#2a5298;} .pct-tbl th.w10{background:#1e3c72;} .pct-tbl th.wf{background:#14284d;}
 .pb-grid{display:grid;grid-template-columns:150px repeat(5,1fr);gap:8px 12px;align-items:center;font-size:.82em;}
 .pb-h{font-weight:700;color:#555;font-size:.85em;text-transform:uppercase;letter-spacing:.4px;text-align:center;}
 .pb-l{font-weight:700;color:#1a1a1a;}
 .pb{position:relative;height:16px;border-radius:8px;background:linear-gradient(90deg,#fadbd8 0%,#f4f6f8 50%,#d5f5e3 100%);}
 .pb i{position:absolute;top:-3px;width:6px;height:22px;border-radius:3px;background:#1e3c72;transform:translateX(-3px);box-shadow:0 0 2px rgba(0,0,0,.4);}
-.pb span{position:absolute;right:6px;top:0;font-size:.8em;line-height:16px;font-weight:700;color:#1a1a1a;}
-@media (max-width:700px){.pb-grid{grid-template-columns:110px repeat(5,1fr);font-size:.72em;}}
+.pb span{position:absolute;right:5px;top:0;font-size:.78em;line-height:16px;font-weight:700;color:#1a1a1a;font-family:monospace;}
+@media (max-width:700px){.pct-tbl td.pc{padding:5px 6px;min-width:62px;}
+.pct-tbl th.w5{background:#2a5298;} .pct-tbl th.w10{background:#1e3c72;} .pct-tbl th.wf{background:#14284d;}
+.pb-grid{grid-template-columns:110px repeat(5,1fr);font-size:.72em;}}
 </style>
 <div class="container">
 <header>
@@ -51,9 +55,9 @@
 </div>
 
 <div class="chart-section">
-  <div class="chart-header"><div class="chart-title" id="ixPctTitle">&#x1F4CF; Where index positioning sits vs history</div></div>
-  <div class="pb-grid" id="ixPct"></div>
-  <div style="font-size:.75em;color:#666;margin-top:10px;">Percentile of the latest week within each look-back. Left (red) = low versus history, right (green) = high.</div>
+  <div class="chart-header"><div class="chart-title">&#x1F4CF; Index positioning vs history, all markets</div></div>
+  <div style="overflow-x:auto;"><table class="ix-tbl pct-tbl"><thead id="ixPctHead"></thead><tbody id="ixPctBody"></tbody></table></div>
+  <div style="font-size:.75em;color:#666;margin-top:8px;">Percentile of the latest week within each look-back. Bar position and colour: left/red = low versus history, right/green = high. Click a market to chart it below.</div>
 </div>
 
 <div class="chart-section">
