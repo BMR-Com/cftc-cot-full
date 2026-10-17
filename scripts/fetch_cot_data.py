@@ -105,7 +105,7 @@ FIELDS = {
         "or_s":  "other_rept_positions_short",
         "or_sp": "other_rept_positions_spread",
         "or_tl": "traders_other_rept_long_all",
-        "or_ts": "traders_other_rept_short_all",
+        "or_ts": "traders_other_rept_short",
     },
     "old": {
         "oi":    "open_interest_old",
@@ -127,7 +127,7 @@ FIELDS = {
         "or_s":  "other_rept_positions_short_1",
         "or_sp": "other_rept_positions_spread_1",
         "or_tl": "traders_other_rept_long_old",
-        "or_ts": "traders_other_rept_short_old",
+        "or_ts": "traders_other_rept_short_1",
     },
     "other": {
         "oi":    "open_interest_other",
@@ -149,7 +149,7 @@ FIELDS = {
         "or_s":  "other_rept_positions_short_2",
         "or_sp": "other_rept_positions_spread_2",
         "or_tl": "traders_other_rept_long_other",
-        "or_ts": "traders_other_rept_short_other",
+        "or_ts": "traders_other_rept_short_2",
     }
 }
 
