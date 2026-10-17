@@ -1,5 +1,5 @@
 {
- "fetched_at": "2026-10-17 16:38 UTC",
+ "fetched_at": "2026-10-17 16:51 UTC",
  "source": "Yahoo Finance via yfinance (front-month continuous)",
  "markets": {
   "CO": {
@@ -76,9 +76,9 @@
   },
   "ALI": {
    "yahoo": "ALI=F",
-   "rows_fetched": 0,
-   "last": null,
-   "status": "no data",
+   "rows_fetched": 23,
+   "last": "2026-10-16",
+   "status": "ok",
    "note": "price series is COMEX aluminum; COT is the Midwest Premium contract"
   },
   "GC": {
@@ -307,7 +307,7 @@
   "risk_off": false
  },
  "summary": {
-  "markets_ok": 20,
+  "markets_ok": 21,
   "markets_total": 21,
   "carry_ok": 20
  }
