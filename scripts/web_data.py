@@ -154,6 +154,84 @@ PRICE_REPORT = DATA_DIR / "prices" / "report.json"
 SEASONAL_CURVE = {"NG", "LC", "LH"}   # Fama-French: carry unreliable on seasonal curves
 
 
+CIT_CSV = DATA_DIR / "cit_master.csv"
+
+
+def load_cit():
+    """Index-trader (CIT) supplemental report, 13 ag markets. Empty dict if missing."""
+    if not CIT_CSV.exists():
+        return {}
+    c = pd.read_csv(CIT_CSV, dtype={"date": str})
+    c["date"] = pd.to_datetime(c["date"]).dt.strftime("%Y-%m-%d")
+    return {t: g.drop_duplicates("date", keep="last").set_index("date").sort_index()
+            for t, g in c.groupby("ticker")}
+
+
+def cit_metrics(g):
+    """Latest-week index-trader metrics for one market (g indexed by date)."""
+    L = g["cit_long"].to_numpy(float); S = g["cit_short"].to_numpy(float)
+    oi = g["open_interest"].to_numpy(float); N = L - S
+    with np.errstate(divide="ignore", invalid="ignore"):
+        npc = np.where(oi > 0, N / oi * 100, 0.0)
+        lp = np.where(oi > 0, L / oi * 100, 0.0)
+
+    def d(a, k=1):
+        return a[-1] - a[-1 - k] if len(a) > k else None
+
+    dN = np.diff(N) if len(N) > 1 else np.array([0.0])
+    sd = np.nanstd(win(dN, 156)) if len(dN) > 4 else np.nan
+    z = (dN[-1] / sd) if sd and not np.isnan(sd) and sd > 0 else 0.0
+    rb = g["rebalance_window"].astype(str).str.lower().eq("true").to_numpy()
+    return {
+        "date": g.index[-1], "L": _num(L[-1]), "S": _num(S[-1]), "N": _num(N[-1]),
+        "TL": _num(g["cit_traders_long"].iloc[-1]), "np": _num(npc[-1], 2), "lp": _num(lp[-1], 2),
+        "dN": _num(d(N)), "dN4": _num(d(N, 4)), "dN13": _num(d(N, 13)), "dN52": _num(d(N, 52)),
+        "dnp4": _num(d(npc, 4), 2), "dnp13": _num(d(npc, 13), 2),
+        "z": _num(z, 2), "streak": streak(dN), "rebal": bool(rb[-1]),
+        "p": {"N": pct_set(N), "np": pct_set(npc), "L": pct_set(L)},
+        "cot3": cot_index(N, 156),
+        "r": {"N": [_num(np.nanmin(N)), _num(np.nanmax(N))], "np": [_num(np.nanmin(npc), 2), _num(np.nanmax(npc), 2)]},
+        "spark": [_num(x) for x in win(N, 52)],
+    }
+
+
+def cit_aggregate(cit, rd):
+    """Complex-wide index flow: is money being allocated to or pulled from ag commodities?"""
+    rows = []
+    for t, g in cit.items():
+        if (rd - pd.to_datetime(g.index[-1])).days > STALE_DAYS or len(g) < 14:
+            continue
+        N = g["cit_net"].to_numpy(float); oi = g["open_interest"].to_numpy(float)
+        npc = np.where(oi > 0, N / oi * 100, 0.0)
+        rows.append({"t": t, "sector": g["sector"].iloc[-1], "name": g["commodity"].iloc[-1],
+                     "dN": N[-1] - N[-2], "dN4": N[-1] - N[-5], "dN13": N[-1] - N[-14],
+                     "dnp4": npc[-1] - npc[-5], "dnp13": npc[-1] - npc[-14]})
+    if not rows:
+        return None
+    r = pd.DataFrame(rows)
+    # history of breadth: share of markets whose index net rose over 4 weeks, per report date
+    allg = pd.concat([g.assign(t=t)[["cit_net", "open_interest", "t"]] for t, g in cit.items()])
+    allg.index = pd.to_datetime(allg.index)
+    w = allg.pivot_table(index=allg.index, columns="t", values="cit_net").sort_index()
+    br = (w.diff(4) > 0).sum(axis=1) / w.notna().sum(axis=1) * 100
+    br = br.dropna()
+    sec = r.groupby("sector")[["dnp4", "dnp13"]].mean().round(2)
+    return {
+        "date": max(g.index[-1] for g in cit.values()), "n": len(r),
+        "adding4": int((r.dN4 > 0).sum()), "adding13": int((r.dN13 > 0).sum()),
+        "avg_dnp4": _num(r.dnp4.mean(), 2), "avg_dnp13": _num(r.dnp13.mean(), 2),
+        "rebal": bool(pd.to_datetime(max(g.index[-1] for g in cit.values())).month == 1
+                      and pd.to_datetime(max(g.index[-1] for g in cit.values())).day <= 20),
+        "breadth4": _num(br.iloc[-1], 1) if len(br) else None,
+        "breadth4_pct": midrank_pct(br.to_numpy(float), br.iloc[-1]) if len(br) else None,
+        "breadth_hist": {"dates": [d.strftime("%Y-%m-%d") for d in br.index[-260:]],
+                         "v": [_num(x, 1) for x in br.iloc[-260:]]},
+        "sectors": {k: {"dnp4": _num(v.dnp4, 2), "dnp13": _num(v.dnp13, 2)} for k, v in sec.iterrows()},
+        "top_in": r.sort_values("dnp4", ascending=False).head(3)[["name", "dnp4", "dN4"]].to_dict("records"),
+        "top_out": r.sort_values("dnp4").head(3)[["name", "dnp4", "dN4"]].to_dict("records"),
+    }
+
+
 FRONT_CSV = DATA_DIR / "prices" / "front_contract.csv"
 # Markets whose continuous "=F" series has large roll gaps (seasonal / quarterly curves).
 ROLL_ADJUST = {"C", "S", "SM", "BO", "W", "KW", "SB", "KC", "CC", "CT", "LC", "LH", "NG"}
@@ -262,6 +340,14 @@ def build(df, bcom_meta=None):
                 "data_from": df["date"].min(), "commodities": []}
     snapshot = {"report_date": report_date, "generated": now, "commodities": []}
     prices, prep, fronts = load_prices()
+    cit = load_cit()
+    if cit:
+        agg = cit_aggregate(cit, rd)
+        if agg:
+            for k2 in ("top_in", "top_out"):
+                agg[k2] = [{"name": x["name"], "dnp4": _num(x["dnp4"], 2), "dN4": _num(x["dN4"])} for x in agg[k2]]
+            snapshot["cit_agg"] = agg
+        manifest["cit_tickers"] = sorted(cit.keys())
     if prep:
         snapshot["regime"] = prep.get("regime")
         snapshot["prices_fetched"] = prep.get("fetched_at")
@@ -303,6 +389,12 @@ def build(df, bcom_meta=None):
             idx = cs.index.searchsorted(pd.to_datetime(all_dates), side="right") - 1
             ser["px"] = [(_num(cs.iloc[i], 4) if i >= 0 and (pd.to_datetime(d) - cs.index[i]).days <= 7 else None)
                          for i, d in zip(idx, all_dates)]
+        cg = cit.get(ticker)
+        if cg is not None and len(cg) > 1:
+            cr = cg.reindex(all_dates)
+            ser["cit"] = {"l": [_num(x) for x in cr["cit_long"]], "s": [_num(x) for x in cr["cit_short"]],
+                          "tl": [_num(x) for x in cr["cit_traders_long"]], "oi": [_num(x) for x in cr["open_interest"]]}
+            snap["cit"] = cit_metrics(cg)
         for ct in crop_types:
             g = (cd[cd["crop_type"] == ct].drop_duplicates("date", keep="last")
                  .set_index("date").reindex(all_dates))

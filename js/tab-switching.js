@@ -2,7 +2,7 @@
    TAB SWITCHING
    =========================================================== */
 function switchTab(tab){
-  var allTabs = ['cot','summary','scatter','seasonality','formula','ai'];
+  var allTabs = ['cot','summary','scatter','index','seasonality','formula','ai'];
   allTabs.forEach(function(t){
     var pane = document.getElementById('pane_'+t);
     var btn = document.getElementById('tb_'+t);
@@ -19,6 +19,9 @@ function switchTab(tab){
   }
   if(tab==='scatter' && !_tabLoaded['scatter']){
     loadTab('scatter', 'tabs/scatter-tab.html', 'js/scatter-tab.js').then(function(){ initScatterTab(); });
+  }
+  if(tab==='index' && !_tabLoaded['index']){
+    loadTab('index', 'tabs/index-tab.html', 'js/index-tab.js').then(function(){ initIndexTab(); });
   }
   if(tab==='seasonality' && !_tabLoaded['seasonality']){
     loadTab('seasonality', 'tabs/seasonality-tab.html', 'js/seasonality-tab.js').then(function(){ initSeasonalityTab(); });

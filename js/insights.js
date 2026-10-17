@@ -138,6 +138,7 @@ var COTInsights = (function () {
     return {
       win: win, crop: crop, date: snap.report_date, rows: rows, sectors: sectors,
       breadth: { buys: buys, sells: sells, n: rows.length },
+      cit: snap.cit_agg || null,
       topBuys: by(function (r) { return r.z; }, -1).filter(function (r) { return r.z >= 0.75; }).slice(0, 4),
       topSells: by(function (r) { return r.z; }, 1).filter(function (r) { return r.z <= -0.75; }).slice(0, 4),
       crowdedLong: by(function (r) { return r.cot; }, -1).filter(function (r) { return r.cot >= 80; }).slice(0, 5),
@@ -181,6 +182,19 @@ var COTInsights = (function () {
     if (a.liqRisk.length) rk.push('long-liquidation risk in ' + names(a.liqRisk));
     if (a.divergences.length) rk.push('spec/commercial divergence in ' + names(a.divergences, function (r) { return r.name + ' (' + (r.comm.tone === 'bull' ? 'bullish' : 'bearish') + ')'; }));
     if (rk.length) L.push({ h: 'Risk map', t: rk.join('; ') + '.' });
+    var ci = a.cit;
+    if (ci) {
+      var pf = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2); };
+      var lst = function (arr) { return arr.map(function (x) { return x.name + ' (' + pf(x.dnp4) + ' pts)'; }).join(', '); };
+      var t = 'Index traders (CIT, ' + ci.n + ' ag markets) added length in ' + ci.adding4 + ' of ' + ci.n + ' over 4 weeks' +
+        (ci.breadth4_pct != null ? ' — breadth at the ' + ord(ci.breadth4_pct) + ' percentile of history' : '') +
+        '; average index share of OI ' + pf(ci.avg_dnp4) + ' pts over 4 weeks, ' + pf(ci.avg_dnp13) + ' over 13. ' +
+        'Inflows: ' + lst(ci.top_in) + '. Outflows: ' + lst(ci.top_out) + '.' +
+        (ci.rebal ? ' January reweight window: index moves this week are mostly mechanical rebalancing, not new allocation.' :
+          (ci.adding4 >= Math.ceil(ci.n * 0.75) ? ' Broad-based adding = allocation flow into the complex.' :
+           ci.adding4 <= Math.floor(ci.n * 0.25) ? ' Broad-based cutting = allocation flow out of the complex.' : ''));
+      L.push({ h: 'Index flows', t: t });
+    }
     return L;
   }
 

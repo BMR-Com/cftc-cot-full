@@ -18,6 +18,7 @@ The question it answers each week: *where are speculators and commercials positi
 | **COT Desk Brief** | A written weekly read: breadth of spec flow, sector rotation, biggest buying and selling (sized as σ moves), crowding, contrarian setups and a risk map. One click copies it as plain text for notes or client emails. |
 | **Trade Ideas** | Systematic long/short ideas with reference price on the actual contract (e.g. CTZ26), stop, target, size and rationale. Includes a watchlist of positioning setups waiting for price confirmation and a scorecard covering all 21 markets. |
 | **Positioning Monitor** | Every market ranked by setup score: regime, net position, w/w change, flow σ, driver (new buying / short covering / long liquidation / fresh shorting), 52-week sparkline, COT index, commercial percentile and a one-line desk read. |
+| **Index (CIT)** | Index traders from the CFTC Supplemental report (13 ag markets): index net and share of open interest, 1/4/13-week flows, breadth of index adding across markets (allocation into or out of commodities), sector roll-up, January reweight flag, and index vs managed-money vs price by market. Also summarised in the Desk Brief. |
 | **Scatter** | Commercials vs funds percentile maps (contracts and % of open interest), plus "crowded and still adding vs crowded and exiting". |
 | **Seasonality** | Weekly positioning by year against a 5-year range and average, for any market or basket, with crop-year panels for grains and softs. |
 | **COT Analyzer / Custom Formula** | Full weekly history for one market across all four trader categories and crop years, plus a formula builder for custom positioning ratios. |
@@ -40,6 +41,7 @@ Desk reads, setup scores and trade ideas come from BMR-Com's rules-based framewo
 GitHub Actions (Fri after CFTC release, retries Fri eve / Sat / Mon)
  ├─ scripts/prices.py        Yahoo Finance: daily OHLC (21 markets + S&P 500 / VIX),
  │                           current contract history, term-structure carry
+ ├─ scripts/fetch_cit_data.py CFTC Supplemental (index traders, 13 ag markets) → data/cit_master.csv
  ├─ scripts/fetch_cot_data.py CFTC Socrata API by contract code → master CSV,
  │                           full-history percentiles, latest_summary.json
  └─ scripts/web_data.py      compact JSON for the browser:
@@ -57,6 +59,7 @@ GitHub Pages → index.html + js/
 - **Percentile bug:** incremental updates ranked new weeks only against the other new weeks. Cotton's managed-money net was stored at the 12.5th percentile when it was actually at the 82nd. Percentiles are now recomputed over the full history every run (vectorised, seconds), and checked against a brute-force calculation.
 - **Silent data freeze:** WTI, Nat Gas and Brent stopped updating in Feb 2022 when the CFTC renamed those markets. Queries now use the stable CFTC contract code, and the update self-heals by backfilling each market from its own last date.
 - **Roll gaps:** Yahoo's continuous series jumps on contract rolls (Lean Hogs −12% on Oct 15, Cotton −24% on the 2022 July→Dec roll). Trend measures use a ratio back-adjusted series; levels come from the tradable contract.
+- **Missing trader count:** other-reportables short-trader counts were stored as 0 for every week because the parser used the wrong CFTC field name; fixed and rebuilt from 2006.
 - **Seasonality double-counting:** two reports in one ISO week (holidays, shutdown catch-ups) were being summed.
 
 ---
@@ -64,6 +67,8 @@ GitHub Pages → index.html + js/
 ## Coverage
 
 21 CFTC-reported BCOM markets: Brent, WTI, Nat Gas, ULS Diesel, RBOB · Corn, Soybeans, Soybean Meal, Soybean Oil, SRW Wheat, HRW Wheat · Copper, Aluminum (COMEX Midwest Premium) · Gold, Silver · Sugar, Coffee, Cocoa, Cotton · Live Cattle, Lean Hogs.
+
+Index-trader (CIT) data covers the 13 markets in the CFTC Supplemental report: Corn, Soybeans, Soybean Meal (from 2013), Soybean Oil, SRW and HRW Wheat, Cotton, Sugar, Coffee, Cocoa, Live Cattle, Lean Hogs and Feeder Cattle (CSV only).
 
 Not available from the CFTC: Zinc, Nickel, Lead (LME) and Low Sulphur Gasoil (ICE Europe). COMEX outright aluminum stopped being reported in June 2026, so aluminum positioning uses the Midwest Premium contract (its price series is COMEX aluminum).
 

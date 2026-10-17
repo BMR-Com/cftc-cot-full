@@ -306,6 +306,7 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
   <button class="tab-btn active" onclick="switchTab('summary')" id="tb_summary">📋 Summary &amp; Ideas</button>
   <button class="tab-btn" onclick="switchTab('cot')" id="tb_cot">📊 COT Analyzer</button>
   <button class="tab-btn" onclick="switchTab('scatter')" id="tb_scatter">🎯 Scatter</button>
+  <button class="tab-btn" onclick="switchTab('index')" id="tb_index">🏦 Index (CIT)</button>
   <button class="tab-btn" onclick="switchTab('seasonality')" id="tb_seasonality">📅 Seasonality</button>
   <button class="tab-btn" onclick="switchTab('formula')" id="tb_formula">🔧 Custom Formula</button>
   <button class="tab-btn" onclick="switchTab('ai')" id="tb_ai">🤖 AI Analysis</button>
@@ -317,6 +318,7 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 <div id="pane_summary" class="tab-pane"></div>
 <div id="pane_cot" class="tab-pane" style="display:none;"></div>
 <div id="pane_scatter" class="tab-pane" style="display:none;"></div>
+<div id="pane_index" class="tab-pane" style="display:none;"></div>
 <div id="pane_seasonality" class="tab-pane" style="display:none;"></div>
 <div id="pane_formula" class="tab-pane" style="display:none;"></div>
 <div id="pane_ai" class="tab-pane" style="display:none;"></div>
@@ -326,11 +328,11 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 <!-- ── Shared JavaScript ── -->
 <!-- APP_VER: bump on every code change so browsers never mix old and new JS
      (GitHub Pages lets browsers cache files for 10 minutes). -->
-<script>var APP_VER='2026.10.15.8';</script>
-<script src="js/shared.js?v=2026.10.15.8"></script>
-<script src="js/data-store.js?v=2026.10.15.8"></script>
-<script src="js/insights.js?v=2026.10.15.8"></script>
-<script src="js/tab-switching.js?v=2026.10.15.8"></script>
+<script>var APP_VER='2026.10.17.1';</script>
+<script src="js/shared.js?v=2026.10.17.1"></script>
+<script src="js/data-store.js?v=2026.10.17.1"></script>
+<script src="js/insights.js?v=2026.10.17.1"></script>
+<script src="js/tab-switching.js?v=2026.10.17.1"></script>
 
 <script>
 /* ===========================================================
