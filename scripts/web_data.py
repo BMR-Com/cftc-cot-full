@@ -159,7 +159,11 @@ CIT_CSV = DATA_DIR / "cit_master.csv"
 # grains ¢/bu x 5,000 bu; meal $/st x 100; oil ¢/lb x 60,000; cotton ¢/lb x 50,000;
 # sugar ¢/lb x 112,000; coffee ¢/lb x 37,500; cocoa $/t x 10; cattle/hogs ¢/lb x 40,000 (feeder 50,000)
 CONTRACT_USD = {"C": 50, "S": 50, "W": 50, "KW": 50, "SM": 100, "BO": 600, "CT": 500, "SB": 1120,
-                "KC": 375, "CC": 10, "LC": 400, "LH": 400, "FC": 500}
+                "KC": 375, "CC": 10, "LC": 400, "LH": 400, "FC": 500,
+                # energy & metals: $/bbl x 1,000; $/MMBtu x 10,000; $/gal x 42,000; $/lb x 25,000; $/oz x 100 / 5,000
+                "CL": 1000, "CO": 1000, "NG": 10000, "HO": 42000, "XB": 42000, "HG": 25000, "GC": 100, "SI": 5000}
+# ALI has no $ value: its COT contract is the Midwest Premium, its price series is COMEX aluminum
+PRICE_STALE_DAYS = 7
 PCT_WINS = ("y1", "y3", "y5", "y10", "f")
 
 
@@ -189,6 +193,83 @@ def _usd(n, px, mult):
     if n is None or px is None or mult is None or (isinstance(px, float) and math.isnan(px)):
         return None
     return _num(n * px * mult)
+
+
+def price_ok(pg, rd, latest_px):
+    """Price usable only if the Yahoo series is current: within PRICE_STALE_DAYS of the COT
+    report date and of the freshest price in the file. Otherwise charts and levels drop price."""
+    if pg is None or not len(pg.dropna(subset=["close"])):
+        return False
+    last = pg.dropna(subset=["close"]).index[-1]
+    return (rd - last).days <= PRICE_STALE_DAYS and (latest_px - last).days <= 5
+
+
+def trigger_levels(pg, ticker, front=None):
+    """Price levels where the technical signals funds react to would flip. Uses the tradable
+    front contract's own history when it covers 200+ sessions (levels you can put orders at),
+    otherwise the roll-adjusted continuous series anchored to today's price."""
+    fr = front.dropna(subset=["close"]) if front is not None else None
+    if fr is not None and len(fr) >= 205:
+        g = fr; c = g["close"]; src = str(g["contract"].iloc[-1])
+        hi = g["high"].fillna(c); lo = g["low"].fillna(c)
+    else:
+        g = pg.dropna(subset=["close"])
+        if len(g) < 210:
+            return None
+        adj, _ = back_adjust(g["close"], ticker)
+        k = adj / g["close"]
+        hi = (g["high"].fillna(g["close"]) * k); lo = (g["low"].fillna(g["close"]) * k)
+        c = adj; src = "continuous"
+    last = float(c.iloc[-1])
+    tr = pd.concat([hi - lo, (hi - c.shift()).abs(), (lo - c.shift()).abs()], axis=1).max(axis=1)
+    atr = float(tr.ewm(alpha=1 / 14, adjust=False).mean().iloc[-1])
+    out = {"close": _num(last, 4), "atr": _num(atr, 4), "date": g.index[-1].strftime("%Y-%m-%d"), "src": src, "lv": []}
+    for n in (20, 55, 100):
+        H = hi.rolling(n).max().shift(); L = lo.rolling(n).min().shift()
+        st = pd.Series(np.where(c > H, 1, np.where(c < L, -1, np.nan)), index=c.index).ffill()
+        out["lv"].append({"k": f"d{n}", "name": f"{n}-day breakout", "state": _num(st.iloc[-1]) if not np.isnan(st.iloc[-1]) else 0,
+                          "up": _num(float(hi.iloc[-n:].max()), 4), "dn": _num(float(lo.iloc[-n:].min()), 4)})
+    for n in (50, 100, 200):
+        m = float(c.rolling(n).mean().iloc[-1])
+        out["lv"].append({"k": f"s{n}", "name": f"{n}-day average", "state": 1 if last > m else -1, "lvl": _num(m, 4)})
+    ema = lambda sp: c.ewm(span=sp, adjust=False).mean()
+    macd = float(ema(12).iloc[-1] - ema(26).iloc[-1])
+    out["macd"] = 1 if macd > 0 else -1
+    # nearest flip level in each direction
+    ups, dns = [], []
+    for x in out["lv"]:
+        if "lvl" in x:
+            (ups if x["lvl"] > last else dns).append((x["lvl"], x["name"]))
+        else:
+            if x["state"] != 1: ups.append((x["up"], x["name"] + " high"))
+            if x["state"] != -1: dns.append((x["dn"], x["name"] + " low"))
+    if ups:
+        u = min(ups); out["next_up"] = {"lvl": u[0], "name": u[1], "pct": _num(u[0] / last - 1, 4), "atr": _num((u[0] - last) / atr, 2) if atr else None}
+    if dns:
+        d = max(dns); out["next_dn"] = {"lvl": d[0], "name": d[1], "pct": _num(d[0] / last - 1, 4), "atr": _num((d[0] - last) / atr, 2) if atr else None}
+    return out
+
+
+def mm_usd(g, px, mult):
+    """Managed-money exposure in dollars (all crop years) at the latest front-month price."""
+    if px is None or not mult or len(g) < 2:
+        return None
+    L = g["managed_money_long"].to_numpy(float); S = g["managed_money_short"].to_numpy(float); N = L - S
+    return {"N": _num(N[-1]), "dN": _num(N[-1] - N[-2]), "dN4": _num(N[-1] - N[-5]) if len(N) > 4 else None,
+            "Lusd": _usd(L[-1], px, mult), "Susd": _usd(S[-1], px, mult), "Nusd": _usd(N[-1], px, mult),
+            "dNusd": _usd(N[-1] - N[-2], px, mult), "dN4usd": _usd(N[-1] - N[-5], px, mult) if len(N) > 4 else None, "px": _num(px, 4)}
+
+
+def heat_row(g, weeks=26, look=156):
+    """Managed-money net percentile vs the prior 3 years, for each of the last `weeks` reports."""
+    N = (g["managed_money_long"] - g["managed_money_short"]).to_numpy(float)
+    out = []
+    for i in range(len(N) - weeks, len(N)):
+        if i < 52:
+            out.append(None); continue
+        h = N[max(0, i - look):i + 1]
+        out.append(midrank_pct(h, N[i]))
+    return out
 
 
 def cit_metrics(g, px, mult, mm=None):
@@ -396,6 +477,9 @@ def build(df, bcom_meta=None):
     snapshot = {"report_date": report_date, "generated": now, "commodities": []}
     prices, prep, fronts = load_prices()
     cit = load_cit()
+    latest_px = max((g.dropna(subset=["close"]).index[-1] for g in prices.values() if len(g.dropna(subset=["close"]))), default=rd)
+    heat = {"dates": None, "rows": []}
+    mm_rows = []
     cit_snaps = {}
     if cit:
         manifest["cit_tickers"] = sorted(cit.keys())
@@ -430,7 +514,9 @@ def build(df, bcom_meta=None):
         snap = {"name": name, "ticker": ticker, "sector": sector, "is_crop": is_crop,
                 "date": last, "stale": stale, "v": {}}
         pg = prices.get(ticker)
-        if pg is not None and len(pg):
+        pok = price_ok(pg, rd, latest_px)
+        snap["px_ok"] = bool(pok)
+        if pok:
             snap["px"] = px_metrics(pg, (prep.get("carry") or {}).get(ticker), ticker, fronts.get(ticker))
             note = ((prep.get("markets") or {}).get(ticker) or {}).get("note")
             if snap["px"] and note:
@@ -443,9 +529,9 @@ def build(df, bcom_meta=None):
         cg = cit.get(ticker)
         if cg is not None and len(cg) > 1:
             mult = CONTRACT_USD.get(ticker)
-            cpx = front_close_on(prices, ticker, cg.index)
+            cpx = front_close_on(prices, ticker, cg.index) if pok else pd.Series(np.nan, index=cg.index)
             cr = cg.reindex(all_dates)
-            cpa = front_close_on(prices, ticker, all_dates)
+            cpa = front_close_on(prices, ticker, all_dates) if pok else pd.Series(np.nan, index=all_dates)
             col = lambda k: [_num(x) for x in cr[k]]
             ser["cit"] = {"l": col("cit_long"), "s": col("cit_short"), "tl": col("cit_traders_long"), "ts": col("cit_traders_short"),
                           "oi": col("open_interest"), "ncl": col("noncomm_long"), "ncs": col("noncomm_short"),
@@ -479,10 +565,34 @@ def build(df, bcom_meta=None):
                 "poi": pct_set(oi, ("f", "y3")),
                 "cats": {cat: cat_metrics(gv, cat) for cat in CATS},
             }
+        if pok:
+            try:
+                snap["trig"] = trigger_levels(pg, ticker, fronts.get(ticker))
+            except Exception as e:  # noqa: BLE001
+                print("  trigger levels failed", ticker, e)
+        ga = cd[cd["crop_type"] == "all"].drop_duplicates("date", keep="last").set_index("date").sort_index()
+        mult = CONTRACT_USD.get(ticker)
+        fpx = front_close_on(prices, ticker, [ga.index[-1]]).iloc[-1] if pok else np.nan
+        mu = mm_usd(ga, None if np.isnan(fpx) else float(fpx), mult)
+        if mu:
+            snap["mm_usd"] = mu
+            mm_rows.append(dict(mu, name=name, ticker=ticker, sector=sector))
+        if len(ga) > 60 and not stale:
+            hr = heat_row(ga)
+            if heat["dates"] is None:
+                heat["dates"] = list(ga.index[-26:])
+            heat["rows"].append({"name": name, "ticker": ticker, "sector": sector, "v": hr})
         with open(SERIES_DIR / f"{ticker}.json", "w") as f:
             json.dump(ser, f, separators=(",", ":"))
         snapshot["commodities"].append(snap)
 
+    snapshot["heat"] = heat
+    if mm_rows:
+        r = pd.DataFrame(mm_rows)
+        def tot(df):
+            return {k: _num(df[k].sum(min_count=1)) for k in ["Nusd", "dNusd", "dN4usd", "Lusd", "Susd", "N", "dN"]}
+        snapshot["mm_usd"] = {"total": tot(r), "sectors": {k: tot(v) for k, v in r.groupby("sector")},
+                              "markets": [{k: v for k, v in x.items()} for x in mm_rows]}
     if cit and cit_snaps:
         agg = cit_aggregate(cit, rd, cit_snaps)
         if agg:

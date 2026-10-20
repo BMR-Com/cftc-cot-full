@@ -28,13 +28,13 @@ function drawPos(){
   var ds=[{label:l,data:pts(CD.dates,v),borderColor:c,backgroundColor:c+'18',borderWidth:2,pointRadius:0,fill:true,tension:0.4}];
   if(sz)ds.push({label:'Zero',data:CD.dates.map(function(d){return{x:d,y:0};}),borderColor:'rgba(192,57,43,0.35)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,fill:false});
   charts.pos=mkLine(ctx,ds,true,ip?'% OI':'Contracts',ip,false);
-  applyZoom(charts.pos,'pos');
+  applyZoom(charts.pos,'pos');addPx('pos');
 }
 function drawCmp(){
   if(!ATD)return;var m=document.getElementById('cmpMet').value,ctx=document.getElementById('cmpChart').getContext('2d');
   if(charts.cmp)charts.cmp.destroy();var ip=m==='net_pct';
   var ds=[];CATS.forEach(function(c){var d=ATD[c];if(!d)return;var v;switch(m){case'net':v=d.net;break;case'long':v=d.long;break;case'short':v=d.short;break;default:v=d.nPct;}ds.push({label:CAT_LBL[c],data:pts(d.dates,v),borderColor:CAT_COL[c],borderWidth:2,fill:false,pointRadius:0,tension:0.4});});
-  charts.cmp=mkLine(ctx,ds,true,ip?'% OI':'',ip,true);applyZoom(charts.cmp,'cmp');
+  charts.cmp=mkLine(ctx,ds,true,ip?'% OI':'',ip,true);applyZoom(charts.cmp,'cmp');addPx('cmp');
 }
 function drawTrd(){
   if(!CD)return;var m=document.getElementById('trdMet').value,ctx=document.getElementById('trdChart').getContext('2d');
@@ -209,3 +209,29 @@ function buildWeeklyDetail(){
   }
 }
 
+
+/* ===========================================================
+   PRICE OVERLAY — roll-adjusted weekly price on a right-hand axis.
+   Only drawn when the pre-computed series has a current price feed;
+   if Yahoo is missing or stale the series carries no price and the
+   charts simply show positions alone.
+   =========================================================== */
+var PXC={};
+function curTicker(){var s=document.getElementById('commoditySelect');var o=s&&s.options[s.selectedIndex];return o?o.getAttribute('data-tk'):null;}
+function addPx(key){
+  var t=curTicker(),chart=charts[key];if(!t||!CD||!chart)return;
+  var go=function(map){
+    if(!map||charts[key]!==chart)return;
+    var data=CD.dates.map(function(d){return{x:d,y:map[d]==null?null:map[d]};});
+    if(data.filter(function(p){return p.y!=null;}).length<CD.dates.length*0.5)return;
+    chart.data.datasets.push({label:'Price (roll-adjusted)',data:data,borderColor:'rgba(70,70,70,.75)',borderWidth:1.3,borderDash:[4,3],pointRadius:0,fill:false,yAxisID:'y1',tension:0.2,spanGaps:false});
+    chart.options.scales.y1={position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9},color:'#555'},title:{display:true,text:'Price',font:{size:10,weight:'bold'},color:'#555'}};
+    chart.options.plugins.legend.display=true;chart.update('none');
+  };
+  if(t in PXC)return go(PXC[t]);
+  COTStore.series(t).then(function(s){
+    var m=null,n=0;
+    if(s&&s.px){m={};s.dates.forEach(function(d,i){if(s.px[i]!=null){m[d]=s.px[i];n++;}});if(n<20)m=null;}
+    PXC[t]=m;go(m);
+  }).catch(function(){PXC[t]=null;});
+}

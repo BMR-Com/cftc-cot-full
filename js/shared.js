@@ -300,6 +300,7 @@ function onCommChange(){
   var cnEl=document.getElementById('cropNotes');if(cnEl)cnEl.style.display=has?'':'none';
   var cy=document.getElementById('cropYear');if(cy&&!has)cy.value='all';
   var cb=document.getElementById('cropBadge');if(cb&&has)cb.textContent='('+cn+')';
+  var tk=opt?opt.getAttribute('data-tk'):null;if(tk){try{history.replaceState(null,'','#'+tk);}catch(e){}}
 }
 function toggleCropNotes(){var b=document.getElementById('cropBody'),t=document.getElementById('cropToggle');if(!b||!t)return;var o=b.style.display==='block';b.style.display=o?'none':'block';t.textContent=o?'▼':'▲';}
 function onCropYearChange(){

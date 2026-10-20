@@ -277,6 +277,9 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 
 /* ── Brand + footer ── */
 .brand{color:#ffe066;font-weight:800;font-size:1.05em;align-self:center;margin-right:18px;white-space:nowrap;letter-spacing:.3px;}
+#mktSearch{margin:8px 0 8px auto;align-self:center;padding:7px 12px;border-radius:18px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:.85em;min-width:170px;}
+#mktSearch::placeholder{color:rgba(255,255,255,.75);}
+#mktSearch:focus{outline:2px solid #ffe066;background:rgba(255,255,255,.2);}
 .brand small{display:block;color:rgba(255,255,255,.7);font-weight:500;font-size:.62em;letter-spacing:.6px;text-transform:uppercase;}
 #siteFooter{max-width:1400px;margin:10px auto 30px;padding:14px 20px;color:rgba(255,255,255,.75);font-size:.76em;line-height:1.6;border-top:1px solid rgba(255,255,255,.2);}
 #siteFooter b{color:#fff;}
@@ -307,9 +310,11 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
   <button class="tab-btn" onclick="switchTab('cot')" id="tb_cot">📊 COT Analyzer</button>
   <button class="tab-btn" onclick="switchTab('scatter')" id="tb_scatter">🎯 Scatter</button>
   <button class="tab-btn" onclick="switchTab('index')" id="tb_index">🏦 Index (CIT)</button>
+  <button class="tab-btn" onclick="switchTab('levels')" id="tb_levels">🚦 Triggers &amp; Flows</button>
   <button class="tab-btn" onclick="switchTab('seasonality')" id="tb_seasonality">📅 Seasonality</button>
   <button class="tab-btn" onclick="switchTab('formula')" id="tb_formula">🔧 Custom Formula</button>
   <button class="tab-btn" onclick="switchTab('ai')" id="tb_ai">🤖 AI Analysis</button>
+  <input id="mktSearch" list="mktList" placeholder="🔎 Go to market…" aria-label="Go to market" autocomplete="off"><datalist id="mktList"></datalist>
 </div>
 
 <div id="dataStatus" style="display:none;"></div>
@@ -319,6 +324,7 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 <div id="pane_cot" class="tab-pane" style="display:none;"></div>
 <div id="pane_scatter" class="tab-pane" style="display:none;"></div>
 <div id="pane_index" class="tab-pane" style="display:none;"></div>
+<div id="pane_levels" class="tab-pane" style="display:none;"></div>
 <div id="pane_seasonality" class="tab-pane" style="display:none;"></div>
 <div id="pane_formula" class="tab-pane" style="display:none;"></div>
 <div id="pane_ai" class="tab-pane" style="display:none;"></div>
@@ -328,11 +334,11 @@ button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
 <!-- ── Shared JavaScript ── -->
 <!-- APP_VER: bump on every code change so browsers never mix old and new JS
      (GitHub Pages lets browsers cache files for 10 minutes). -->
-<script>var APP_VER='2026.10.17.3';</script>
-<script src="js/shared.js?v=2026.10.17.3"></script>
-<script src="js/data-store.js?v=2026.10.17.3"></script>
-<script src="js/insights.js?v=2026.10.17.3"></script>
-<script src="js/tab-switching.js?v=2026.10.17.3"></script>
+<script>var APP_VER='2026.10.17.4';</script>
+<script src="js/shared.js?v=2026.10.17.4"></script>
+<script src="js/data-store.js?v=2026.10.17.4"></script>
+<script src="js/insights.js?v=2026.10.17.4"></script>
+<script src="js/tab-switching.js?v=2026.10.17.4"></script>
 
 <script>
 /* ===========================================================
@@ -388,8 +394,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('endDate').valueAsDate = new Date();
             loadList();
             renderDataStatus();
-            // Land on the Summary (Desk Brief + Trade Ideas): instant, from cached data
-            switchTab('summary');
+            // Land on the tab or market in the link (#CT, #index ...), else the Summary
+            initMarketSearch();
+            routeHash();
         })
         .catch(function(e) { console.error('Failed to load COT tab:', e); });
 });

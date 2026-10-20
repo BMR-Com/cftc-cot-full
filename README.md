@@ -19,9 +19,12 @@ The question it answers each week: *where are speculators and commercials positi
 | **Trade Ideas** | Systematic long/short ideas with reference price on the actual contract (e.g. CTZ26), stop, target, size and rationale. Includes a watchlist of positioning setups waiting for price confirmation and a scorecard covering all 21 markets. |
 | **Positioning Monitor** | Every market ranked by setup score: regime, net position, w/w change, flow σ, driver (new buying / short covering / long liquidation / fresh shorting), 52-week sparkline, COT index, commercial percentile and a one-line desk read. |
 | **Index (CIT)** | Index traders from the CFTC Supplemental report (13 ag markets): dollar exposure (long, short, net), weekly flows for index traders vs managed money in lots and dollars by sector and market, percentile bars over 1/3/5/10 years and since 2006, the same position, trader-category, trader-count and position-size charts as the COT Analyzer, and breadth of index adding across markets. Also summarised in the Desk Brief. |
+| **Triggers & Flows** | For every market: price levels where the 20/55/100-day breakouts and 50/100/200-day averages would flip (on the tradable contract, with distance in % and ATR), managed-money dollar exposure and weekly flows by sector, and a 26-week heatmap of fund positioning percentiles. |
 | **Scatter** | Commercials vs funds percentile maps (contracts and % of open interest), plus "crowded and still adding vs crowded and exiting". |
 | **Seasonality** | Weekly positioning by year against a 5-year range and average, for any market or basket, with crop-year panels for grains and softs. |
-| **COT Analyzer / Custom Formula** | Full weekly history for one market across all four trader categories and crop years, plus a formula builder for custom positioning ratios. |
+| **COT Analyzer / Custom Formula** | Full weekly history for one market across all four trader categories and crop years, with price on a right-hand axis (hidden automatically if the price feed is missing or stale), plus a formula builder for custom positioning ratios. |
+
+Direct links: add a ticker or tab to the URL, e.g. `#CT` opens cotton in the COT Analyzer, `#index` or `#levels` opens that tab. The search box in the tab bar jumps to any market.
 
 ![Desk brief](docs/desk-brief.png)
 

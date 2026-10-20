@@ -129,7 +129,10 @@ function ixDrawPos() {
             net_usd: [IX.usd(IX.N).map(function (v) { return v == null ? null : v / 1e9; }), 'Net ($bn)', '#2a5298'], long_usd: [IX.usd(IX.L).map(function (v) { return v == null ? null : v / 1e9; }), 'Long ($bn)', '#1a8c4e'] }[m];
   var ds = [ixDs(V[1], V[0], V[2], true)];
   var y = m.indexOf('pct') > -1 ? '% OI' : m.indexOf('usd') > -1 ? 'US$ bn' : 'Contracts';
-  ixFinish('pos', mkLine(document.getElementById('ixPosChart').getContext('2d'), ds, true, y, m.indexOf('pct') > -1, false));
+  var pxOk = IX.px.filter(function (v) { return v != null; }).length > IX.dates.length * 0.5;
+  if (pxOk) ds.push({ label: 'Front-month price', data: pts(IX.dates, IX.px), borderColor: 'rgba(70,70,70,.75)', borderWidth: 1.3, borderDash: [4, 3], pointRadius: 0, fill: false, yAxisID: 'y1', tension: 0.2 });
+  ixFinish('pos', mkLine(document.getElementById('ixPosChart').getContext('2d'), ds, true, y, m.indexOf('pct') > -1, pxOk));
+  if (pxOk) { ixCharts.pos.options.scales.y1 = { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 9 }, color: '#555' }, title: { display: true, text: 'Price', font: { size: 10, weight: 'bold' }, color: '#555' } }; ixCharts.pos.update('none'); }
   if (m.indexOf('usd') > -1) { ixCharts.pos.options.scales.y.ticks.callback = function (v) { return '$' + v.toFixed(1) + 'bn'; }; ixCharts.pos.update('none'); }
 }
 function ixDrawCmp() {
