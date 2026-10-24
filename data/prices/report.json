@@ -1,5 +1,5 @@
 {
- "fetched_at": "2026-10-24 01:49 UTC",
+ "fetched_at": "2026-10-24 17:17 UTC",
  "source": "Yahoo Finance via yfinance (front-month continuous)",
  "markets": {
   "CO": {
@@ -134,41 +134,41 @@
   "CO": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 116.91,
-   "p_deferred": 86.68,
-   "carry_ann": 0.2992,
+   "p_front": 116.72,
+   "p_deferred": 86.74,
+   "carry_ann": 0.2969,
    "date": "2026-10-23"
   },
   "NG": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 3.047,
-   "p_deferred": 4.003,
+   "p_front": 3.05,
+   "p_deferred": 4.007,
    "carry_ann": -0.2729,
    "date": "2026-10-23"
   },
   "CL": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 103.44,
-   "p_deferred": 80.68,
-   "carry_ann": 0.2485,
+   "p_front": 103.27,
+   "p_deferred": 80.52,
+   "carry_ann": 0.2488,
    "date": "2026-10-23"
   },
   "HO": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 4.8039,
-   "p_deferred": 3.6036,
-   "carry_ann": 0.2875,
+   "p_front": 4.787,
+   "p_deferred": 3.6068,
+   "carry_ann": 0.2831,
    "date": "2026-10-23"
   },
   "XB": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 3.1276,
-   "p_deferred": 2.5545,
-   "carry_ann": 0.2024,
+   "p_front": 3.1284,
+   "p_deferred": 2.5542,
+   "carry_ann": 0.2028,
    "date": "2026-10-23"
   },
   "C": {
@@ -182,49 +182,49 @@
   "S": {
    "front": "X26",
    "deferred": "X27",
-   "p_front": 1257.5,
+   "p_front": 1256.5,
    "p_deferred": 1231.0,
-   "carry_ann": 0.0213,
+   "carry_ann": 0.0205,
    "date": "2026-10-23"
   },
   "SM": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 346.5,
-   "p_deferred": 342.9,
-   "carry_ann": 0.0104,
+   "p_front": 346.1,
+   "p_deferred": 343.0,
+   "carry_ann": 0.009,
    "date": "2026-10-23"
   },
   "BO": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 66.79,
+   "p_front": 66.83,
    "p_deferred": 66.06,
-   "carry_ann": 0.011,
+   "carry_ann": 0.0116,
    "date": "2026-10-23"
   },
   "W": {
    "front": "Z26",
    "deferred": "Z27",
    "p_front": 625.0,
-   "p_deferred": 667.75,
-   "carry_ann": -0.0662,
+   "p_deferred": 668.25,
+   "carry_ann": -0.0669,
    "date": "2026-10-23"
   },
   "KW": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 664.0,
-   "p_deferred": 702.5,
-   "carry_ann": -0.0564,
+   "p_front": 664.5,
+   "p_deferred": 703.25,
+   "carry_ann": -0.0567,
    "date": "2026-10-23"
   },
   "HG": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 6.4975,
-   "p_deferred": 6.8925,
-   "carry_ann": -0.059,
+   "p_front": 6.5075,
+   "p_deferred": 6.8955,
+   "carry_ann": -0.0579,
    "date": "2026-10-23"
   },
   "ALI": {
@@ -236,57 +236,57 @@
   "GC": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 4010.0,
-   "p_deferred": 4208.0,
-   "carry_ann": -0.0482,
+   "p_front": 4007.8999,
+   "p_deferred": 4209.0,
+   "carry_ann": -0.049,
    "date": "2026-10-23"
   },
   "SI": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 53.96,
-   "p_deferred": 57.44,
-   "carry_ann": -0.0625,
+   "p_front": 53.949,
+   "p_deferred": 56.798,
+   "carry_ann": -0.0515,
    "date": "2026-10-23"
   },
   "SB": {
    "front": "H27",
    "deferred": "H28",
-   "p_front": 20.26,
-   "p_deferred": 19.38,
-   "carry_ann": 0.0444,
+   "p_front": 20.24,
+   "p_deferred": 19.37,
+   "carry_ann": 0.0439,
    "date": "2026-10-23"
   },
   "KC": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 306.0,
-   "p_deferred": 278.4,
-   "carry_ann": 0.0945,
+   "p_front": 307.45,
+   "p_deferred": 279.45,
+   "carry_ann": 0.0955,
    "date": "2026-10-23"
   },
   "CC": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 5560.0,
-   "p_deferred": 5681.0,
-   "carry_ann": -0.0215,
+   "p_front": 5592.0,
+   "p_deferred": 5711.0,
+   "carry_ann": -0.0211,
    "date": "2026-10-23"
   },
   "CT": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 80.34,
-   "p_deferred": 79.33,
-   "carry_ann": 0.0127,
+   "p_front": 80.2,
+   "p_deferred": 79.22,
+   "carry_ann": 0.0123,
    "date": "2026-10-23"
   },
   "LC": {
    "front": "Z26",
    "deferred": "Z27",
-   "p_front": 231.2,
-   "p_deferred": 223.575,
-   "carry_ann": 0.0335,
+   "p_front": 231.125,
+   "p_deferred": 223.475,
+   "carry_ann": 0.0337,
    "date": "2026-10-23"
   },
   "LH": {
