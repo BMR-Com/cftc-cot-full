@@ -30,7 +30,9 @@ GROUP = {k: v[5] for k, v in MARKETS.items()}
 def load_tv(paths=(DATA+'/tv_contracts.csv.gz', DATA+'/ags_contracts.csv.gz')):
     k = pd.concat([pd.read_csv(p) for p in paths if os.path.exists(p)]); P = {}
     for sym, g in k.groupby('symbol'):
-        x = pd.Series(g.close.values, index=pd.to_datetime(g.date)).sort_index()
+        idx = pd.to_datetime(g.date)
+        idx = idx + pd.to_timedelta((idx.dt.dayofweek == 6).astype(int), unit='D')   # TradingView stamps some Monday sessions (all ICE cotton) as Sunday
+        x = pd.Series(g.close.values, index=idx.values).sort_index()
         x = x[~x.index.duplicated(keep='last')]
         med = x.rolling(11, center=True, min_periods=3).median()
         x = x[(x / med - 1).abs() <= 0.20]          # drop bad ticks (>20% off the local 11-day median)
