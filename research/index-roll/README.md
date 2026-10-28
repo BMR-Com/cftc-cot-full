@@ -28,6 +28,8 @@ Business days are taken from exchange trading days in the price file. The loader
 | `rollcommon.py` | Contract cycles, multipliers, the TradingView loader and contract chaining. |
 | `build_events.py` | One row per roll event and series (spreads 1–3 and front-month price). Windows are the 20 days before the Rogers entry, the Rogers roll, and GSCI days 1–2, 1–3 and 1–5. Also records the spec net/OI and its trailing 3-year percentile. Writes `results/v2_events.csv`. |
 | `stats.py` | Summary tables, unconditional and by positioning bucket. Writes `results/`. |
+| `late_gsci.py` | Later in the GSCI/BCOM roll: long spread exited on days 2–5, and short spread entered at the close of day 4 or 5 and held 5 or 10 days. |
+| `post_roll.py` | Long or short spread from GSCI day 3, 4 or 5 to the day before the front contract's first notice or expiry (market-specific exit rules are in the file header). |
 | `controls.py` | The same windows shifted 1–3 months earlier, an era split and a curve-shape split. |
 | `fetch_ags_tradingview_and_cot.py` | Refreshes the ags files, one market per run: `python fetch_ags_tradingview_and_cot.py ZC`, or `COT` for positioning. |
 | `fetch_tradingview_and_cot.py` | Refreshes the softs files in `data/`. It must run on a GitHub Actions runner, because TradingView and the CFTC API are not reachable from Claude sessions. |
