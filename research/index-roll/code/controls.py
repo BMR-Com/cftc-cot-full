@@ -4,10 +4,10 @@ import rollcommon as bt
 import build_events as v2  # rebuilds events; provides P, SPEC, spec_at
 RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results")
 P=v2.P; rows=[]
-for root in ['CT','SB','KC','CC']:
+for root in [r for r in bt.MARKETS]:
     keys=[k for k in P if k[0]==root]; cal=pd.DatetimeIndex(sorted(set().union(*[set(P[k].index) for k in keys])))
     for (_,code,y) in keys:
-        if y<2000: continue
+        if y<2000 or code not in bt.CYCLE[root]: continue
         M=bt.MC[code]; m1=pd.Timestamp(y,M,1)-pd.offsets.MonthBegin(1); m2=m1-pd.offsets.MonthBegin(1)
         d2=cal[(cal.year==m2.year)&(cal.month==m2.month)]
         if len(d2)<5 or m1>pd.Timestamp.today(): continue

@@ -20,12 +20,14 @@ out = {}
 print('=== A. UNCONDITIONAL, by market (spreads native units / price log-return) ===')
 rows = []
 for spec in ['s1', 's2', 's3', 'px']:
-    for root in ['CT', 'KC', 'SB', 'CC', 'ALL']:
-        g = E[E.spec == spec] if root == 'ALL' else E[(E.spec == spec) & (E.root == root)]
+    POOLS = ['ALL'] + sorted(E.group.unique())
+    for root in [r for r in bt.MARKETS if r in set(E.root)] + POOLS:
+        pooled = root in POOLS
+        g = E[E.spec == spec] if root == 'ALL' else (E[(E.spec == spec) & (E.group == root)] if pooled else E[(E.spec == spec) & (E.root == root)])
         for w in W:
-            col = ('z_' + w) if root == 'ALL' else w
+            col = ('z_' + w) if pooled else w
             a, b, c = st(g[col]), st(g[g.era == 'A'][col]), st(g[g.era == 'B'][col])
-            usd = a['m'] * bt.MULT[root] if (spec != 'px' and root != 'ALL') else np.nan
+            usd = a['m'] * bt.MULT[root] if (spec != 'px' and not pooled) else np.nan
             rows.append(dict(spec=spec, root=root, win=w, n=a['n'], mean=a['m'], usd=usd, hit=a['hit'], t=a['t'], tA=b['t'], tB=c['t'], mA=b['m'], mB=c['m']))
 U = pd.DataFrame(rows); U.to_csv(os.path.join(RES,'v2_uncond.csv'), index=False)
 pd.set_option('display.width', 250); pd.set_option('display.max_rows', 400)
@@ -35,17 +37,18 @@ print('\n=== B. CONDITIONAL on spec net percentile (pooled z, all markets) ===')
 B = [('>=90', lambda p: p >= 90), ('>=80', lambda p: p >= 80), ('20-80', lambda p: (p > 20) & (p < 80)), ('<=20', lambda p: p <= 20), ('<=10', lambda p: p <= 10)]
 rows = []
 for tag in ['nc', 'mm']:
+  for grp in ['ALL'] + sorted(E.group.unique()):
     for spec in ['s1', 's2', 'px']:
-        g = E[E.spec == spec]
+        g = E[E.spec == spec] if grp == 'ALL' else E[(E.spec == spec) & (E.group == grp)]
         for w in W:
             pc = g[f'{tag}_pct'] if w == 'pre20' else g[f'{tag}_pct_r']
             for bn, f in B:
                 m = f(pc)
                 for era, em in [('all', g.year > 0), ('A', g.era == 'A'), ('B', g.era == 'B')]:
                     d = st(g[m & em]['z_' + w])
-                    rows.append(dict(src=tag, spec=spec, win=w, bucket=bn, era=era, **d))
+                    rows.append(dict(src=tag, grp=grp, spec=spec, win=w, bucket=bn, era=era, **d))
 C = pd.DataFrame(rows); C.to_csv(os.path.join(RES,'v2_cond.csv'), index=False)
-piv = C[(C.era == 'all')].copy()
+piv = C[(C.era == 'all') & (C.grp == 'ALL')].copy()
 piv['cell'] = piv.apply(lambda r: f"{r.m:+.2f} ({r.hit:.0%}, t{r.t:+.1f}, n{r.n})" if r.n >= 5 else f"n{r.n}", axis=1)
 for tag in ['nc', 'mm']:
     print(f'\n-- source {tag} --')
@@ -54,7 +57,7 @@ for tag in ['nc', 'mm']:
 print('\n=== C. per market, nc source, s1 & px, extremes ===')
 rows = []
 for spec in ['s1', 'px']:
-    for root in ['CT', 'KC', 'SB', 'CC']:
+    for root in [r for r in bt.MARKETS if r in set(E.root)]:
         g = E[(E.spec == spec) & (E.root == root)]
         for w in ['pre20', 'rogers', 'gsci_d3']:
             pc = g['nc_pct'] if w == 'pre20' else g['nc_pct_r']
