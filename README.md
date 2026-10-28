@@ -22,6 +22,7 @@ The question it answers each week: *where are speculators and commercials positi
 | **Triggers & Flows** | For every market: price levels where the 20/55/100-day breakouts and 50/100/200-day averages would flip (on the tradable contract, with distance in % and ATR), managed-money dollar exposure and weekly flows by sector, and a 26-week heatmap of fund positioning percentiles. |
 | **Scatter** | Commercials vs funds percentile maps (contracts and % of open interest), plus "crowded and still adding vs crowded and exiting". |
 | **Seasonality** | Weekly positioning by year against a 5-year range and average, for any market or basket, with crop-year panels for grains and softs. |
+| **Softs Seasonals** | Cotton, arabica coffee, raw sugar and cocoa price seasonality since 2000: seasonal trades with their next dates, seasonal charts of each contract and calendar spread by weeks to first notice, contract-by-month and front-month heat maps, the first three calendar spreads by month, and the first-notice switch into the next contract. Refreshed every weekday after the ICE close. |
 | **COT Analyzer / Custom Formula** | Full weekly history for one market across all four trader categories and crop years, with price on a right-hand axis (hidden automatically if the price feed is missing or stale), plus a formula builder for custom positioning ratios. |
 
 Direct links: add a ticker or tab to the URL, e.g. `#CT` opens cotton in the COT Analyzer, `#index` or `#levels` opens that tab. The search box in the tab bar jumps to any market.

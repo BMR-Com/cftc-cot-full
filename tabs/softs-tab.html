@@ -1,0 +1,80 @@
+<style>
+#sft{--sft-up:#0f7a3d;--sft-dn:#c4302b;--sft-mut:#6c757d;--sft-b:#dee2e6;--sft-acc:#2a5298;font-size:14px;color:#1a1a1a}
+#sft .sft-card{background:#fff;border:1px solid var(--sft-b);border-radius:10px;padding:14px 16px;margin:0 0 16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+#sft h2{font-size:1.05em;margin:0 0 4px;color:#1e3c72}
+#sft .sft-sub{color:var(--sft-mut);font-size:.82em;margin:0 0 10px}
+#sft .sft-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+#sft .sft-lab{font-size:.72em;color:var(--sft-mut);text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
+#sft .sft-chip{font:inherit;font-size:.8em;padding:4px 11px;border-radius:999px;border:1px solid var(--sft-b);background:#fff;color:#444;cursor:pointer;margin:0;text-transform:none;letter-spacing:0}
+#sft .sft-chip.on{background:var(--sft-acc);border-color:var(--sft-acc);color:#fff}
+#sft .sft-chip:hover:not(:disabled){transform:none}
+#sft table{border-collapse:collapse;width:100%;font-size:.8em;font-variant-numeric:tabular-nums}
+#sft th{background:#f4f6fa;color:#34495e;font-weight:600;font-size:.86em;padding:6px 6px;border-bottom:1px solid var(--sft-b);text-align:right;white-space:nowrap;position:static}
+#sft td{padding:5px 6px;border-bottom:1px solid #eef0f3;text-align:right;white-space:nowrap}
+#sft th:first-child,#sft td:first-child{text-align:left}
+#sft td.l{text-align:left;white-space:normal}
+#sft .sft-tw{overflow-x:auto}
+#sft .up{color:var(--sft-up);font-weight:600}#sft .dn{color:var(--sft-dn);font-weight:600}#sft .mu{color:var(--sft-mut)}
+#sft .soon{background:#fff8e1}
+#sft .tag{display:inline-block;font-size:.72em;font-weight:700;padding:1px 6px;border-radius:5px;background:#ffe066;color:#5b4500;margin-left:6px}
+#sft .l5 span{display:inline-block;min-width:34px;padding:1px 4px;margin:0 1px;border-radius:4px;font-size:.92em;text-align:center}
+#sft .hm td{text-align:center;min-width:52px;padding:6px 4px}
+#sft .hm td.rl{text-align:left;font-weight:600;min-width:80px}
+#sft .hm td small{display:block;font-size:.78em;opacity:.8}
+#sft .hm td.dlv{outline:2px dashed #b0b7c3;outline-offset:-3px}
+#sft .grid td{min-width:40px;padding:4px 3px;text-align:center;font-size:.92em}
+#sft .grid tr.ft td{font-weight:700;border-top:2px solid var(--sft-b)}
+#sft .sft-note{font-size:.76em;color:var(--sft-mut);margin-top:8px}
+#sft .sft-two{display:block}
+</style>
+<div id="sft" style="padding:18px 20px;max-width:1500px;margin:0 auto;">
+  <div class="sft-card">
+    <h2>🌱 Softs seasonals — cotton, arabica coffee, raw sugar, cocoa</h2>
+    <p class="sft-sub" id="sftAsof">Loading…</p>
+    <div class="sft-bar" id="sftMk"><span class="sft-lab">Market</span></div>
+  </div>
+
+  <div class="sft-card">
+    <h2>Seasonal trades</h2>
+    <p class="sft-sub">Rules that held in at least 70% of years since 2000 and worked in both halves of the history. Next window = the next time the rule is due; rows highlighted when it starts within 45 days. Spread rules are one lot each leg; "sell front" means short the nearby, long the deferred.</p>
+    <div class="sft-bar"><span class="sft-lab">Show</span><button class="sft-chip on" data-scope="all">All markets</button><button class="sft-chip" data-scope="mk">Selected market</button></div>
+    <div class="sft-tw"><table id="sftTrades"></table></div>
+  </div>
+
+  <div class="sft-card">
+    <h2>Seasonal chart — price and spreads by weeks to first notice</h2>
+    <div class="sft-bar" id="sftSeasChips"><span class="sft-lab">Series</span></div>
+    <div style="font-size:.78em;color:#555;margin:2px 0 6px;"><span style="color:#2a78d6">■</span> current contract &nbsp; <span style="color:#eb6834">■</span> same contract last year &nbsp; <span style="color:#8a8984">■</span> 5-yr average &nbsp; shaded: 10–90th and 25–75th percentile of all years</div>
+    <div style="position:relative;height:340px"><canvas id="sftSeas"></canvas></div>
+    <div class="sft-tw" style="margin-top:10px"><table id="sftPct"></table></div>
+    <p class="sft-note">Each contract is aligned on weeks before its first notice day (last trading day for sugar), so the same point in every season lines up. Percentile = share of past seasons below today's level at the same week.</p>
+  </div>
+
+  <div class="sft-two">
+    <div class="sft-card">
+      <h2>Contract return by calendar month</h2>
+      <div class="sft-bar"><span class="sft-lab">Cell</span><button class="sft-chip on" data-hm="avg">Average %</button><button class="sft-chip" data-hm="hit">% of years up</button></div>
+      <div class="sft-tw"><table class="hm" id="sftHm"></table></div>
+      <p class="sft-note">Row = contract (e.g. Mar), column = calendar month in the 12 months before delivery. Return from the last close of the prior month to the last close of the month, stopping before first notice. Dashed cell = the month first notice falls in (partial month).</p>
+    </div>
+    <div class="sft-card">
+      <h2>Calendar spreads by month — first three spreads</h2>
+      <div class="sft-bar"><span class="sft-lab">Cell</span><button class="sft-chip on" data-sp="avg">Average change</button><button class="sft-chip" data-sp="hit">% of years front gained</button></div>
+      <div class="sft-tw"><table class="hm" id="sftSp"></table></div>
+      <p class="sft-note">Spread = nearby minus deferred, for the front contract that does not reach first notice in that month. Positive = front gained on the deferred (bull spread). Cell shows the pair traded in that month.</p>
+    </div>
+  </div>
+
+  <div class="sft-card">
+    <h2>Front-month return heat map — year by month</h2>
+    <div class="sft-tw"><table class="grid" id="sftGrid"></table></div>
+    <p class="sft-note">Front = nearest contract whose first notice is after month end, so each month is measured on one contract with no roll gap.</p>
+  </div>
+
+  <div class="sft-card">
+    <h2>First-notice switch — buy the next contract 5 days before the front's first notice</h2>
+    <div class="sft-tw"><table id="sftFnd"></table></div>
+    <p class="sft-note">Entry at the close 5 trading days before the front contract's first notice (sugar: last trade), held 10 or 21 trading days. Last 5 = most recent years, % return.</p>
+  </div>
+  <p class="sft-note" id="sftFoot"></p>
+</div>
