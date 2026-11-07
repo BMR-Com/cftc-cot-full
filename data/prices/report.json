@@ -1,5 +1,5 @@
 {
- "fetched_at": "2026-11-07 00:26 UTC",
+ "fetched_at": "2026-11-07 03:02 UTC",
  "source": "Yahoo Finance via yfinance (front-month continuous)",
  "markets": {
   "CO": {
@@ -135,8 +135,8 @@
    "front": "F27",
    "deferred": "F28",
    "p_front": 97.76,
-   "p_deferred": 78.49,
-   "carry_ann": 0.2195,
+   "p_deferred": 79.76,
+   "carry_ann": 0.2035,
    "date": "2026-11-06"
   },
   "NG": {
@@ -159,16 +159,16 @@
    "front": "F27",
    "deferred": "F28",
    "p_front": 4.2301,
-   "p_deferred": 3.2694,
-   "carry_ann": 0.2576,
+   "p_deferred": 3.3039,
+   "carry_ann": 0.2471,
    "date": "2026-11-06"
   },
   "XB": {
    "front": "F27",
    "deferred": "F28",
    "p_front": 2.7177,
-   "p_deferred": 2.3001,
-   "carry_ann": 0.1668,
+   "p_deferred": 2.3289,
+   "carry_ann": 0.1544,
    "date": "2026-11-06"
   },
   "C": {
