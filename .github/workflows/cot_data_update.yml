@@ -4,7 +4,10 @@ on:
   schedule:
     # CFTC publishes Fri 3:30 PM ET (19:30 UTC summer / 20:30 UTC winter).
     # Run after release in both seasons, then retry for late/holiday-delayed reports.
+    - cron: '41 19 * * 5'   # Fri 3:41 PM EDT, just after the 3:30 PM ET release (GitHub often starts scheduled runs late, so several tries)
     - cron: '50 20 * * 5'   # Fri 3:50 PM ET (winter) / 4:50 PM ET (summer)
+    - cron: '13 21 * * 5'
+    - cron: '47 21 * * 5'
     - cron: '30 23 * * 5'   # Fri evening retry
     - cron: '0 14 * * 6'    # Sat morning retry
     - cron: '0 14 * * 1'    # Mon retry (holiday weeks publish Monday)
