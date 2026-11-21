@@ -1,5 +1,5 @@
 {
- "fetched_at": "2026-11-21 00:57 UTC",
+ "fetched_at": "2026-11-21 01:49 UTC",
  "source": "Yahoo Finance via yfinance (front-month continuous)",
  "markets": {
   "CO": {
@@ -119,9 +119,9 @@
   },
   "LC": {
    "yahoo": "LE=F",
-   "rows_fetched": 0,
-   "last": null,
-   "status": "no data"
+   "rows_fetched": 23,
+   "last": "2026-11-20",
+   "status": "ok"
   },
   "LH": {
    "yahoo": "HE=F",
@@ -307,7 +307,7 @@
   "risk_off": true
  },
  "summary": {
-  "markets_ok": 20,
+  "markets_ok": 21,
   "markets_total": 21,
   "carry_ok": 20
  }
